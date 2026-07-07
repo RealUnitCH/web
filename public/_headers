@@ -1,0 +1,10 @@
+# Cloudflare Pages — header rules (static, no build)
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'
+
+# Image assets have stable names → cache aggressively
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
