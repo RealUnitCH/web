@@ -8,24 +8,31 @@ A single-image landing page — one hero image from the RealUnit app, nothing el
 Deliberately **without a build toolchain**: plain HTML + assets in `public/`,
 uploaded to Cloudflare Pages.
 
-- `public/index.html` — landing, shows `assets/hero.png` centered on a light background
-- `public/assets/hero.png` — hero (source: the app's splash background)
+- `public/index.html` — landing, shows `assets/hero.jpg` centered on a light background
+- `public/assets/hero.jpg` — hero (source: the app's splash background)
 - `public/assets/og.png` — social sharing image (source: the app's Android feature graphic)
 - `public/assets/favicon.svg` — app icon
 - `public/_headers` — security headers + cache-control for Cloudflare Pages
 
-## Deployment (Cloudflare Pages, Direct Upload)
+## Branching & deployment
 
-No build. `.github/workflows/deploy.yml` uploads `public/` to the Cloudflare
-Pages project `realunit-web` via `wrangler pages deploy` on every push to `main`.
+Same `develop → main` flow as the other DFX Cloudflare-Pages sites (e.g. `landing-page`):
 
-Required repo secrets:
+- Feature branches → PR into **`develop`** (default branch)
+- Push to `develop` → `.github/workflows/dev.yaml` deploys `public/` to the DEV
+  Pages project `realunit-web-dev` → **dev.realunit.app**
+- `.github/workflows/auto-release-pr.yaml` opens/updates a `develop → main` release PR
+- Merge to `main` → `.github/workflows/prd.yaml` deploys `public/` to the PRD
+  Pages project `realunit-web` → **realunit.app**
+
+Both deploys are Direct Upload via `wrangler pages deploy` (no build step).
+
+Required repo secrets (both environments share them):
 - `CLOUDFLARE_API_TOKEN` — scoped to *Account → Cloudflare Pages: Edit*
 - `CLOUDFLARE_ACCOUNT_ID`
 
-The custom domain `realunit.app` is attached to the `realunit-web` project in the
-DNS/deployment configuration (apex → Pages, `www` → apex redirect). The
-`handbook.` subdomain is unaffected.
+The custom domains `realunit.app` / `dev.realunit.app` are attached to the Pages
+projects in the DNS/deployment configuration. The `handbook.` subdomain is unaffected.
 
 ## Roadmap (v2+)
 
