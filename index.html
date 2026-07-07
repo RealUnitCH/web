@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RealUnit Wallet</title>
+  <meta name="description" content="RealUnit Wallet — Sicher. Einfach. Bankenunabhängig. Vermögensschutz aus der Schweiz." />
+  <meta name="theme-color" content="#1988C6" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+
+  <!-- Social sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="RealUnit Wallet" />
+  <meta property="og:description" content="Sicher. Einfach. Bankenunabhängig. Vermögensschutz aus der Schweiz." />
+  <meta property="og:image" content="/assets/og.png" />
+  <meta property="og:url" content="https://realunit.app/" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <style>
+    :root {
+      /* tone at the top edge of the hero so it blends into the page */
+      --bg: #f2f6fa;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* subtle gradient for wide viewports instead of a flat fill */
+      background-image: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, var(--bg) 60%, #e7eef5 100%);
+    }
+    main {
+      width: 100%;
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(0px, 3vw, 48px);
+    }
+    .hero {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: min(100%, 820px);
+      max-height: 100vh;
+      object-fit: contain;
+      /* square image with a light border → no frame/shadow needed */
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    @media (max-width: 640px) {
+      main { padding: 0; }
+      .hero { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img
+      class="hero"
+      src="/assets/hero.png"
+      width="5120" height="5120"
+      alt="RealUnit Wallet — Sicher. Einfach. Bankenunabhängig. Vermögensschutz aus der Schweiz."
+      fetchpriority="high"
+      decoding="async"
+    />
+  </main>
+</body>
+</html>
