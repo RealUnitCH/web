@@ -4,7 +4,7 @@ The website served at **realunit.app**. Public, static.
 
 ## v1 (current)
 
-A single-image landing page — one hero image from the RealUnit app, nothing else.
+A minimal landing page — one hero image from the RealUnit app plus the three download buttons.
 Deliberately **without a build toolchain**: plain HTML + assets in `public/`,
 uploaded to Cloudflare Pages.
 
