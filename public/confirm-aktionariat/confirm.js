@@ -132,7 +132,13 @@
       '&code=' + encodeURIComponent(code) +
       '&user=' + encodeURIComponent(user);
 
-    fetch(url, { method: 'GET', headers: { Accept: 'application/json' } })
+    // Abort a stalled request so the spinner can never hang forever.
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () {
+      controller.abort();
+    }, 15000);
+
+    fetch(url, { method: 'GET', headers: { Accept: 'application/json' }, signal: controller.signal })
       .then(function (res) {
         return res
           .json()
@@ -144,6 +150,7 @@
           });
       })
       .then(function (r) {
+        clearTimeout(timeoutId);
         // Any non-2xx from the DFX API itself (validation 400, rate-limit 429,
         // 5xx) is a transient/unknown state → retryable, never a rejection.
         if (!r.ok) {
@@ -155,7 +162,8 @@
         else render('unavailable');
       })
       .catch(function () {
-        render('unavailable'); // network error → retryable
+        clearTimeout(timeoutId);
+        render('unavailable'); // network error / timeout (abort) → retryable
       });
   }
 
