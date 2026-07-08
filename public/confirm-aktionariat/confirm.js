@@ -4,6 +4,8 @@
   // --- i18n (de default, en) ---
   var I18N = {
     de: {
+      'doc.title': 'RealUnit — Adressbestätigung',
+      'doc.desc': 'Bestätigung deiner RealUnit-Wallet-Adresse.',
       'loading.title': 'Bestätigung läuft…',
       'loading.body': 'Einen Moment, wir bestätigen deine Wallet-Adresse.',
       'confirmed.title': 'Adresse bestätigt',
@@ -15,8 +17,14 @@
       'unavailable.body': 'Wir konnten die Bestätigung gerade nicht abschliessen. Bitte versuche es in ein paar Minuten erneut.',
       'unavailable.cta': 'Erneut versuchen',
       'stores.hint': 'App noch nicht installiert?',
+      'stores.apple.aria': 'RealUnit im App Store laden',
+      'stores.apple.alt': 'Laden im App Store',
+      'stores.play.aria': 'RealUnit jetzt bei Google Play',
+      'stores.play.alt': 'Jetzt bei Google Play',
     },
     en: {
+      'doc.title': 'RealUnit — Address confirmation',
+      'doc.desc': 'Confirm your RealUnit wallet address.',
       'loading.title': 'Confirming…',
       'loading.body': 'One moment — we’re confirming your wallet address.',
       'confirmed.title': 'Address confirmed',
@@ -28,24 +36,43 @@
       'unavailable.body': 'We couldn’t complete the confirmation right now. Please try again in a few minutes.',
       'unavailable.cta': 'Try again',
       'stores.hint': 'App not installed yet?',
+      'stores.apple.aria': 'Download RealUnit on the App Store',
+      'stores.apple.alt': 'Download on the App Store',
+      'stores.play.aria': 'Get RealUnit on Google Play',
+      'stores.play.alt': 'Get it on Google Play',
     },
   };
 
   var params = new URLSearchParams(window.location.search);
+  var host = window.location.hostname;
+  var isRealUnitHost = host === 'realunit.app' || host === 'www.realunit.app' || host === 'dev.realunit.app';
+
   var lang = (params.get('lang') || navigator.language || 'de').slice(0, 2).toLowerCase();
   if (!I18N[lang]) lang = 'de';
   document.documentElement.lang = lang;
   var t = I18N[lang];
+
+  // Apply translations: text content, alt text, aria-label, and document meta.
   document.querySelectorAll('[data-i18n]').forEach(function (el) {
-    var key = el.getAttribute('data-i18n');
-    if (t[key]) el.textContent = t[key];
+    var v = t[el.getAttribute('data-i18n')];
+    if (v) el.textContent = v;
   });
+  document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+    var v = t[el.getAttribute('data-i18n-alt')];
+    if (v) el.setAttribute('alt', v);
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
+    var v = t[el.getAttribute('data-i18n-aria')];
+    if (v) el.setAttribute('aria-label', v);
+  });
+  if (t['doc.title']) document.title = t['doc.title'];
+  var descEl = document.querySelector('meta[name="description"]');
+  if (descEl && t['doc.desc']) descEl.setAttribute('content', t['doc.desc']);
 
   // --- API base URL, derived explicitly from host (no silent default) ---
   function apiBase() {
-    var h = window.location.hostname;
-    if (h === 'realunit.app' || h === 'www.realunit.app') return 'https://api.dfx.swiss';
-    if (h === 'dev.realunit.app') return 'https://dev.api.dfx.swiss';
+    if (host === 'realunit.app' || host === 'www.realunit.app') return 'https://api.dfx.swiss';
+    if (host === 'dev.realunit.app') return 'https://dev.api.dfx.swiss';
     // local preview / unknown host: allow ?api= override, else DEV.
     return params.get('api') || 'https://dev.api.dfx.swiss';
   }
@@ -79,9 +106,11 @@
   function confirm() {
     show('loading');
 
-    // Mock hook for local preview (?mock=confirmed|invalid|unavailable).
+    // Mock hook for LOCAL preview only (?mock=confirmed|invalid|unavailable).
+    // Never honored on the real realunit.app / dev.realunit.app hosts, so a
+    // shared prod link cannot render a spoofed confirmation screen.
     var mock = params.get('mock');
-    if (mock) {
+    if (mock && !isRealUnitHost) {
       setTimeout(function () {
         render(mock);
       }, 400);
@@ -115,6 +144,12 @@
           });
       })
       .then(function (r) {
+        // Any non-2xx from the DFX API itself (validation 400, rate-limit 429,
+        // 5xx) is a transient/unknown state → retryable, never a rejection.
+        if (!r.ok) {
+          render('unavailable');
+          return;
+        }
         var status = r.body && r.body.status;
         if (status === 'confirmed' || status === 'invalid' || status === 'unavailable') render(status);
         else render('unavailable');

@@ -66,55 +66,58 @@
   </style>
 </head>
 <body>
-  <main class="card" role="status" aria-live="polite">
+  <main class="card">
     <img class="logo" src="/assets/favicon.svg" alt="RealUnit" />
 
-    <!-- loading -->
-    <div id="state-loading">
-      <div class="icon icon--wait"><div class="spinner"></div></div>
-      <h1 data-i18n="loading.title">Bestätigung läuft…</h1>
-      <p data-i18n="loading.body">Einen Moment, wir bestätigen deine Wallet-Adresse.</p>
-    </div>
-
-    <!-- confirmed -->
-    <div id="state-confirmed" hidden>
-      <div class="icon icon--ok">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    <!-- live region: only the changing state is announced, main stays a landmark -->
+    <div class="live" role="status" aria-live="polite">
+      <!-- loading -->
+      <div id="state-loading">
+        <div class="icon icon--wait"><div class="spinner"></div></div>
+        <h1 data-i18n="loading.title">Bestätigung läuft…</h1>
+        <p data-i18n="loading.body">Einen Moment, wir bestätigen deine Wallet-Adresse.</p>
       </div>
-      <h1 data-i18n="confirmed.title">Adresse bestätigt</h1>
-      <p data-i18n="confirmed.body">Deine RealUnit-Wallet-Adresse ist jetzt verknüpft. Du kannst in der App fortfahren.</p>
-      <a id="open-app" class="btn" href="#" data-i18n="confirmed.cta">In der App öffnen</a>
-    </div>
 
-    <!-- invalid -->
-    <div id="state-invalid" hidden>
-      <div class="icon icon--warn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+      <!-- confirmed -->
+      <div id="state-confirmed" hidden>
+        <div class="icon icon--ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h1 data-i18n="confirmed.title">Adresse bestätigt</h1>
+        <p data-i18n="confirmed.body">Deine RealUnit-Wallet-Adresse ist jetzt verknüpft. Du kannst in der App fortfahren.</p>
+        <a id="open-app" class="btn" href="#" data-i18n="confirmed.cta">In der App öffnen</a>
       </div>
-      <h1 data-i18n="invalid.title">Link ungültig oder abgelaufen</h1>
-      <p data-i18n="invalid.body">Dieser Bestätigungslink ist ungültig oder bereits abgelaufen. Bitte fordere in der App einen neuen an.</p>
-    </div>
 
-    <!-- unavailable -->
-    <div id="state-unavailable" hidden>
-      <div class="icon icon--wait">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      <!-- invalid -->
+      <div id="state-invalid" hidden>
+        <div class="icon icon--warn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+        </div>
+        <h1 data-i18n="invalid.title">Link ungültig oder abgelaufen</h1>
+        <p data-i18n="invalid.body">Dieser Bestätigungslink ist ungültig oder bereits abgelaufen. Bitte fordere in der App einen neuen an.</p>
       </div>
-      <h1 data-i18n="unavailable.title">Dienst vorübergehend nicht erreichbar</h1>
-      <p data-i18n="unavailable.body">Wir konnten die Bestätigung gerade nicht abschliessen. Bitte versuche es in ein paar Minuten erneut.</p>
-      <button id="retry" class="btn" data-i18n="unavailable.cta">Erneut versuchen</button>
-    </div>
 
-    <!-- store fallback (shown with confirmed) -->
-    <div id="stores" class="stores" hidden>
-      <p class="stores-hint" data-i18n="stores.hint">App noch nicht installiert?</p>
-      <div class="stores-row">
-        <a class="store-link" href="https://apps.apple.com/ch/app/realunit/id6759720010" target="_blank" rel="noopener" aria-label="RealUnit im App Store laden">
-          <img class="store-badge store-badge--apple" src="/assets/badge-app-store.svg" alt="Laden im App Store" decoding="async" />
-        </a>
-        <a class="store-link" href="https://play.google.com/store/apps/details?id=swiss.realunit.app" target="_blank" rel="noopener" aria-label="RealUnit jetzt bei Google Play">
-          <img class="store-badge store-badge--play" src="/assets/badge-google-play.png" alt="Jetzt bei Google Play" decoding="async" />
-        </a>
+      <!-- unavailable -->
+      <div id="state-unavailable" hidden>
+        <div class="icon icon--wait">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        </div>
+        <h1 data-i18n="unavailable.title">Dienst vorübergehend nicht erreichbar</h1>
+        <p data-i18n="unavailable.body">Wir konnten die Bestätigung gerade nicht abschliessen. Bitte versuche es in ein paar Minuten erneut.</p>
+        <button id="retry" class="btn" data-i18n="unavailable.cta">Erneut versuchen</button>
+      </div>
+
+      <!-- store fallback (shown with confirmed) -->
+      <div id="stores" class="stores" hidden>
+        <p class="stores-hint" data-i18n="stores.hint">App noch nicht installiert?</p>
+        <div class="stores-row">
+          <a class="store-link" href="https://apps.apple.com/ch/app/realunit/id6759720010" target="_blank" rel="noopener" data-i18n-aria="stores.apple.aria" aria-label="RealUnit im App Store laden">
+            <img class="store-badge store-badge--apple" src="/assets/badge-app-store.svg" data-i18n-alt="stores.apple.alt" alt="Laden im App Store" decoding="async" />
+          </a>
+          <a class="store-link" href="https://play.google.com/store/apps/details?id=swiss.realunit.app" target="_blank" rel="noopener" data-i18n-aria="stores.play.aria" aria-label="RealUnit jetzt bei Google Play">
+            <img class="store-badge store-badge--play" src="/assets/badge-google-play.png" data-i18n-alt="stores.play.alt" alt="Jetzt bei Google Play" decoding="async" />
+          </a>
+        </div>
       </div>
     </div>
   </main>
