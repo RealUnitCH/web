@@ -8,6 +8,12 @@
   <meta name="theme-color" content="#1988C6" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
 
+  <!-- deliberately blocking (no defer): sets html[data-platform] before the
+       body renders so the platform-matched badge layout paints without a
+       shift. External file because the CSP blocks inline scripts; not under
+       /assets/ because _headers caches that path as immutable. -->
+  <script src="/platform.js"></script>
+
   <!-- Social sharing -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="RealUnit Wallet" />
@@ -98,10 +104,53 @@
       -webkit-user-drag: none;
     }
     /* Apple badge artwork is tight to its frame */
-    .store-badge--apple { height: 52px; }
+    .store-badge--apple { height: var(--badge-h, 52px); }
     /* Google Play badge has built-in transparent clear space (~23% of its
        height); a taller box makes the visible badge match Apple's height */
-    .store-badge--play { height: 68px; }
+    .store-badge--play { height: calc(var(--badge-h, 52px) * 68 / 52); }
+    /* No official APK badge artwork exists, so this button is drawn in CSS to
+       match the store badges: black rounded rect, thin light border, 52px tall */
+    .store-badge--apk {
+      display: inline-flex;
+      align-items: center;
+      height: var(--badge-h, 52px);
+      /* em-sized innards so the drawn badge scales with its height like the
+         image badges do (16px base font at the default 52px height) */
+      font-size: calc(var(--badge-h, 52px) * 16 / 52);
+      gap: 0.625em;
+      padding: 0 0.875em;
+      border-radius: 0.625em;
+      background: #000;
+      border: 1px solid #a6a6a6;
+      color: #fff;
+      /* the page loads no webfonts, so use the system UI font stack */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .store-badge--apk svg { flex: none; width: 1.25em; height: 1.25em; }
+    .store-badge--apk .apk-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125em;
+      text-align: left;
+    }
+    /* two-line badge typography: small top line, larger bottom line */
+    .store-badge--apk .apk-top { font-size: 0.625em; font-weight: 400; }
+    .store-badge--apk .apk-bottom { font-size: 1.125em; font-weight: 600; }
+    /* platform-matched layout: platform.js sets html[data-platform] before
+       first paint; the matching badge sits alone and larger on the first row,
+       the other two shrink onto a row below. Without JS (or on desktop /
+       unknown) no attribute is set and all badges keep the equal-size row. */
+    html[data-platform] .store-link { --badge-h: 40px; }
+    html[data-platform="ios"] .store-link[data-store="apple"],
+    html[data-platform="android"] .store-link[data-store="play"] {
+      --badge-h: 66px;
+      order: -1;
+      flex-basis: 100%;
+      justify-content: center;
+    }
     @media (max-width: 640px) {
       main { padding: 16px 12px 24px; }
       .hero { max-width: 100%; }
@@ -122,6 +171,7 @@
       <nav class="stores" aria-label="App herunterladen">
         <a
           class="store-link"
+          data-store="apple"
           href="https://apps.apple.com/ch/app/realunit/id6759720010"
           target="_blank"
           rel="noopener"
@@ -137,6 +187,7 @@
         </a>
         <a
           class="store-link"
+          data-store="play"
           href="https://play.google.com/store/apps/details?id=swiss.realunit.app"
           target="_blank"
           rel="noopener"
@@ -149,6 +200,29 @@
             alt="Jetzt bei Google Play"
             decoding="async"
           />
+        </a>
+        <!-- APK for Android users without the Play Store: opens the GitHub
+             release page (the .apk is among its assets). "latest" always
+             resolves to the newest production release, pre-releases are
+             excluded. -->
+        <a
+          class="store-link"
+          data-store="apk"
+          href="https://github.com/RealUnitCH/app/releases/latest"
+          target="_blank"
+          rel="noopener"
+          aria-label="RealUnit Android-APK von GitHub laden"
+        >
+          <span class="store-badge--apk">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v10m0 0 4-4m-4 4-4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="apk-lines">
+              <span class="apk-top">Laden von GitHub</span>
+              <span class="apk-bottom">Android APK</span>
+            </span>
+          </span>
         </a>
       </nav>
     </div>

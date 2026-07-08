@@ -8,3 +8,7 @@
 # Image assets have stable names → cache aggressively
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Render-blocking → short max-age so repeat visits paint from cache, updates roll out within an hour
+/platform.js
+  Cache-Control: public, max-age=3600
