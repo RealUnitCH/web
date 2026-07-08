@@ -41,35 +41,117 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: clamp(0px, 3vw, 48px);
+      padding: clamp(12px, 3vw, 44px);
+      min-width: 0;
+    }
+    /* hero + download badges stacked and centered as one block */
+    .stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(18px, 3.2vh, 34px);
+      /* bound to the viewport so a tall hero can't widen the block past
+         the screen and push the badge row out of view on mobile.
+         min-width:0 defeats the flexbox auto-min-size that would otherwise
+         let the height-capped hero force the block wider than the screen. */
+      width: 100%;
+      max-width: 820px;
+      min-width: 0;
     }
     .hero {
       display: block;
       width: auto;
       height: auto;
-      max-width: min(100%, 820px);
-      max-height: 100vh;
+      max-width: 100%;
+      /* leave vertical room for the badge row + gaps + padding so the
+         hero and buttons fit together without scrolling on desktop */
+      max-height: calc(100vh - 200px);
       object-fit: contain;
       /* square image with a light border → no frame/shadow needed */
       user-select: none;
       -webkit-user-drag: none;
     }
+    /* store download buttons */
+    .stores {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 14px 18px;
+    }
+    .store-link {
+      display: inline-flex;
+      border-radius: 10px;
+      transition: transform 120ms ease, opacity 120ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .store-link:hover { opacity: 0.88; }
+    .store-link:active { transform: scale(0.98); }
+    .store-link:focus-visible {
+      outline: 2px solid #1988C6;
+      outline-offset: 3px;
+    }
+    .store-badge {
+      display: block;
+      width: auto;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    /* Apple badge artwork is tight to its frame */
+    .store-badge--apple { height: 52px; }
+    /* Google Play badge has built-in transparent clear space (~23% of its
+       height); a taller box makes the visible badge match Apple's height */
+    .store-badge--play { height: 68px; }
     @media (max-width: 640px) {
-      main { padding: 0; }
+      main { padding: 16px 12px 24px; }
       .hero { max-width: 100%; }
     }
   </style>
 </head>
 <body>
   <main>
-    <img
-      class="hero"
-      src="/assets/hero.jpg"
-      width="1640" height="1640"
-      alt="RealUnit Wallet — Sicher. Einfach. Bankenunabhängig. Vermögensschutz aus der Schweiz."
-      fetchpriority="high"
-      decoding="async"
-    />
+    <div class="stage">
+      <img
+        class="hero"
+        src="/assets/hero.jpg"
+        width="1640" height="1640"
+        alt="RealUnit Wallet — Sicher. Einfach. Bankenunabhängig. Vermögensschutz aus der Schweiz."
+        fetchpriority="high"
+        decoding="async"
+      />
+      <nav class="stores" aria-label="App herunterladen">
+        <a
+          class="store-link"
+          href="https://apps.apple.com/ch/app/realunit/id6759720010"
+          target="_blank"
+          rel="noopener"
+          aria-label="RealUnit im App Store laden"
+        >
+          <img
+            class="store-badge store-badge--apple"
+            src="/assets/badge-app-store.svg"
+            width="120" height="40"
+            alt="Laden im App Store"
+            decoding="async"
+          />
+        </a>
+        <a
+          class="store-link"
+          href="https://play.google.com/store/apps/details?id=swiss.realunit.app"
+          target="_blank"
+          rel="noopener"
+          aria-label="RealUnit jetzt bei Google Play"
+        >
+          <img
+            class="store-badge store-badge--play"
+            src="/assets/badge-google-play.png"
+            width="646" height="250"
+            alt="Jetzt bei Google Play"
+            decoding="async"
+          />
+        </a>
+      </nav>
+    </div>
   </main>
 </body>
 </html>
