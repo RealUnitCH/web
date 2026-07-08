@@ -102,6 +102,34 @@
     /* Google Play badge has built-in transparent clear space (~23% of its
        height); a taller box makes the visible badge match Apple's height */
     .store-badge--play { height: 68px; }
+    /* No official APK badge artwork exists, so this button is drawn in CSS to
+       match the store badges: black rounded rect, thin light border, 52px tall */
+    .store-badge--apk {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 52px;
+      padding: 0 14px;
+      border-radius: 10px;
+      background: #000;
+      border: 1px solid #a6a6a6;
+      color: #fff;
+      /* the page loads no webfonts, so use the system UI font stack */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .store-badge--apk svg { flex: none; }
+    .store-badge--apk .apk-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: left;
+    }
+    /* two-line badge typography: small top line, larger bottom line */
+    .store-badge--apk .apk-top { font-size: 10px; font-weight: 400; }
+    .store-badge--apk .apk-bottom { font-size: 18px; font-weight: 600; }
     @media (max-width: 640px) {
       main { padding: 16px 12px 24px; }
       .hero { max-width: 100%; }
@@ -149,6 +177,27 @@
             alt="Jetzt bei Google Play"
             decoding="async"
           />
+        </a>
+        <!-- Direct APK for Android users without the Play Store. "latest"
+             always resolves to the newest production release (pre-releases
+             are excluded), whose assets include the .apk. -->
+        <a
+          class="store-link"
+          href="https://github.com/RealUnitCH/app/releases/latest"
+          target="_blank"
+          rel="noopener"
+          aria-label="RealUnit Android-APK direkt herunterladen"
+        >
+          <span class="store-badge--apk">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v10m0 0 4-4m-4 4-4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="apk-lines">
+              <span class="apk-top">Direkter Download</span>
+              <span class="apk-bottom">Android APK</span>
+            </span>
+          </span>
         </a>
       </nav>
     </div>
