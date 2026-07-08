@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RealUnit — Adressbestätigung</title>
+  <meta name="description" content="Bestätigung deiner RealUnit-Wallet-Adresse." />
+  <meta name="theme-color" content="#1988C6" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+
+  <style>
+    :root { --bg: #f2f6fa; --blue: #1988C6; --ink: #343233; --muted: #647488; --green: #4CAC36; --red: #E02523; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      background-image: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, var(--bg) 60%, #e7eef5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100%;
+      padding: clamp(16px, 4vw, 48px);
+    }
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(3, 76, 129, 0.08);
+      padding: clamp(28px, 6vw, 44px) clamp(22px, 5vw, 40px);
+      text-align: center;
+    }
+    .logo { width: 44px; height: 48px; margin: 0 auto 22px; display: block; }
+    .icon { width: 64px; height: 64px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+    .icon svg { width: 34px; height: 34px; }
+    .icon--ok { background: rgba(76, 172, 54, 0.12); color: var(--green); }
+    .icon--warn { background: rgba(224, 37, 35, 0.10); color: var(--red); }
+    .icon--wait { background: rgba(25, 136, 198, 0.10); color: var(--blue); }
+    h1 { font-size: clamp(1.25rem, 4.5vw, 1.6rem); margin: 0 0 10px; line-height: 1.25; }
+    p { font-size: 1rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; }
+    .spinner { width: 34px; height: 34px; border: 3px solid rgba(25,136,198,0.25); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 100%; padding: 14px 20px; border: 0; border-radius: 12px;
+      background: var(--blue); color: #fff; font-size: 1rem; font-weight: 600;
+      text-decoration: none; cursor: pointer;
+      transition: opacity 120ms ease, transform 120ms ease;
+    }
+    .btn:hover { opacity: 0.92; }
+    .btn:active { transform: scale(0.99); }
+    .btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+    .stores { margin-top: 26px; padding-top: 22px; border-top: 1px solid #eef2f6; }
+    .stores-hint { font-size: 0.85rem; color: var(--muted); margin: 0 0 12px; }
+    .stores-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px; }
+    .store-link { display: inline-flex; border-radius: 10px; }
+    .store-badge { display: block; user-select: none; -webkit-user-drag: none; }
+    .store-badge--apple { height: 44px; }
+    .store-badge--play { height: 58px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="card" role="status" aria-live="polite">
+    <img class="logo" src="/assets/favicon.svg" alt="RealUnit" />
+
+    <!-- loading -->
+    <div id="state-loading">
+      <div class="icon icon--wait"><div class="spinner"></div></div>
+      <h1 data-i18n="loading.title">Bestätigung läuft…</h1>
+      <p data-i18n="loading.body">Einen Moment, wir bestätigen deine Wallet-Adresse.</p>
+    </div>
+
+    <!-- confirmed -->
+    <div id="state-confirmed" hidden>
+      <div class="icon icon--ok">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      </div>
+      <h1 data-i18n="confirmed.title">Adresse bestätigt</h1>
+      <p data-i18n="confirmed.body">Deine RealUnit-Wallet-Adresse ist jetzt verknüpft. Du kannst in der App fortfahren.</p>
+      <a id="open-app" class="btn" href="#" data-i18n="confirmed.cta">In der App öffnen</a>
+    </div>
+
+    <!-- invalid -->
+    <div id="state-invalid" hidden>
+      <div class="icon icon--warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+      </div>
+      <h1 data-i18n="invalid.title">Link ungültig oder abgelaufen</h1>
+      <p data-i18n="invalid.body">Dieser Bestätigungslink ist ungültig oder bereits abgelaufen. Bitte fordere in der App einen neuen an.</p>
+    </div>
+
+    <!-- unavailable -->
+    <div id="state-unavailable" hidden>
+      <div class="icon icon--wait">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      </div>
+      <h1 data-i18n="unavailable.title">Dienst vorübergehend nicht erreichbar</h1>
+      <p data-i18n="unavailable.body">Wir konnten die Bestätigung gerade nicht abschliessen. Bitte versuche es in ein paar Minuten erneut.</p>
+      <button id="retry" class="btn" data-i18n="unavailable.cta">Erneut versuchen</button>
+    </div>
+
+    <!-- store fallback (shown with confirmed) -->
+    <div id="stores" class="stores" hidden>
+      <p class="stores-hint" data-i18n="stores.hint">App noch nicht installiert?</p>
+      <div class="stores-row">
+        <a class="store-link" href="https://apps.apple.com/ch/app/realunit/id6759720010" target="_blank" rel="noopener" aria-label="RealUnit im App Store laden">
+          <img class="store-badge store-badge--apple" src="/assets/badge-app-store.svg" alt="Laden im App Store" decoding="async" />
+        </a>
+        <a class="store-link" href="https://play.google.com/store/apps/details?id=swiss.realunit.app" target="_blank" rel="noopener" aria-label="RealUnit jetzt bei Google Play">
+          <img class="store-badge store-badge--play" src="/assets/badge-google-play.png" alt="Jetzt bei Google Play" decoding="async" />
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script src="/confirm-aktionariat/confirm.js" defer></script>
+</body>
+</html>

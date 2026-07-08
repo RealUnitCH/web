@@ -3,7 +3,7 @@
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.dfx.swiss https://dev.api.dfx.swiss; object-src 'none'; base-uri 'none'; frame-ancestors 'self'
 
 # Image assets have stable names → cache aggressively
 /assets/*
