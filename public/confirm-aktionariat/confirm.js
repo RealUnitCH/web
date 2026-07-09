@@ -5,22 +5,18 @@
   var I18N = {
     de: {
       'doc.title': 'RealUnit — Adressbestätigung',
-      'doc.desc': 'Bestätigung deiner RealUnit-Wallet-Adresse.',
+      'doc.desc': 'Bestätigung Ihrer RealUnit-Wallet-Adresse.',
       'loading.title': 'Bestätigung läuft…',
-      'loading.body': 'Einen Moment, wir bestätigen deine Wallet-Adresse.',
+      'loading.body': 'Einen Moment, wir bestätigen Ihre Wallet-Adresse.',
       'confirmed.title': 'Adresse bestätigt',
-      'confirmed.body': 'Deine RealUnit-Wallet-Adresse ist jetzt verknüpft. Du kannst in der App fortfahren.',
-      'confirmed.cta': 'In der App öffnen',
+      'confirmed.desktop': 'Ihre RealUnit-Wallet-Adresse ist bestätigt. Kehren Sie auf Ihrem Smartphone zur RealUnit-App zurück.',
+      'confirmed.mobile': 'Ihre RealUnit-Wallet-Adresse ist bestätigt.',
+      'confirmed.cta': 'Zurück zur App',
       'invalid.title': 'Link ungültig oder abgelaufen',
-      'invalid.body': 'Dieser Bestätigungslink ist ungültig oder bereits abgelaufen. Bitte fordere in der App einen neuen an.',
+      'invalid.body': 'Dieser Bestätigungslink ist ungültig oder bereits abgelaufen. Bitte fordern Sie in der App einen neuen an.',
       'unavailable.title': 'Dienst vorübergehend nicht erreichbar',
-      'unavailable.body': 'Wir konnten die Bestätigung gerade nicht abschliessen. Bitte versuche es in ein paar Minuten erneut.',
+      'unavailable.body': 'Wir konnten die Bestätigung gerade nicht abschliessen. Bitte versuchen Sie es in ein paar Minuten erneut.',
       'unavailable.cta': 'Erneut versuchen',
-      'stores.hint': 'App noch nicht installiert?',
-      'stores.apple.aria': 'RealUnit im App Store laden',
-      'stores.apple.alt': 'Laden im App Store',
-      'stores.play.aria': 'RealUnit jetzt bei Google Play',
-      'stores.play.alt': 'Jetzt bei Google Play',
     },
     en: {
       'doc.title': 'RealUnit — Address confirmation',
@@ -28,18 +24,14 @@
       'loading.title': 'Confirming…',
       'loading.body': 'One moment — we’re confirming your wallet address.',
       'confirmed.title': 'Address confirmed',
-      'confirmed.body': 'Your RealUnit wallet address is now linked. You can continue in the app.',
-      'confirmed.cta': 'Open in app',
+      'confirmed.desktop': 'Your RealUnit wallet address is confirmed. Return to the RealUnit app on your phone.',
+      'confirmed.mobile': 'Your RealUnit wallet address is confirmed.',
+      'confirmed.cta': 'Back to the app',
       'invalid.title': 'Link invalid or expired',
       'invalid.body': 'This confirmation link is invalid or has already expired. Please request a new one in the app.',
       'unavailable.title': 'Service temporarily unavailable',
       'unavailable.body': 'We couldn’t complete the confirmation right now. Please try again in a few minutes.',
       'unavailable.cta': 'Try again',
-      'stores.hint': 'App not installed yet?',
-      'stores.apple.aria': 'Download RealUnit on the App Store',
-      'stores.apple.alt': 'Download on the App Store',
-      'stores.play.aria': 'Get RealUnit on Google Play',
-      'stores.play.alt': 'Get it on Google Play',
     },
   };
 
@@ -77,24 +69,24 @@
     return params.get('api') || 'https://dev.api.dfx.swiss';
   }
 
+  // The return-to-app hand-off uses a fixed custom URL scheme, realunit-wallet://open,
+  // hard-coded on the button in the markup — no host derivation needed. realunit.app
+  // claims no Universal/App Link, so the confirmation email always reaches this web
+  // page; the app registers the scheme to re-open itself after confirmation.
+
   var STATES = ['loading', 'confirmed', 'invalid', 'unavailable'];
   function show(state) {
     STATES.forEach(function (s) {
       document.getElementById('state-' + s).hidden = s !== state;
     });
-    document.getElementById('stores').hidden = state !== 'confirmed';
   }
 
-  // Return-to-app: universal link back into the app; on desktop / when the app
-  // isn't installed the store badges below remain the fallback.
-  // TODO(app-links): wire the real deep link once Universal/App Links ship.
-  function wireOpenApp() {
-    document.getElementById('open-app').setAttribute('href', 'https://realunit.app/');
-  }
-
+  // The confirmed state's copy is chosen purely in CSS from html[data-platform]
+  // (set by platform.js before first paint): a phone gets the "back to the app"
+  // button (the realunit-wallet:// scheme only resolves on the device), while a
+  // desktop — where the scheme opens nothing — is told to return on its phone.
   function render(status) {
     if (status === 'confirmed') {
-      wireOpenApp();
       show('confirmed');
     } else if (status === 'invalid') {
       show('invalid');
