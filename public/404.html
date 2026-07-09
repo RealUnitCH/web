@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Seite nicht gefunden — RealUnit</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#1988C6" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+
+  <style>
+    :root {
+      /* same page tone + accent as index.html */
+      --bg: #f2f6fa;
+      --accent: #1988C6;
+      --ink: #1a2733;
+      --muted: #5b6b7a;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      /* identical radial gradient to the landing page so 404 feels in-place */
+      background-image: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, var(--bg) 60%, #e7eef5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      /* the page loads no webfonts, so use the system UI font stack */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    main {
+      width: 100%;
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(16px, 4vw, 44px);
+    }
+    .card {
+      width: 100%;
+      max-width: 460px;
+      text-align: center;
+    }
+    .code {
+      font-size: clamp(56px, 16vw, 88px);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+      margin: 0;
+    }
+    h1 {
+      font-size: clamp(20px, 5vw, 26px);
+      font-weight: 600;
+      margin: 18px 0 0;
+    }
+    p {
+      font-size: clamp(15px, 4vw, 17px);
+      line-height: 1.5;
+      color: var(--muted);
+      margin: 12px 0 0;
+    }
+    .home {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 28px;
+      padding: 12px 22px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 120ms ease, opacity 120ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .home:hover { opacity: 0.9; }
+    .home:active { transform: scale(0.98); }
+    .home:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="card">
+      <p class="code">404</p>
+      <h1>Seite nicht gefunden</h1>
+      <p>Die aufgerufene Seite existiert nicht oder wurde verschoben.</p>
+      <a class="home" href="/">Zur Startseite</a>
+    </div>
+  </main>
+</body>
+</html>
