@@ -42,7 +42,7 @@
       padding: clamp(28px, 6vw, 44px) clamp(22px, 5vw, 40px);
       text-align: center;
     }
-    .logo { width: 44px; height: 48px; margin: 0 auto 22px; display: block; }
+    .logo { display: block; height: 40px; width: auto; max-width: 100%; margin: 0 auto 24px; }
     .icon { width: 64px; height: 64px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
     .icon svg { width: 34px; height: 34px; }
     .icon--ok { background: rgba(76, 172, 54, 0.12); color: var(--green); }
@@ -75,7 +75,7 @@
 </head>
 <body>
   <main class="card">
-    <img class="logo" src="/assets/favicon.svg" alt="RealUnit" />
+    <img class="logo" src="/assets/realunit-logo.png" width="900" height="267" alt="RealUnit Schweiz AG" />
 
     <!-- live region: only the changing state is announced, main stays a landmark -->
     <div class="live" role="status" aria-live="polite">
