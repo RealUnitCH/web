@@ -35,17 +35,20 @@ export const VIEWS = [
   { slug: 'home-ios', path: '/', platform: 'ios', projects: ['mobile-safari'] },
   { slug: 'home-android', path: '/', platform: 'android', projects: ['mobile-safari'] },
 
-  // Confirm — confirmed state, desktop copy ("return on your phone").
+  // Confirm-page language is pinned explicitly per view: the page's default
+  // follows navigator.language (Playwright's default locale is en-US), so the DE
+  // and EN views set ?lang= to snapshot each language deterministically.
+  // Confirm — confirmed state, German, desktop copy ("return on your phone").
   {
     slug: 'confirm-confirmed',
-    path: '/confirm-aktionariat/?mock=confirmed',
+    path: '/confirm-aktionariat/?mock=confirmed&lang=de',
     waitFor: 'confirmed',
     projects: ['desktop-chromium', 'tablet-chromium'],
   },
   // Confirm — confirmed state on a phone: the "back to the app" button appears.
   {
     slug: 'confirm-confirmed-mobile',
-    path: '/confirm-aktionariat/?mock=confirmed',
+    path: '/confirm-aktionariat/?mock=confirmed&lang=de',
     platform: 'ios',
     waitFor: 'confirmed',
     projects: ['mobile-safari'],
@@ -60,7 +63,7 @@ export const VIEWS = [
   // Confirm — invalid state (bad/expired link).
   {
     slug: 'confirm-invalid',
-    path: '/confirm-aktionariat/?mock=invalid',
+    path: '/confirm-aktionariat/?mock=invalid&lang=de',
     waitFor: 'invalid',
     projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'],
   },
@@ -73,7 +76,7 @@ export const VIEWS = [
   // Confirm — service unavailable (the retry button is shown).
   {
     slug: 'confirm-unavailable',
-    path: '/confirm-aktionariat/?mock=unavailable',
+    path: '/confirm-aktionariat/?mock=unavailable&lang=de',
     waitFor: 'unavailable',
     projects: ['desktop-chromium', 'mobile-safari'],
   },
