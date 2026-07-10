@@ -31,7 +31,8 @@ Same `develop → main` flow as the other DFX Cloudflare-Pages sites (e.g. `land
 Both deploys are Direct Upload via `wrangler pages deploy` (no build step).
 
 Required repo secrets (both environments share them):
-- `CLOUDFLARE_API_TOKEN` — scoped to *Account → Cloudflare Pages: Edit*
+
+- `CLOUDFLARE_API_TOKEN` — scoped to _Account → Cloudflare Pages: Edit_
 - `CLOUDFLARE_ACCOUNT_ID`
 
 The custom domains `realunit.app` / `dev.realunit.app` are attached to the Pages

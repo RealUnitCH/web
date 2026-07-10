@@ -6,8 +6,16 @@ import { describe, expect, test } from 'vitest';
 import '../public/js/lib/confirm-core.js';
 
 const core = window.RealUnitConfirm;
-const { SUPPORTED_LANGS, I18N, resolveLang, isRealUnitHost, apiBase, hasRequiredParams, buildConfirmUrl, mapResult } =
-  core;
+const {
+  SUPPORTED_LANGS,
+  I18N,
+  resolveLang,
+  isRealUnitHost,
+  apiBase,
+  hasRequiredParams,
+  buildConfirmUrl,
+  mapResult,
+} = core;
 
 function resolve(overrides) {
   return resolveLang({
@@ -132,10 +140,7 @@ describe('i18n copy', () => {
   });
 
   test('every data-i18n* key used in the confirm page exists in both languages', () => {
-    const html = readFileSync(
-      new URL('../public/confirm-aktionariat/index.html', import.meta.url),
-      'utf8',
-    );
+    const html = readFileSync('public/confirm-aktionariat/index.html', 'utf8');
     const keys = new Set();
     for (const match of html.matchAll(/data-i18n(?:-alt|-aria)?=["']([^"']+)["']/g)) {
       keys.add(match[1]);

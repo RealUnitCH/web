@@ -79,7 +79,11 @@ export const VIEWS = [
   },
 
   // Custom 404 page.
-  { slug: 'notfound', path: '/404.html', projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'] },
+  {
+    slug: 'notfound',
+    path: '/404.html',
+    projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'],
+  },
 ];
 
 // Projects a given view applies to.

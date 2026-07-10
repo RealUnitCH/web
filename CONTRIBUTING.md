@@ -43,13 +43,13 @@ sanity-check anything touching scripts/images in the dev deployment.
 Every pull request must pass the gates below; CI runs them as required status
 checks.
 
-| Gate              | Command                 | What it enforces                                                                                    |
-| ----------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
-| Formatting        | `npm run format:check`  | Prettier formatting of the maintained code (the hand-written HTML pages are validated, not reformatted) |
-| HTML validity     | `npm run validate:html` | Valid markup on every page under `public/`                                                          |
-| Site completeness | `npm run check:site`    | Every `<html lang>`, every internal link/asset resolves, and each glue script loads its `js/lib` core first |
-| Unit coverage     | `npm run test:coverage` | 100% line/branch/function/statement coverage of the extracted browser logic (`public/js/lib/**`)    |
-| Functional        | `npm run test:e2e`      | Playwright smoke + behavior suite (every page loads, platform detection, the full confirm flow)     |
+| Gate              | Command                 | What it enforces                                                                                                         |
+| ----------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Formatting        | `npm run format:check`  | Prettier formatting of the maintained code (the hand-written HTML pages are validated, not reformatted)                  |
+| HTML validity     | `npm run validate:html` | Valid markup on every page under `public/`                                                                               |
+| Site completeness | `npm run check:site`    | Every `<html lang>`, every internal link/asset resolves, and each glue script loads its `js/lib` core first              |
+| Unit coverage     | `npm run test:coverage` | 100% line/branch/function/statement coverage of the extracted browser logic (`public/js/lib/**`)                         |
+| Functional        | `npm run test:e2e`      | Playwright smoke + behavior suite (every page loads, platform detection, the full confirm flow)                          |
 | Visual regression | `npm run e2e:docker`    | Every view in the visual matrix (page × viewport × language × state) matches its committed baseline, then `check:visual` |
 
 `npm run check` runs the first four locally in one go. The Playwright suites run

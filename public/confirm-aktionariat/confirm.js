@@ -97,7 +97,11 @@
       controller.abort();
     }, 15000);
 
-    fetch(url, { method: 'GET', headers: { Accept: 'application/json' }, signal: controller.signal })
+    fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    })
       .then(function (res) {
         return res
           .json()
