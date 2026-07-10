@@ -12,3 +12,8 @@
 # Render-blocking → short max-age so repeat visits paint from cache, updates roll out within an hour
 /platform.js
   Cache-Control: public, max-age=3600
+
+# Same-origin scripts (incl. render-blocking js/lib/*-core.js) → short max-age so
+# updates roll out within an hour instead of being pinned by an immutable cache
+/js/*
+  Cache-Control: public, max-age=3600

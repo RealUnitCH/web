@@ -1,0 +1,31 @@
+{
+  "name": "realunit-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "serve": "node scripts/dev-server.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "validate:html": "html-validate \"public/**/*.html\"",
+    "check:site": "node scripts/check-site.mjs",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "check:visual": "node scripts/check-visual.mjs",
+    "e2e:docker": "bash scripts/e2e-docker.sh",
+    "e2e:docker:update": "bash scripts/e2e-docker.sh --update-snapshots",
+    "check": "npm run format:check && npm run validate:html && npm run check:site && npm run test:coverage"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "html-validate": "^9.5.3",
+    "jsdom": "^25.0.1",
+    "prettier": "^3.4.2",
+    "vitest": "^3.2.4"
+  }
+}

@@ -10,8 +10,10 @@
 
   <!-- deliberately blocking (no defer): sets html[data-platform] before the
        body renders so the platform-matched badge layout paints without a
-       shift. External file because the CSP blocks inline scripts; not under
-       /assets/ because _headers caches that path as immutable. -->
+       shift. platform-core.js (the pure detection) loads first; platform.js is
+       the DOM glue. External files because the CSP blocks inline scripts; not
+       under /assets/ because _headers caches that path as immutable. -->
+  <script src="/js/lib/platform-core.js"></script>
   <script src="/platform.js"></script>
 
   <!-- Social sharing -->

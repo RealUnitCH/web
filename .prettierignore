@@ -1,0 +1,13 @@
+node_modules
+coverage
+playwright-report
+test-results
+
+# Committed screenshot baselines — binary PNGs, never reformatted.
+tests/__screenshots__
+
+# Hand-written HTML pages — validated by html-validate, not reformatted by
+# prettier, so the shipped markup stays byte-stable.
+*.html
+
+package-lock.json

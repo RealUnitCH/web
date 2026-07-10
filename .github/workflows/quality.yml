@@ -1,0 +1,35 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # npm 11 occasionally aborts with "Exit handler never called"; one retry
+      # keeps the lockfile-strict install without flaking the gate.
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund || npm ci --no-audit --no-fund
+
+      - name: Formatting (prettier)
+        run: npm run format:check
+
+      - name: HTML validity
+        run: npm run validate:html
+
+      - name: Site completeness
+        run: npm run check:site
+
+      - name: Unit tests + 100% coverage
+        run: npm run test:coverage

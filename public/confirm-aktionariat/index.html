@@ -12,8 +12,10 @@
   <!-- deliberately blocking (no defer): sets html[data-platform]="ios"|"android"
        before first paint so the confirmed state can pick its copy (mobile vs.
        desktop) without a flash. Desktop/unknown — and no-JS — get no attribute.
-       External file because the CSP blocks inline scripts; not under /assets/
-       because _headers caches that path as immutable. -->
+       platform-core.js (the pure detection) loads first; platform.js is the DOM
+       glue. External files because the CSP blocks inline scripts; not under
+       /assets/ because _headers caches that path as immutable. -->
+  <script src="/js/lib/platform-core.js"></script>
   <script src="/platform.js"></script>
 
   <style>
@@ -127,6 +129,9 @@
     </div>
   </main>
 
+  <!-- confirm-core.js (pure logic + i18n copy) loads first; confirm.js is the DOM
+       and network glue. Both deferred so they run in order after parsing. -->
+  <script src="/js/lib/confirm-core.js" defer></script>
   <script src="/confirm-aktionariat/confirm.js" defer></script>
 </body>
 </html>
