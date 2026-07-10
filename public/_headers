@@ -9,6 +9,14 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Render-blocking → short max-age so repeat visits paint from cache, updates roll out within an hour
+# Same-origin scripts (incl. the render-blocking js/lib/*-core.js). We set 1h at
+# the origin, but the realunit.app Cloudflare zone's "Browser Cache TTL" (4h)
+# raises any shorter value, so the effective browser cache is ~4h; a longer value
+# like the immutable /assets/* above is respected instead. The point is that these
+# stay OFF the immutable cache so updates still roll out; if the zone ever switches
+# to "Respect Existing Headers", the 1h here applies verbatim.
 /platform.js
+  Cache-Control: public, max-age=3600
+
+/js/*
   Cache-Control: public, max-age=3600

@@ -31,7 +31,8 @@ Same `develop → main` flow as the other DFX Cloudflare-Pages sites (e.g. `land
 Both deploys are Direct Upload via `wrangler pages deploy` (no build step).
 
 Required repo secrets (both environments share them):
-- `CLOUDFLARE_API_TOKEN` — scoped to *Account → Cloudflare Pages: Edit*
+
+- `CLOUDFLARE_API_TOKEN` — scoped to _Account → Cloudflare Pages: Edit_
 - `CLOUDFLARE_ACCOUNT_ID`
 
 The custom domains `realunit.app` / `dev.realunit.app` are attached to the Pages
@@ -44,3 +45,12 @@ projects in the DNS/deployment configuration. The `handbook.` subdomain is unaff
 - Universal Links / App Links (`/.well-known/*`)
 
 From v2 a build toolchain (Astro) is introduced; the plain-image landing stays the home page.
+
+## Testing
+
+The site still ships verbatim — the tooling is dev-only. Pure browser logic lives
+in `public/js/lib/**` and is unit-tested to 100% (Vitest + jsdom); the pages,
+platform detection and the full confirm flow are covered by Playwright
+(functional + screenshot regression). See [CONTRIBUTING](CONTRIBUTING.md#quality-gates)
+for the gate list and commands (`npm run check`, `npm run test:e2e`,
+`npm run e2e:docker`).

@@ -1,14 +1,15 @@
 /* Sets data-platform="ios" | "android" on <html> so the CSS can enlarge the
-   matching store badge. Loaded synchronously in <head> so the attribute is in
-   place before first paint (no layout shift). Desktop/unknown — and no-JS —
-   get no attribute and keep the equal-size badge row. */
+   matching store badge (index) / pick the confirmed-state copy (confirm page).
+   Loaded synchronously in <head>, after js/lib/platform-core.js, so the attribute
+   is in place before first paint (no layout shift). Desktop/unknown — and no-JS —
+   get no attribute and keep the equal-size / desktop layout. */
 (function () {
-  var ua = navigator.userAgent;
-  if (/android/i.test(ua)) {
-    document.documentElement.setAttribute("data-platform", "android");
-  } else if (/iPad|iPhone|iPod/.test(ua) ||
-      // iPadOS reports a Macintosh UA, but real Macs have no touch screen
-      (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) {
-    document.documentElement.setAttribute("data-platform", "ios");
+  'use strict';
+  var platform = window.RealUnitPlatform.detectPlatform(
+    navigator.userAgent,
+    navigator.maxTouchPoints,
+  );
+  if (platform) {
+    document.documentElement.setAttribute('data-platform', platform);
   }
 })();
