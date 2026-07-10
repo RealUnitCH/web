@@ -36,8 +36,8 @@ describe('resolveLang', () => {
     expect(resolve({ urlLang: 'EN-us' })).toBe('en');
   });
 
-  test('ignores an unsupported ?lang= and falls through to the browser language', () => {
-    expect(resolve({ urlLang: 'pt', navigatorLang: 'en-US' })).toBe('en');
+  test('a present but unsupported ?lang= falls back to the default (browser not consulted)', () => {
+    expect(resolve({ urlLang: 'pt', navigatorLang: 'en-US' })).toBe('de');
   });
 
   test('uses the browser language when there is no ?lang=', () => {

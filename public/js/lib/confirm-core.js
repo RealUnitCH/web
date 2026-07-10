@@ -68,18 +68,21 @@
     return value.slice(0, 2).toLowerCase();
   }
 
-  // Resolve the active language: an explicit, supported ?lang= wins, else the
-  // browser's two-letter language if supported, else the explicit default. Both
-  // urlLang and navigatorLang may be null/undefined (no param / no
-  // navigator.language) — they are treated as absent, never as an error.
+  // Resolve the active language. A present ?lang= is authoritative: it is
+  // validated and, if unsupported, falls back to the default WITHOUT consulting
+  // the browser language — the browser is only a fallback when no ?lang= is given.
+  // This mirrors the original short-circuit `(urlLang || navigatorLang ||
+  // default)` + supported check. Both urlLang and navigatorLang may be
+  // null/undefined (no param / no navigator.language) — treated as absent, and an
+  // empty ?lang= (`?lang=`) falls through to the browser just like the original.
   function resolveLang(options) {
     var supported = options.supported;
     var fromUrl = normalizeLang(options.urlLang);
-    if (fromUrl && supported.indexOf(fromUrl) !== -1) {
-      return fromUrl;
+    if (fromUrl) {
+      return supported.indexOf(fromUrl) !== -1 ? fromUrl : options.defaultLang;
     }
     var fromNavigator = normalizeLang(options.navigatorLang);
-    if (fromNavigator && supported.indexOf(fromNavigator) !== -1) {
+    if (supported.indexOf(fromNavigator) !== -1) {
       return fromNavigator;
     }
     return options.defaultLang;
