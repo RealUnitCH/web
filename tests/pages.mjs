@@ -80,6 +80,12 @@ export const VIEWS = [
     waitFor: 'unavailable',
     projects: ['desktop-chromium', 'mobile-safari'],
   },
+  {
+    slug: 'confirm-unavailable-en',
+    path: '/confirm-aktionariat/?mock=unavailable&lang=en',
+    waitFor: 'unavailable',
+    projects: ['desktop-chromium'],
+  },
 
   // Custom 404 page.
   {

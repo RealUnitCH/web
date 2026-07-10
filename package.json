@@ -14,7 +14,7 @@
     "check:site": "node scripts/check-site.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test site.spec.mjs behavior.spec.mjs",
     "check:visual": "node scripts/check-visual.mjs",
     "e2e:docker": "bash scripts/e2e-docker.sh",
     "e2e:docker:update": "bash scripts/e2e-docker.sh --update-snapshots",
