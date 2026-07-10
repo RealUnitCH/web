@@ -1,0 +1,56 @@
+name: Visual regression
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+
+jobs:
+  visual:
+    name: Screenshots
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.61.1-noble
+    steps:
+      - uses: actions/checkout@v4
+
+      # Enforce the determinism guarantee end to end: the @playwright/test pin
+      # must equal the container image tag declared above (read back from this
+      # file), so screenshots always render against the browsers the baselines
+      # were generated with. Bump both together, then regenerate baselines.
+      - name: Guard — Playwright pin matches the container image
+        run: |
+          PKG=$(node -p "require('./package.json').devDependencies['@playwright/test']")
+          IMG=$(grep -oE 'mcr\.microsoft\.com/playwright:v[0-9.]+' .github/workflows/visual.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          echo "package.json @playwright/test=$PKG, workflow image tag=$IMG"
+          if [ "$PKG" != "$IMG" ]; then
+            echo "::error::@playwright/test ($PKG) != Playwright image tag ($IMG). Bump package.json and the visual.yml image tag together, then regenerate baselines."
+            exit 1
+          fi
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+
+      # npm 11 occasionally aborts with "Exit handler never called"; one retry
+      # keeps the lockfile-strict install without flaking the gate.
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund || npm ci --no-audit --no-fund
+
+      - name: Playwright tests + screenshot baseline comparison
+        run: npx playwright test
+
+      - name: Visual coverage gate
+        run: node scripts/check-visual.mjs
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
