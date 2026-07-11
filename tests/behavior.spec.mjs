@@ -1,7 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { forcePlatform } from './helpers.mjs';
 
-const CONFIRM_ENDPOINT = '**/v1/realunit/confirm-aktionariat**';
+// The confirm GET always carries a query string (…/confirm-aktionariat?…); the
+// durable-logging POST is a distinct path (…/confirm-aktionariat/event). Match
+// them with mutually exclusive patterns so an event POST is never mistaken for a
+// confirm request (and vice-versa) by a route or a request counter.
+const CONFIRM_ENDPOINT = /\/v1\/realunit\/confirm-aktionariat\?/;
+const EVENT_ENDPOINT = /\/v1\/realunit\/confirm-aktionariat\/event$/;
 
 // Fulfil the confirm endpoint with a fixed status/body so the fetch → mapResult →
 // render path runs deterministically without a live API call.
@@ -56,30 +61,48 @@ test.describe('platform detection', () => {
 });
 
 test.describe('confirm-aktionariat flow', () => {
-  // The confirmation logic is device-agnostic; run it once on desktop.
+  // The confirmation logic is device-agnostic; run it once on desktop. Every
+  // real (non-mock) path also emits fire-and-forget durable-logging events —
+  // capture their phases here and fulfil the POST so the suite never makes a live
+  // logging call and can assert the lifecycle stages.
+  let eventPhases;
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only confirm-flow checks');
+    eventPhases = [];
+    await page.route(EVENT_ENDPOINT, (route) => {
+      eventPhases.push(route.request().postDataJSON().phase);
+      route.fulfill({ status: 204 });
+    });
   });
 
-  test('a link without params shows the invalid state and makes no API call', async ({ page }) => {
-    const apiCalls = [];
-    page.on('request', (request) => {
-      if (/dfx\.swiss/.test(request.url())) apiCalls.push(request.url());
+  test('a link without params shows the invalid state, makes no confirm request, and logs pageLoaded + missingParams', async ({
+    page,
+  }) => {
+    const confirmCalls = [];
+    await page.route(CONFIRM_ENDPOINT, (route) => {
+      confirmCalls.push(route.request().url());
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
     });
     await page.goto('/confirm-aktionariat/');
     await expect(page.locator('#state-invalid')).toBeVisible();
     await expect(page.locator('#state-loading')).toBeHidden();
-    expect(apiCalls).toEqual([]);
+    await expect.poll(() => eventPhases).toEqual(['pageLoaded', 'missingParams']);
+    expect(confirmCalls).toEqual([]);
   });
 
   for (const state of ['confirmed', 'invalid', 'unavailable']) {
-    test(`?mock=${state} renders the ${state} state`, async ({ page }) => {
+    test(`?mock=${state} renders the ${state} state and emits no durable-logging event`, async ({
+      page,
+    }) => {
       await page.goto(`/confirm-aktionariat/?mock=${state}`);
       await expect(page.locator(`#state-${state}`)).toBeVisible();
+      // The mock hook is a pure local visual preview — it must not write
+      // fabricated outcomes to the durable log.
+      expect(eventPhases).toEqual([]);
     });
   }
 
-  test('a valid link confirmed by the API shows the confirmed state and calls the DEV base', async ({
+  test('a valid link confirmed by the API shows the confirmed state, calls the DEV base, and logs the full lifecycle', async ({
     page,
   }) => {
     let requestedUrl = null;
@@ -97,12 +120,47 @@ test.describe('confirm-aktionariat flow', () => {
     expect(requestedUrl).toContain('email=a%40b.ch');
     expect(requestedUrl).toContain('code=CODE1');
     expect(requestedUrl).toContain('user=U1');
+    await expect.poll(() => eventPhases).toEqual(['pageLoaded', 'requestSent', 'resultConfirmed']);
   });
 
-  test('a non-2xx API response shows the unavailable state', async ({ page }) => {
+  test('the confirm GET lower-cases a mixed-case email but keeps code/user case-sensitive', async ({
+    page,
+  }) => {
+    let requestedUrl = null;
+    await page.route(CONFIRM_ENDPOINT, (route) => {
+      requestedUrl = route.request().url();
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'confirmed' }),
+      });
+    });
+    await page.goto('/confirm-aktionariat/?email=Mixed.Case%40Example.COM&code=CoDe1&user=Uu1');
+    await expect(page.locator('#state-confirmed')).toBeVisible();
+    expect(requestedUrl).toContain('email=mixed.case%40example.com');
+    expect(requestedUrl).not.toContain('Example.COM');
+    expect(requestedUrl).toContain('code=CoDe1');
+    expect(requestedUrl).toContain('user=Uu1');
+  });
+
+  test('a 200 response with the invalid status shows the invalid state and logs resultInvalid', async ({
+    page,
+  }) => {
+    await routeConfirm(page, { status: 200, body: { status: 'invalid' } });
+    await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
+    await expect(page.locator('#state-invalid')).toBeVisible();
+    await expect.poll(() => eventPhases).toEqual(['pageLoaded', 'requestSent', 'resultInvalid']);
+  });
+
+  test('a non-2xx API response shows the unavailable state and logs resultUnavailable', async ({
+    page,
+  }) => {
     await routeConfirm(page, { status: 500, body: {} });
     await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
     await expect(page.locator('#state-unavailable')).toBeVisible();
+    await expect
+      .poll(() => eventPhases)
+      .toEqual(['pageLoaded', 'requestSent', 'resultUnavailable']);
   });
 
   test('a 200 response with an unrecognized status shows the unavailable state', async ({
@@ -111,6 +169,13 @@ test.describe('confirm-aktionariat flow', () => {
     await routeConfirm(page, { status: 200, body: { status: 'weird' } });
     await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
     await expect(page.locator('#state-unavailable')).toBeVisible();
+  });
+
+  test('a network error shows the unavailable state and logs requestError', async ({ page }) => {
+    await page.route(CONFIRM_ENDPOINT, (route) => route.abort());
+    await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
+    await expect(page.locator('#state-unavailable')).toBeVisible();
+    await expect.poll(() => eventPhases).toEqual(['pageLoaded', 'requestSent', 'requestError']);
   });
 
   test('the retry button re-runs the confirmation', async ({ page }) => {

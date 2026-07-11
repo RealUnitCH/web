@@ -114,18 +114,55 @@
     return Boolean(params.email && params.code && params.user);
   }
 
-  // Build the confirmation endpoint URL, encoding each param.
+  // Build the confirmation endpoint URL, encoding each param. The email is
+  // lower-cased before encoding: confirmation links can arrive with a mixed-case
+  // address (mail clients, manual copy) and the address is matched case-
+  // insensitively, so normalizing here avoids a spurious 400 that would surface
+  // to the user as a misleading "temporarily unavailable" loop. code and user are
+  // opaque, case-sensitive tokens and are left untouched.
   function buildConfirmUrl(base, params) {
     return (
       base +
       '/v1/realunit/confirm-aktionariat' +
       '?email=' +
-      encodeURIComponent(params.email) +
+      encodeURIComponent(String(params.email).toLowerCase()) +
       '&code=' +
       encodeURIComponent(params.code) +
       '&user=' +
       encodeURIComponent(params.user)
     );
+  }
+
+  // Build the durable-logging endpoint URL for the confirm lifecycle events. Same
+  // DFX API host as the confirm GET, so it is already covered by the page CSP's
+  // connect-src — no _headers change is needed.
+  function buildEventUrl(base) {
+    return base + '/v1/realunit/confirm-aktionariat/event';
+  }
+
+  // Build the JSON body for a lifecycle event. `phase` is always present; each of
+  // email/code/user is included only when it was actually present on the link
+  // (so a missing-params event carries just the subset that was there), and
+  // `detail` only when supplied (e.g. an error kind). The params are logged
+  // verbatim — the durable log is the diagnostic PII store, so it records exactly
+  // what the link carried (case included), independent of the lower-casing the
+  // confirm request applies.
+  function buildEventBody(phase, params, detail) {
+    var body = { phase: phase };
+    var p = params || {};
+    if (p.email) {
+      body.email = p.email;
+    }
+    if (p.code) {
+      body.code = p.code;
+    }
+    if (p.user) {
+      body.user = p.user;
+    }
+    if (detail) {
+      body.detail = detail;
+    }
+    return body;
   }
 
   // Map an API response to a UI state. Any non-2xx (validation 400, rate-limit
@@ -151,6 +188,8 @@
     apiBase: apiBase,
     hasRequiredParams: hasRequiredParams,
     buildConfirmUrl: buildConfirmUrl,
+    buildEventUrl: buildEventUrl,
+    buildEventBody: buildEventBody,
     mapResult: mapResult,
   };
 })(window);
