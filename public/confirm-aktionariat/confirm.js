@@ -85,11 +85,29 @@
       return;
     }
 
-    var url = core.buildConfirmUrl(core.apiBase({ host: host, paramApi: params.get('api') }), {
-      email: email,
-      code: code,
-      user: user,
+    // Forward the COMPLETE incoming query to the API confirm call — every param the
+    // Aktionariat mail link carries, not just email/code/user — so an extra param
+    // (e.g. a wallet address / connection id) reaches the API's audit log instead of
+    // being dropped here. buildConfirmUrl lower-cases the email and strips the web's
+    // own control params (api/mock).
+    var allParams = {};
+    params.forEach(function (value, key) {
+      allParams[key] = value;
     });
+    // hasRequiredParams gated above on the first-occurrence email/code/user
+    // (URLSearchParams.get). forEach, by contrast, exposes the LAST value of a
+    // duplicated key, so pin the three modelled params back to the validated
+    // first-occurrence locals — otherwise a link with a duplicated key (e.g.
+    // ?email=a&…&email=b) would validate one address but forward the other. Every
+    // other, unmodelled param keeps its forEach value and is still forwarded.
+    allParams.email = email;
+    allParams.code = code;
+    allParams.user = user;
+
+    var url = core.buildConfirmUrl(
+      core.apiBase({ host: host, paramApi: params.get('api') }),
+      allParams,
+    );
 
     // Abort a stalled request so the spinner can never hang forever.
     var controller = new AbortController();

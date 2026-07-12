@@ -114,23 +114,36 @@
     return Boolean(params.email && params.code && params.user);
   }
 
-  // Build the confirmation endpoint URL, encoding each param. The email is
-  // lower-cased before encoding: confirmation links can arrive with a mixed-case
+  // Web-only control params that configure the confirm PAGE itself (the local-
+  // preview API override and the mock hook). They are not part of the Aktionariat
+  // mail-link data, so they are never forwarded to the API.
+  var WEB_ONLY_PARAMS = ['api', 'mock'];
+
+  // Build the confirmation endpoint URL from the COMPLETE incoming query. The email
+  // is lower-cased before encoding: confirmation links can arrive with a mixed-case
   // address (mail clients, manual copy) and the address is matched case-
-  // insensitively, so normalizing here avoids a spurious 400 that would surface
-  // to the user as a misleading "temporarily unavailable" loop. code and user are
-  // opaque, case-sensitive tokens and are left untouched.
+  // insensitively, so normalizing here avoids a spurious 400 that would surface to
+  // the user as a misleading "temporarily unavailable" loop. code and user are
+  // opaque, case-sensitive tokens and are left untouched. Every OTHER param the
+  // link carries (e.g. a wallet address / connection id) is forwarded verbatim so
+  // the API can audit the full incoming request; only the web's own control params
+  // (api/mock) are stripped.
   function buildConfirmUrl(base, params) {
-    return (
-      base +
-      '/v1/realunit/confirm-aktionariat' +
-      '?email=' +
+    var query =
+      'email=' +
       encodeURIComponent(String(params.email).toLowerCase()) +
       '&code=' +
       encodeURIComponent(params.code) +
       '&user=' +
-      encodeURIComponent(params.user)
-    );
+      encodeURIComponent(params.user);
+
+    Object.keys(params).forEach(function (key) {
+      if (key === 'email' || key === 'code' || key === 'user') return;
+      if (WEB_ONLY_PARAMS.indexOf(key) !== -1) return;
+      query += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+    });
+
+    return base + '/v1/realunit/confirm-aktionariat?' + query;
   }
 
   // Map an API response to a UI state. Any non-2xx (validation 400, rate-limit
