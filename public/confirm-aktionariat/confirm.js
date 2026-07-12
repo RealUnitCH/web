@@ -85,11 +85,20 @@
       return;
     }
 
-    var url = core.buildConfirmUrl(core.apiBase({ host: host, paramApi: params.get('api') }), {
-      email: email,
-      code: code,
-      user: user,
+    // Forward the COMPLETE incoming query to the API confirm call — every param the
+    // Aktionariat mail link carries, not just email/code/user — so an extra param
+    // (e.g. a wallet address / connection id) reaches the API's audit log instead of
+    // being dropped here. buildConfirmUrl lower-cases the email and strips the web's
+    // own control params (api/mock).
+    var allParams = {};
+    params.forEach(function (value, key) {
+      allParams[key] = value;
     });
+
+    var url = core.buildConfirmUrl(
+      core.apiBase({ host: host, paramApi: params.get('api') }),
+      allParams,
+    );
 
     // Abort a stalled request so the spinner can never hang forever.
     var controller = new AbortController();

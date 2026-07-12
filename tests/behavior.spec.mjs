@@ -122,6 +122,31 @@ test.describe('confirm-aktionariat flow', () => {
     expect(requestedUrl).toContain('user=Uu1');
   });
 
+  test('the confirm GET forwards extra mail-link params to the API but strips the web-only api knob', async ({
+    page,
+  }) => {
+    let requestedUrl = null;
+    await page.route(CONFIRM_ENDPOINT, (route) => {
+      requestedUrl = route.request().url();
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'confirmed' }),
+      });
+    });
+    // The link carries an extra param the API must audit (address) alongside the web's own control knob (api),
+    // which selects the API base but must not itself be forwarded as a query param.
+    await page.goto(
+      '/confirm-aktionariat/?email=a%40b.ch&code=C&user=U&address=0xAbC123&api=https%3A%2F%2Fapi.example.test',
+    );
+    await expect(page.locator('#state-confirmed')).toBeVisible();
+    // the extra mail-link param reaches the chosen API base...
+    expect(requestedUrl).toContain('https://api.example.test/v1/realunit/confirm-aktionariat');
+    expect(requestedUrl).toContain('address=0xAbC123');
+    // ...while the web-only api knob is not forwarded as a query param.
+    expect(requestedUrl).not.toContain('api=');
+  });
+
   test('a 200 response with the invalid status shows the invalid state', async ({ page }) => {
     await routeConfirm(page, { status: 200, body: { status: 'invalid' } });
     await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
