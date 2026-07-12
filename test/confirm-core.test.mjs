@@ -14,8 +14,6 @@ const {
   apiBase,
   hasRequiredParams,
   buildConfirmUrl,
-  buildEventUrl,
-  buildEventBody,
   mapResult,
 } = core;
 
@@ -130,38 +128,6 @@ describe('buildConfirmUrl', () => {
     expect(url).toContain('code=AbC1');
     expect(url).toContain('user=Uu-9');
     expect(url).not.toContain('B.CH');
-  });
-});
-
-describe('buildEventUrl', () => {
-  test('appends the durable-logging event endpoint to the API base', () => {
-    expect(buildEventUrl('https://dev.api.dfx.swiss')).toBe(
-      'https://dev.api.dfx.swiss/v1/realunit/confirm-aktionariat/event',
-    );
-  });
-});
-
-describe('buildEventBody', () => {
-  test('always carries the phase and omits absent params', () => {
-    expect(buildEventBody('pageLoaded', {}, undefined)).toEqual({ phase: 'pageLoaded' });
-  });
-
-  test('tolerates a missing params object', () => {
-    expect(buildEventBody('missingParams')).toEqual({ phase: 'missingParams' });
-  });
-
-  test('includes only the params that are present (verbatim, not lower-cased)', () => {
-    expect(buildEventBody('missingParams', { email: 'A@b.ch', code: '', user: 'U1' })).toEqual({
-      phase: 'missingParams',
-      email: 'A@b.ch',
-      user: 'U1',
-    });
-  });
-
-  test('includes all params and a detail when supplied', () => {
-    expect(
-      buildEventBody('requestError', { email: 'a@b.ch', code: 'C', user: 'U' }, 'timeout'),
-    ).toEqual({ phase: 'requestError', email: 'a@b.ch', code: 'C', user: 'U', detail: 'timeout' });
   });
 });
 
