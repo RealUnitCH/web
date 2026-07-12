@@ -147,6 +147,31 @@ test.describe('confirm-aktionariat flow', () => {
     expect(requestedUrl).not.toContain('api=');
   });
 
+  test('a duplicated modelled key forwards the validated first occurrence, not the last', async ({
+    page,
+  }) => {
+    let requestedUrl = null;
+    await page.route(CONFIRM_ENDPOINT, (route) => {
+      requestedUrl = route.request().url();
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'confirmed' }),
+      });
+    });
+    // A crafted link repeats email with a second value. hasRequiredParams gates on the
+    // first occurrence (first@x.ch), so the forwarded confirm call must carry that same
+    // first value (lowercased) and never the trailing second@y.ch — while genuine extra
+    // params (address) still pass through verbatim.
+    await page.goto(
+      '/confirm-aktionariat/?email=first%40x.ch&code=C&user=U&address=0xAbC&email=second%40y.ch',
+    );
+    await expect(page.locator('#state-confirmed')).toBeVisible();
+    expect(requestedUrl).toContain('email=first%40x.ch');
+    expect(requestedUrl).not.toContain('second');
+    expect(requestedUrl).toContain('address=0xAbC');
+  });
+
   test('a 200 response with the invalid status shows the invalid state', async ({ page }) => {
     await routeConfirm(page, { status: 200, body: { status: 'invalid' } });
     await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');

@@ -94,6 +94,15 @@
     params.forEach(function (value, key) {
       allParams[key] = value;
     });
+    // hasRequiredParams gated above on the first-occurrence email/code/user
+    // (URLSearchParams.get). forEach, by contrast, exposes the LAST value of a
+    // duplicated key, so pin the three modelled params back to the validated
+    // first-occurrence locals — otherwise a link with a duplicated key (e.g.
+    // ?email=a&…&email=b) would validate one address but forward the other. Every
+    // other, unmodelled param keeps its forEach value and is still forwarded.
+    allParams.email = email;
+    allParams.code = code;
+    allParams.user = user;
 
     var url = core.buildConfirmUrl(
       core.apiBase({ host: host, paramApi: params.get('api') }),
