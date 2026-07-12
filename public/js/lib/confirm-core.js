@@ -114,13 +114,18 @@
     return Boolean(params.email && params.code && params.user);
   }
 
-  // Build the confirmation endpoint URL, encoding each param.
+  // Build the confirmation endpoint URL, encoding each param. The email is
+  // lower-cased before encoding: confirmation links can arrive with a mixed-case
+  // address (mail clients, manual copy) and the address is matched case-
+  // insensitively, so normalizing here avoids a spurious 400 that would surface
+  // to the user as a misleading "temporarily unavailable" loop. code and user are
+  // opaque, case-sensitive tokens and are left untouched.
   function buildConfirmUrl(base, params) {
     return (
       base +
       '/v1/realunit/confirm-aktionariat' +
       '?email=' +
-      encodeURIComponent(params.email) +
+      encodeURIComponent(String(params.email).toLowerCase()) +
       '&code=' +
       encodeURIComponent(params.code) +
       '&user=' +

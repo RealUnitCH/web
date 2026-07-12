@@ -61,15 +61,18 @@ test.describe('confirm-aktionariat flow', () => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only confirm-flow checks');
   });
 
-  test('a link without params shows the invalid state and makes no API call', async ({ page }) => {
-    const apiCalls = [];
-    page.on('request', (request) => {
-      if (/dfx\.swiss/.test(request.url())) apiCalls.push(request.url());
+  test('a link without params shows the invalid state and makes no confirm request', async ({
+    page,
+  }) => {
+    const confirmCalls = [];
+    await page.route(CONFIRM_ENDPOINT, (route) => {
+      confirmCalls.push(route.request().url());
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
     });
     await page.goto('/confirm-aktionariat/');
     await expect(page.locator('#state-invalid')).toBeVisible();
     await expect(page.locator('#state-loading')).toBeHidden();
-    expect(apiCalls).toEqual([]);
+    expect(confirmCalls).toEqual([]);
   });
 
   for (const state of ['confirmed', 'invalid', 'unavailable']) {
@@ -99,6 +102,32 @@ test.describe('confirm-aktionariat flow', () => {
     expect(requestedUrl).toContain('user=U1');
   });
 
+  test('the confirm GET lower-cases a mixed-case email but keeps code/user case-sensitive', async ({
+    page,
+  }) => {
+    let requestedUrl = null;
+    await page.route(CONFIRM_ENDPOINT, (route) => {
+      requestedUrl = route.request().url();
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'confirmed' }),
+      });
+    });
+    await page.goto('/confirm-aktionariat/?email=Mixed.Case%40Example.COM&code=CoDe1&user=Uu1');
+    await expect(page.locator('#state-confirmed')).toBeVisible();
+    expect(requestedUrl).toContain('email=mixed.case%40example.com');
+    expect(requestedUrl).not.toContain('Example.COM');
+    expect(requestedUrl).toContain('code=CoDe1');
+    expect(requestedUrl).toContain('user=Uu1');
+  });
+
+  test('a 200 response with the invalid status shows the invalid state', async ({ page }) => {
+    await routeConfirm(page, { status: 200, body: { status: 'invalid' } });
+    await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
+    await expect(page.locator('#state-invalid')).toBeVisible();
+  });
+
   test('a non-2xx API response shows the unavailable state', async ({ page }) => {
     await routeConfirm(page, { status: 500, body: {} });
     await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
@@ -109,6 +138,12 @@ test.describe('confirm-aktionariat flow', () => {
     page,
   }) => {
     await routeConfirm(page, { status: 200, body: { status: 'weird' } });
+    await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
+    await expect(page.locator('#state-unavailable')).toBeVisible();
+  });
+
+  test('a network error shows the unavailable state', async ({ page }) => {
+    await page.route(CONFIRM_ENDPOINT, (route) => route.abort());
     await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
     await expect(page.locator('#state-unavailable')).toBeVisible();
   });
