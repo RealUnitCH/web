@@ -129,6 +129,37 @@ describe('buildConfirmUrl', () => {
     expect(url).toContain('user=Uu-9');
     expect(url).not.toContain('B.CH');
   });
+
+  test('forwards every other mail-link param verbatim (URL-encoded) after email/code/user', () => {
+    const url = buildConfirmUrl('https://x', {
+      email: 'A@B.CH',
+      code: 'C',
+      user: 'U',
+      address: '0xAbC',
+      ref: 'a b',
+    });
+    // the three modelled params keep their exact prefix and normalisation
+    expect(url).toContain('email=a%40b.ch');
+    expect(url).toContain('code=C');
+    expect(url).toContain('user=U');
+    // any extra param the link carries reaches the API, encoded
+    expect(url).toContain('address=0xAbC');
+    expect(url).toContain('ref=a%20b');
+  });
+
+  test('strips the web-only control params (api, mock) but still forwards genuine link params like lang', () => {
+    const url = buildConfirmUrl('https://x', {
+      email: 'a@b.ch',
+      code: 'C',
+      user: 'U',
+      api: 'https://evil.example',
+      mock: 'confirmed',
+      lang: 'en',
+    });
+    expect(url).not.toContain('api=');
+    expect(url).not.toContain('mock=');
+    expect(url).toContain('lang=en');
+  });
 });
 
 describe('mapResult', () => {
