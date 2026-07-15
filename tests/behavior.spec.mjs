@@ -75,7 +75,7 @@ test.describe('confirm-aktionariat flow', () => {
     expect(confirmCalls).toEqual([]);
   });
 
-  for (const state of ['confirmed', 'invalid', 'unavailable']) {
+  for (const state of ['confirmed', 'invalid', 'no-registration', 'unavailable']) {
     test(`?mock=${state} renders the ${state} state`, async ({ page }) => {
       await page.goto(`/confirm-aktionariat/?mock=${state}`);
       await expect(page.locator(`#state-${state}`)).toBeVisible();
@@ -176,6 +176,14 @@ test.describe('confirm-aktionariat flow', () => {
     await routeConfirm(page, { status: 200, body: { status: 'invalid' } });
     await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
     await expect(page.locator('#state-invalid')).toBeVisible();
+  });
+
+  test('a 200 response with the confirmed_no_registration status shows the no-registration state', async ({
+    page,
+  }) => {
+    await routeConfirm(page, { status: 200, body: { status: 'confirmed_no_registration' } });
+    await page.goto('/confirm-aktionariat/?email=a%40b.ch&code=C&user=U');
+    await expect(page.locator('#state-no-registration')).toBeVisible();
   });
 
   test('a non-2xx API response shows the unavailable state', async ({ page }) => {

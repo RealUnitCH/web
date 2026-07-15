@@ -39,6 +39,9 @@
       'unavailable.body':
         'Wir konnten die Bestätigung gerade nicht abschliessen. Bitte versuchen Sie es in ein paar Minuten erneut.',
       'unavailable.cta': 'Erneut versuchen',
+      'no-registration.title': 'Link passt zu keiner Registrierung',
+      'no-registration.body':
+        'Ihre E-Mail-Adresse wurde zwar bestätigt, aber wir haben dazu keine Wallet-Registrierung gefunden. Bitte prüfen Sie, ob Sie in der RealUnit-App eine andere E-Mail-Adresse verwendet haben, oder kontaktieren Sie unseren Support.',
     },
     en: {
       'doc.title': 'RealUnit — Address confirmation',
@@ -57,6 +60,9 @@
       'unavailable.body':
         'We couldn’t complete the confirmation right now. Please try again in a few minutes.',
       'unavailable.cta': 'Try again',
+      'no-registration.title': 'Link doesn’t match a registration',
+      'no-registration.body':
+        'Your email address was confirmed, but we couldn’t find a wallet registration for it. Please check whether you used a different email address in the RealUnit app, or contact our support.',
     },
   };
 
@@ -148,13 +154,19 @@
 
   // Map an API response to a UI state. Any non-2xx (validation 400, rate-limit
   // 429, 5xx) is a transient/unknown state → 'unavailable' (retryable), never a
-  // hard rejection. On 2xx the body's own status decides, and an unrecognized
+  // hard rejection. On 2xx the body's own status decides: 'confirmed_no_registration'
+  // (the email was confirmed but no wallet registration matched it — a permanent
+  // outcome, not a transient failure) maps to the dedicated 'no-registration' state,
+  // the other recognized statuses pass through unchanged, and an unrecognized
   // status is treated as unavailable rather than trusted.
   function mapResult(response) {
     if (!response.ok) {
       return 'unavailable';
     }
     var status = response.body && response.body.status;
+    if (status === 'confirmed_no_registration') {
+      return 'no-registration';
+    }
     if (status === 'confirmed' || status === 'invalid' || status === 'unavailable') {
       return status;
     }

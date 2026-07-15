@@ -117,6 +117,16 @@
         <p data-i18n="invalid.body">Dieser Bestätigungslink ist ungültig oder bereits abgelaufen. Bitte fordern Sie in der App einen neuen an.</p>
       </div>
 
+      <!-- no-registration: the share register confirmed the email, but no wallet
+           registration matched it — a permanent outcome, so no retry CTA. -->
+      <div id="state-no-registration" hidden>
+        <div class="icon icon--warn">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+        </div>
+        <h1 data-i18n="no-registration.title">Link passt zu keiner Registrierung</h1>
+        <p data-i18n="no-registration.body">Ihre E-Mail-Adresse wurde zwar bestätigt, aber wir haben dazu keine Wallet-Registrierung gefunden. Bitte prüfen Sie, ob Sie in der RealUnit-App eine andere E-Mail-Adresse verwendet haben, oder kontaktieren Sie unseren Support.</p>
+      </div>
+
       <!-- unavailable -->
       <div id="state-unavailable" hidden>
         <div class="icon icon--wait">
