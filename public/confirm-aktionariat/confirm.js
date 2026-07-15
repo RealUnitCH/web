@@ -42,7 +42,7 @@
   // confirmation email always reaches this web page; the app registers the scheme
   // to re-open itself after confirmation.
 
-  var STATES = ['loading', 'confirmed', 'invalid', 'unavailable'];
+  var STATES = ['loading', 'confirmed', 'invalid', 'no-registration', 'unavailable'];
   function show(state) {
     STATES.forEach(function (s) {
       document.getElementById('state-' + s).hidden = s !== state;
@@ -58,6 +58,8 @@
       show('confirmed');
     } else if (status === 'invalid') {
       show('invalid');
+    } else if (status === 'no-registration') {
+      show('no-registration');
     } else {
       show('unavailable');
     }
@@ -66,7 +68,7 @@
   function confirm() {
     show('loading');
 
-    // Mock hook for LOCAL preview only (?mock=confirmed|invalid|unavailable).
+    // Mock hook for LOCAL preview only (?mock=confirmed|invalid|no-registration|unavailable).
     // Never honored on the real realunit.app / dev.realunit.app hosts, so a
     // shared prod link cannot render a spoofed confirmation screen.
     var mock = params.get('mock');

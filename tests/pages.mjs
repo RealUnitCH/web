@@ -20,8 +20,8 @@ export const PROJECTS = ['desktop-chromium', 'tablet-chromium', 'mobile-safari']
 //              override before the page scripts run, so platform.js sets
 //              html[data-platform] deterministically regardless of the device
 //   waitFor  — optional confirm-page state ('confirmed' | 'invalid' |
-//              'unavailable') to wait for before the shot (the ?mock hook renders
-//              it after a short delay)
+//              'no-registration' | 'unavailable') to wait for before the shot (the
+//              ?mock hook renders it after a short delay)
 //   projects — the viewports this view applies to
 //
 // Coverage: the landing page in both its equal-badge (desktop/tablet) and
@@ -71,6 +71,20 @@ export const VIEWS = [
     slug: 'confirm-invalid-en',
     path: '/confirm-aktionariat/?mock=invalid&lang=en',
     waitFor: 'invalid',
+    projects: ['desktop-chromium'],
+  },
+  // Confirm — no-registration state (email confirmed, no wallet registration
+  // matched it — a permanent outcome, no retry CTA).
+  {
+    slug: 'confirm-no-registration',
+    path: '/confirm-aktionariat/?mock=no-registration&lang=de',
+    waitFor: 'no-registration',
+    projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'],
+  },
+  {
+    slug: 'confirm-no-registration-en',
+    path: '/confirm-aktionariat/?mock=no-registration&lang=en',
+    waitFor: 'no-registration',
     projects: ['desktop-chromium'],
   },
   // Confirm — service unavailable (the retry button is shown).
