@@ -173,6 +173,12 @@ describe('mapResult', () => {
     expect(mapResult({ ok: true, body: { status: 'unavailable' } })).toBe('unavailable');
   });
 
+  test('a 2xx response with status confirmed_no_registration maps to no-registration', () => {
+    expect(mapResult({ ok: true, body: { status: 'confirmed_no_registration' } })).toBe(
+      'no-registration',
+    );
+  });
+
   test('a 2xx response with an unrecognized status maps to unavailable', () => {
     expect(mapResult({ ok: true, body: { status: 'weird' } })).toBe('unavailable');
   });
