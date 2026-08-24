@@ -12,6 +12,13 @@ uploaded to Cloudflare Pages.
   with the store/download buttons below it
 - `public/platform.js` — enlarges the store button matching the visitor's platform
   (iOS → App Store, Android → Play Store); without JS all buttons stay equal-size
+- `public/invite/` — personal invite / promo landing at `/invite/{code}` (store badges,
+  open-installed-app, landing fetch against the API)
+- `public/_redirects` — Cloudflare Pages rewrite so `/invite/*` serves the invite page
+- `public/.well-known/apple-app-site-association` — iOS Universal Links for `/invite`
+- `public/.well-known/assetlinks.json` — Android App Links for the RealUnit package
+  (Android App Link verification fingerprints are filled from Play App Signing after
+  first release.)
 - `public/assets/hero.jpg` — hero (source: the app's splash background)
 - `public/assets/og.png` — social sharing image (source: the app's Android feature graphic)
 - `public/assets/favicon.svg` — app icon
@@ -43,7 +50,6 @@ projects in the DNS/deployment configuration. The `handbook.` subdomain is unaff
 - `/confirm-aktionariat` — guided Aktionariat address confirmation (calls `api.dfx.swiss`)
 - `/account-merge` — confirms adding a wallet address to the existing account (calls the public DFX API)
 - Legal pages — rendered from the app's `assets/legal/*.md` (build-time fetch, single source)
-- Universal Links / App Links (`/.well-known/*`)
 
 From v2 a build toolchain (Astro) is introduced; the plain-image landing stays the home page.
 

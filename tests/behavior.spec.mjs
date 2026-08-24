@@ -573,3 +573,155 @@ test.describe('account-merge flow', () => {
     expect(requestedUrl).toContain('code=abc');
   });
 });
+
+const INVITE_LANDING_ENDPOINT = '**/v1/realunit/referral/landing/**';
+const INVITE_CODE = 'AbCdEfGhIjKlMnOp';
+
+test.describe('invite landing flow', () => {
+  // The invite logic is device-agnostic; run it once on desktop.
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only invite-flow checks');
+  });
+
+  test('a link without a code shows the invalid state and makes no landing request', async ({
+    page,
+  }) => {
+    const landingCalls = [];
+    await page.route(INVITE_LANDING_ENDPOINT, (route) => {
+      landingCalls.push(route.request().url());
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
+    await page.goto('/invite/');
+    await expect(page.locator('#state-invalid')).toBeVisible();
+    await expect(page.locator('#state-loading')).toBeHidden();
+    await expect(page.locator('html')).toHaveAttribute('data-state', 'invalid');
+    expect(landingCalls).toEqual([]);
+  });
+
+  for (const state of ['invite', 'promo', 'invalid', 'unavailable']) {
+    test(`?mock=${state} renders the ${state} state`, async ({ page }) => {
+      await page.goto(`/invite/?mock=${state}`);
+      await expect(page.locator(`#state-${state}`)).toBeVisible();
+      await expect(page.locator('html')).toHaveAttribute('data-state', state);
+    });
+  }
+
+  test('a valid invite code shows the invite state and calls the DEV base', async ({ page }) => {
+    let requestedUrl = null;
+    await page.route(INVITE_LANDING_ENDPOINT, (route) => {
+      requestedUrl = route.request().url();
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          kind: 'Invite',
+          guestName: 'Alex',
+          hostDisplayName: 'Sam',
+        }),
+      });
+    });
+    await page.goto(`/invite/${INVITE_CODE}`);
+    await expect(page.locator('#state-invite')).toBeVisible();
+    await expect(page.locator('[data-invite-body]')).toHaveText(
+      'Hey Alex, Sam lädt dich ein zu RealUnit.',
+    );
+    expect(requestedUrl).toContain(
+      `https://dev.api.dfx.swiss/v1/realunit/referral/landing/${INVITE_CODE}`,
+    );
+  });
+
+  test('a promo response shows the campaign text and sets the Play referrer', async ({ page }) => {
+    await page.route(INVITE_LANDING_ENDPOINT, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          kind: 'Promo',
+          campaignText: 'Bonus für Neukunden',
+          campaignTextEn: 'Bonus for new customers',
+        }),
+      }),
+    );
+    await page.goto(`/invite/${INVITE_CODE}?lang=de`);
+    await expect(page.locator('#state-promo')).toBeVisible();
+    await expect(page.locator('[data-promo-body]')).toHaveText('Bonus für Neukunden');
+    await expect(page.locator('#state-promo a[data-store="play"]')).toHaveAttribute(
+      'href',
+      `https://play.google.com/store/apps/details?id=swiss.realunit.app&referrer=invite%3D${INVITE_CODE}`,
+    );
+    await expect(page.locator('#state-promo a[data-open-app]')).toHaveAttribute(
+      'href',
+      `realunit-wallet://invite/${INVITE_CODE}`,
+    );
+  });
+
+  test('a 404 response shows the invalid state', async ({ page }) => {
+    await page.route(INVITE_LANDING_ENDPOINT, (route) =>
+      route.fulfill({ status: 404, contentType: 'application/json', body: '{}' }),
+    );
+    await page.goto(`/invite/${INVITE_CODE}`);
+    await expect(page.locator('#state-invalid')).toBeVisible();
+  });
+
+  test('a non-2xx API response shows the unavailable state', async ({ page }) => {
+    await page.route(INVITE_LANDING_ENDPOINT, (route) =>
+      route.fulfill({ status: 500, contentType: 'application/json', body: '{}' }),
+    );
+    await page.goto(`/invite/${INVITE_CODE}`);
+    await expect(page.locator('#state-unavailable')).toBeVisible();
+  });
+
+  test('a network error shows the unavailable state', async ({ page }) => {
+    await page.route(INVITE_LANDING_ENDPOINT, (route) => route.abort());
+    await page.goto(`/invite/${INVITE_CODE}`);
+    await expect(page.locator('#state-unavailable')).toBeVisible();
+  });
+
+  test('the retry button re-runs the landing fetch', async ({ page }) => {
+    let calls = 0;
+    await page.route(INVITE_LANDING_ENDPOINT, (route) => {
+      calls += 1;
+      const ok = calls > 1;
+      route.fulfill({
+        status: ok ? 200 : 500,
+        contentType: 'application/json',
+        body: JSON.stringify(
+          ok ? { kind: 'Invite', guestName: 'Alex', hostDisplayName: 'Sam' } : {},
+        ),
+      });
+    });
+    await page.goto(`/invite/${INVITE_CODE}`);
+    await expect(page.locator('#state-unavailable')).toBeVisible();
+    await page.locator('#retry').click();
+    await expect(page.locator('#state-invite')).toBeVisible();
+    expect(calls).toBe(2);
+  });
+
+  test('?lang=en renders English copy and sets <html lang="en">', async ({ page }) => {
+    await page.goto('/invite/?mock=invalid&lang=en');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    const expected = await page.evaluate(() => window.RealUnitInvite.I18N.en['invalid.title']);
+    await expect(page.locator('#state-invalid h1')).toHaveText(expected);
+  });
+
+  test('an ?api= override sends the landing request to that API base', async ({ page }) => {
+    let requestedUrl = null;
+    await page.route(INVITE_LANDING_ENDPOINT, (route) => {
+      requestedUrl = route.request().url();
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          kind: 'Invite',
+          guestName: 'Alex',
+          hostDisplayName: 'Sam',
+        }),
+      });
+    });
+    await page.goto(`/invite/${INVITE_CODE}?api=https%3A%2F%2Fapi.example.test`);
+    await expect(page.locator('#state-invite')).toBeVisible();
+    expect(requestedUrl).toContain(
+      `https://api.example.test/v1/realunit/referral/landing/${INVITE_CODE}`,
+    );
+  });
+});

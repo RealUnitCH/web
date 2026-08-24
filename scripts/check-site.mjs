@@ -10,7 +10,7 @@
  *   - index.html without an https og:url to anchor the site origin
  *   - a page that loads a glue script without first loading the js/lib core it
  *     depends on (platform.js → platform-core.js, confirm.js → confirm-core.js,
- *     merge.js → merge-core.js)
+ *     merge.js → merge-core.js, invite.js → invite-core.js)
  *
  * i18n key parity (de/en) and the data-i18n coverage of the confirm page live in
  * the unit test (test/confirm-core.test.mjs), which can import the copy directly.
@@ -135,6 +135,7 @@ for (const file of htmlFiles) {
   checkScriptOrder(label, html, '/platform.js', '/js/lib/platform-core.js');
   checkScriptOrder(label, html, '/confirm-aktionariat/confirm.js', '/js/lib/confirm-core.js');
   checkScriptOrder(label, html, '/account-merge/merge.js', '/js/lib/merge-core.js');
+  checkScriptOrder(label, html, '/invite/invite.js', '/js/lib/invite-core.js');
 }
 
 if (errors.length > 0) {

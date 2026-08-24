@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RealUnit — Einladung</title>
+  <meta name="description" content="Persönliche Einladung zur RealUnit-App." />
+  <meta name="theme-color" content="#1988C6" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+
+  <!-- deliberately blocking (no defer): sets html[data-platform]="ios"|"android"
+       before first paint so the invite/promo states can pick their copy (mobile
+       vs. desktop) without a flash. Desktop/unknown — and no-JS — get no
+       attribute. platform-core.js (the pure detection) loads first; platform.js
+       is the DOM glue. External files because the CSP blocks inline scripts; not
+       under /assets/ because _headers caches that path as immutable. -->
+  <script src="/js/lib/platform-core.js"></script>
+  <script src="/platform.js"></script>
+
+  <style>
+    :root { --bg: #f2f6fa; --blue: #1988C6; --ink: #343233; --muted: #647488; --green: #4CAC36; --red: #E02523; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      background-image: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, var(--bg) 60%, #e7eef5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100%;
+      padding: clamp(16px, 4vw, 48px);
+    }
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(3, 76, 129, 0.08);
+      padding: clamp(28px, 6vw, 44px) clamp(22px, 5vw, 40px);
+      text-align: center;
+    }
+    .logo { display: block; height: 40px; width: auto; max-width: 100%; margin: 0 auto 24px; }
+    .icon { width: 64px; height: 64px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+    .icon svg { width: 34px; height: 34px; }
+    .icon--ok { background: rgba(76, 172, 54, 0.12); color: var(--green); }
+    .icon--warn { background: rgba(224, 37, 35, 0.10); color: var(--red); }
+    .icon--wait { background: rgba(25, 136, 198, 0.10); color: var(--blue); }
+    h1 { font-size: clamp(1.25rem, 4.5vw, 1.6rem); margin: 0 0 10px; line-height: 1.25; }
+    p { font-size: 1rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; }
+    .spinner { width: 34px; height: 34px; border: 3px solid rgba(25,136,198,0.25); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 100%; padding: 14px 20px; border: 0; border-radius: 12px;
+      background: var(--blue); color: #fff; font-size: 1rem; font-weight: 600;
+      text-decoration: none; cursor: pointer;
+      transition: opacity 120ms ease, transform 120ms ease;
+      margin-bottom: 18px;
+    }
+    .btn:hover { opacity: 0.92; }
+    .btn:active { transform: scale(0.99); }
+    .btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+    /* Store badges — same sizing idea as the home page; platform.js enlarges the
+       matching badge on phones. */
+    .stores {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 14px 18px;
+      margin-top: 4px;
+    }
+    .store-link {
+      display: inline-flex;
+      border-radius: 10px;
+      transition: transform 120ms ease, opacity 120ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .store-link:hover { opacity: 0.88; }
+    .store-link:active { transform: scale(0.98); }
+    .store-link:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 3px;
+    }
+    .store-badge {
+      display: block;
+      width: auto;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .store-badge--apple { height: var(--badge-h, 44px); }
+    .store-badge--play { height: calc(var(--badge-h, 44px) * 68 / 52); }
+    html[data-platform] .store-link { --badge-h: 36px; }
+    html[data-platform="ios"] .store-link[data-store="apple"],
+    html[data-platform="android"] .store-link[data-store="play"] {
+      --badge-h: 56px;
+      order: -1;
+      flex-basis: 100%;
+      justify-content: center;
+    }
+    /* Context-sensitive CTA. platform.js sets html[data-platform] to
+       "ios"|"android" for phones before first paint; desktop/unknown get no
+       attribute. On a phone the open-app button is shown; a desktop is told to
+       open the link on its phone instead. */
+    .only-mobile { display: none; }
+    html[data-platform] .only-mobile { display: block; }
+    html[data-platform] .only-desktop { display: none; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img class="logo" src="/assets/realunit-logo.png" width="900" height="267" alt="RealUnit Schweiz AG" />
+
+    <!-- live region: only the changing state is announced, main stays a landmark -->
+    <div class="live" role="status" aria-live="polite">
+      <!-- loading -->
+      <div id="state-loading">
+        <div class="icon icon--wait"><div class="spinner"></div></div>
+        <h1 data-i18n="loading.title">Einladung wird geladen…</h1>
+        <p data-i18n="loading.body">Einen Moment, wir laden deine Einladung.</p>
+      </div>
+
+      <!-- invite success -->
+      <div id="state-invite" hidden>
+        <div class="icon icon--ok">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h1 data-i18n="invite.title">Willkommen bei RealUnit</h1>
+        <p data-invite-body>Hey, jemand lädt dich ein zu RealUnit.</p>
+        <p class="only-desktop" data-i18n="cta.desktop">Öffne diesen Link auf deinem Smartphone, um die RealUnit-App zu starten oder herunterzuladen.</p>
+        <div class="only-mobile">
+          <a class="btn" data-open-app href="realunit-wallet://open" data-i18n="cta.openApp">App öffnen</a>
+        </div>
+        <nav class="stores" data-i18n-aria="stores.nav" aria-label="App herunterladen">
+          <a
+            class="store-link"
+            data-store="apple"
+            href="https://apps.apple.com/ch/app/realunit/id6759720010"
+            target="_blank"
+            rel="noopener"
+            data-i18n-aria="stores.apple.aria"
+            aria-label="RealUnit im App Store laden"
+          >
+            <img
+              class="store-badge store-badge--apple"
+              src="/assets/badge-app-store.svg"
+              width="120" height="40"
+              data-i18n-alt="stores.apple.alt"
+              alt="Laden im App Store"
+              decoding="async"
+            />
+          </a>
+          <a
+            class="store-link"
+            data-store="play"
+            href="https://play.google.com/store/apps/details?id=swiss.realunit.app"
+            target="_blank"
+            rel="noopener"
+            data-i18n-aria="stores.play.aria"
+            aria-label="RealUnit jetzt bei Google Play"
+          >
+            <img
+              class="store-badge store-badge--play"
+              src="/assets/badge-google-play.png"
+              width="646" height="250"
+              data-i18n-alt="stores.play.alt"
+              alt="Jetzt bei Google Play"
+              decoding="async"
+            />
+          </a>
+        </nav>
+      </div>
+
+      <!-- promo success -->
+      <div id="state-promo" hidden>
+        <div class="icon icon--ok">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h1 data-i18n="promo.title">Aktion</h1>
+        <p data-promo-body></p>
+        <p class="only-desktop" data-i18n="cta.desktop">Öffne diesen Link auf deinem Smartphone, um die RealUnit-App zu starten oder herunterzuladen.</p>
+        <div class="only-mobile">
+          <a class="btn" data-open-app href="realunit-wallet://open" data-i18n="cta.openApp">App öffnen</a>
+        </div>
+        <nav class="stores" data-i18n-aria="stores.nav" aria-label="App herunterladen">
+          <a
+            class="store-link"
+            data-store="apple"
+            href="https://apps.apple.com/ch/app/realunit/id6759720010"
+            target="_blank"
+            rel="noopener"
+            data-i18n-aria="stores.apple.aria"
+            aria-label="RealUnit im App Store laden"
+          >
+            <img
+              class="store-badge store-badge--apple"
+              src="/assets/badge-app-store.svg"
+              width="120" height="40"
+              data-i18n-alt="stores.apple.alt"
+              alt="Laden im App Store"
+              decoding="async"
+            />
+          </a>
+          <a
+            class="store-link"
+            data-store="play"
+            href="https://play.google.com/store/apps/details?id=swiss.realunit.app"
+            target="_blank"
+            rel="noopener"
+            data-i18n-aria="stores.play.aria"
+            aria-label="RealUnit jetzt bei Google Play"
+          >
+            <img
+              class="store-badge store-badge--play"
+              src="/assets/badge-google-play.png"
+              width="646" height="250"
+              data-i18n-alt="stores.play.alt"
+              alt="Jetzt bei Google Play"
+              decoding="async"
+            />
+          </a>
+        </nav>
+      </div>
+
+      <!-- invalid -->
+      <div id="state-invalid" hidden>
+        <div class="icon icon--warn">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+        </div>
+        <h1 data-i18n="invalid.title">Link ungültig oder abgelaufen</h1>
+        <p data-i18n="invalid.body">Dieser Einladungslink ist ungültig oder bereits abgelaufen. Bitte fordere in der App einen neuen an, oder tippe den Code manuell ein.</p>
+      </div>
+
+      <!-- unavailable -->
+      <div id="state-unavailable" hidden>
+        <div class="icon icon--wait">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        </div>
+        <h1 data-i18n="unavailable.title">Dienst vorübergehend nicht erreichbar</h1>
+        <p data-i18n="unavailable.body">Wir konnten die Einladung gerade nicht laden. Bitte versuche es in ein paar Minuten erneut.</p>
+        <button id="retry" type="button" class="btn" data-i18n="unavailable.cta">Erneut versuchen</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- invite-core.js (pure logic + i18n copy) loads first; invite.js is the DOM
+       and network glue. Both deferred so they run in order after parsing. -->
+  <script src="/js/lib/invite-core.js" defer></script>
+  <script src="/invite/invite.js" defer></script>
+</body>
+</html>

@@ -45,6 +45,7 @@ function sendNotFound(response) {
 function resolveRequestPath(url) {
   const pathname = decodeURIComponent(new URL(url, `http://127.0.0.1:${port}`).pathname);
   const cleanPath = normalize(pathname).replace(/^(\.\.[/\\])+/, '');
+
   const filePath = join(root, cleanPath === '/' ? 'index.html' : cleanPath);
   const resolved = resolve(filePath);
 
@@ -52,8 +53,20 @@ function resolveRequestPath(url) {
     return null;
   }
 
+  // Prefer a real file under public/ (e.g. /invite/invite.js). Cloudflare Pages
+  // does the same: static assets win over _redirects.
+  if (existsSync(resolved) && statSync(resolved).isFile()) {
+    return resolved;
+  }
+
   if (existsSync(resolved) && statSync(resolved).isDirectory()) {
     return join(resolved, 'index.html');
+  }
+
+  // Mirror public/_redirects: /invite/* → /invite/index.html (200). Keeps the
+  // browser pathname as /invite/{code} so invite.js can extract the code.
+  if (/^\/invite\/.+/.test(cleanPath)) {
+    return join(root, 'invite', 'index.html');
   }
 
   return resolved;

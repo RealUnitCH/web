@@ -8,7 +8,7 @@ export const PORT = 4173;
 // Every public HTML page, used by the smoke spec. `/confirm-aktionariat/` and
 // `/account-merge/` load with no query params, so they render the "invalid link"
 // state without making a network request.
-export const PAGES = ['/', '/confirm-aktionariat/', '/account-merge/', '/404.html'];
+export const PAGES = ['/', '/confirm-aktionariat/', '/account-merge/', '/invite/', '/404.html'];
 
 // Viewports the visual suite renders: desktop, a real tablet width, and a phone.
 export const PROJECTS = ['desktop-chromium', 'tablet-chromium', 'mobile-safari'];
@@ -19,9 +19,10 @@ export const PROJECTS = ['desktop-chromium', 'tablet-chromium', 'mobile-safari']
 //   platform — optional forced platform ('ios' | 'android'); applied via a UA
 //              override before the page scripts run, so platform.js sets
 //              html[data-platform] deterministically regardless of the device
-//   waitFor  — optional confirm/merge-page state ('confirmed' | 'already-completed' |
-//              'invalid' | 'no-registration' | 'unavailable') to wait for before the
-//              shot (the ?mock hook renders it after a short delay)
+//   waitFor  — optional confirm/merge/invite-page state ('confirmed' |
+//              'already-completed' | 'invalid' | 'no-registration' | 'unavailable' |
+//              'invite' | 'promo') to wait for before the shot (the ?mock hook
+//              renders it after a short delay)
 //   projects — the viewports this view applies to
 //
 // Coverage: the landing page in both its equal-badge (desktop/tablet) and
@@ -162,6 +163,69 @@ export const VIEWS = [
     path: '/account-merge/?mock=unavailable&lang=en',
     waitFor: 'unavailable',
     projects: ['desktop-chromium'],
+  },
+
+  // Invite — invalid state (no code in the path).
+  {
+    slug: 'invite-invalid',
+    path: '/invite/?lang=de',
+    waitFor: 'invalid',
+    projects: ['desktop-chromium', 'mobile-safari'],
+  },
+  {
+    slug: 'invite-invalid-en',
+    path: '/invite/?lang=en',
+    waitFor: 'invalid',
+    projects: ['desktop-chromium'],
+  },
+  // Invite — personal invite success (mock), German desktop + iOS phone.
+  {
+    slug: 'invite-success',
+    path: '/invite/?mock=invite&lang=de',
+    waitFor: 'invite',
+    projects: ['desktop-chromium'],
+  },
+  {
+    slug: 'invite-success-mobile',
+    path: '/invite/?mock=invite&lang=de',
+    platform: 'ios',
+    waitFor: 'invite',
+    projects: ['mobile-safari'],
+  },
+  // Invite — personal invite success, English desktop.
+  {
+    slug: 'invite-success-en',
+    path: '/invite/?mock=invite&lang=en',
+    waitFor: 'invite',
+    projects: ['desktop-chromium'],
+  },
+  // Invite — promo success, German + English desktop.
+  {
+    slug: 'invite-promo',
+    path: '/invite/?mock=promo&lang=de',
+    waitFor: 'promo',
+    projects: ['desktop-chromium'],
+  },
+  {
+    slug: 'invite-promo-en',
+    path: '/invite/?mock=promo&lang=en',
+    waitFor: 'promo',
+    projects: ['desktop-chromium'],
+  },
+  // Invite — unavailable (retry button).
+  {
+    slug: 'invite-unavailable',
+    path: '/invite/?mock=unavailable&lang=de',
+    waitFor: 'unavailable',
+    projects: ['desktop-chromium'],
+  },
+  // Invite — Android phone store-emphasis on the invite success layout.
+  {
+    slug: 'invite-success-android',
+    path: '/invite/?mock=invite&lang=de',
+    platform: 'android',
+    waitFor: 'invite',
+    projects: ['mobile-safari'],
   },
 
   // Custom 404 page.
