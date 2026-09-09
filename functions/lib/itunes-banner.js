@@ -424,6 +424,57 @@ export function parseLangFromUrl(urlLike) {
   }
 }
 
+/**
+ * The marks the landing shells carry and the site's 404 page does not. The
+ * caller has already established that the path is a landing, so the only
+ * question left is whether the asset server handed back the shell or the 404
+ * page — but see isLandingShell for why one mark was not enough.
+ */
+const LANDING_MARKERS = ['id="state-loading"', 'aria-busy="true"'];
+
+/**
+ * Whether these bytes are a landing shell rather than some other page.
+ *
+ * Two marks rather than one, because a single substring is a thin thing to
+ * promote a status on: an error document that happened to carry the id — in a
+ * comment, in a script, in a copied snippet — would be answered 200 with an
+ * invitation's metadata.
+ *
+ * This stays a substring test, so it does not require the two marks to sit in
+ * the same element, or in an element at all. What makes two of them enough is
+ * therefore not this function but a property of the site, and that property is
+ * held by a test rather than by a parser: of every page the repo ships, only
+ * the two landings reach both marks. The 404 page carries neither, and the two
+ * other shells that carry the id — account-merge and confirm-aktionariat —
+ * carry no aria-busy. test/middleware.test.mjs walks public/ and pins exactly
+ * that.
+ */
+export function isLandingShell(html) {
+  return typeof html === 'string' && LANDING_MARKERS.every((mark) => html.includes(mark));
+}
+
+/**
+ * Report a rewritten landing as found.
+ *
+ * _routes.json sends /invite/<code> to the Function, and the asset lookup
+ * behind context.next() resolves the code-less shell through the _redirects
+ * 200-rewrite while keeping the not-found status of the path that was asked
+ * for. Measured on the deploy: the body is the landing, the status is 404.
+ * Browsers render it anyway, but share crawlers drop a 404 before they read
+ * the tags injectLandingFromRequestUrl has by now written into the body. The
+ * injection is why these pages exist; this function is what stops the status
+ * from throwing the injected tags away.
+ *
+ * Only a body that really is the landing shell is promoted. If a broken deploy
+ * ever serves the site's 404 page on these paths, it has to keep saying 404
+ * instead of looking healthy.
+ */
+export function landingStatus(status, html) {
+  if (status !== 404) return status;
+  if (!isLandingShell(html)) return status;
+  return 200;
+}
+
 /** Crawlers snapshot og:title / twitter:title from the HTML bytes. Names wait for lookup JS. */
 export function shareTitle(kind, code, lang) {
   // Keep the kind guard first: this function is exported, and a missing kind
