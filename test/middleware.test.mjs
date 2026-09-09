@@ -247,6 +247,7 @@ describe('the landing middleware', () => {
     );
     expect(head.status).toBe(206);
     expect(head.body).toBeNull();
+    expect(head.headers.get('content-length')).toBe('5');
   });
 
   test('a real 404 page on a landing path keeps saying 404', async () => {
@@ -358,9 +359,9 @@ describe('the landing middleware', () => {
       type: 'application/json',
       body: '{}',
     });
-    // Nothing was rewritten here, so the validators still describe what the
-    // origin sent and must survive. Only the length has to go, because the
-    // answer carries no body.
+    // Nothing was rewritten here, so every header still describes what the
+    // origin sent and must survive — the length included, which RFC 9110 wants
+    // a HEAD to carry as the GET would have.
     ctx.next = () => {
       const headers = new Headers({
         'content-type': 'application/json',
@@ -377,7 +378,8 @@ describe('the landing middleware', () => {
     expect(res.status).toBe(404);
     expect(res.statusText).toBe('Not Found');
     expect(res.body).toBeNull();
-    expect(res.headers.get('content-length')).toBeNull();
+    // The length still describes the representation a GET would have returned.
+    expect(res.headers.get('content-length')).toBe('2');
     // This branch rebuilds the response too, so it has to carry the headers.
     for (const [name, value] of Object.entries(SITE_HEADERS)) {
       expect(res.headers.get(name)).toBe(value);

@@ -118,7 +118,9 @@ const PARTIAL_OR_CONDITIONAL = [
  * the current full representation are dropped: Range and If-Range would allow
  * 206, the four conditional ones 304 or 412. None of those bodies is the
  * landing shell, and the status here is decided from the body. Everything else
- * the client sent is kept.
+ * the client sent is kept — except in the body-carrying fallback below, which
+ * also drops the body, the headers that described it, and the request metadata
+ * that cannot be rebuilt from a URL.
  *
  * Measured on the deploy with a Range GET, reading the body rather than only
  * the headers: Pages answers with the full document today and no 206, so this
@@ -145,9 +147,12 @@ function asFullGet(request) {
   return new Request(request.url, { method: 'GET', headers });
 }
 
-/** The same status and headers, with no body and no stale content-length. */
+/**
+ * The same status and headers with the body left off. Nothing was rewritten on
+ * the paths that reach here, so every header still describes what the origin
+ * sent — Content-Length included, which RFC 9110 wants a HEAD to carry as the
+ * GET would have.
+ */
 function bodyless(response, status, statusText) {
-  const headers = new Headers(response.headers);
-  headers.delete('content-length');
-  return new Response(null, { status, statusText, headers });
+  return new Response(null, { status, statusText, headers: new Headers(response.headers) });
 }
