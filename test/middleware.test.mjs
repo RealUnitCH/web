@@ -45,6 +45,7 @@ function context({
   status = 404,
   body = SHELL,
   type = 'text/html; charset=utf-8',
+  requestHeaders = {},
 }) {
   const headers = new Headers({
     'content-type': type,
@@ -53,13 +54,14 @@ function context({
   });
   const forwarded = [];
   const next = (request) => {
-    forwarded.push(request ? request.method : method);
+    forwarded.push(request || ctx.request);
     return Promise.resolve(
       new Response(body, { status, statusText: status === 404 ? 'Not Found' : 'OK', headers }),
     );
   };
   // A real Request, because the middleware derives the GET-equivalent from it.
-  return { request: new Request(url, { method }), next, forwarded };
+  const ctx = { request: new Request(url, { method, headers: requestHeaders }), next, forwarded };
+  return ctx;
 }
 
 describe('the landing middleware', () => {
@@ -121,7 +123,7 @@ describe('the landing middleware', () => {
     const ctx = context({ url: 'https://realunit.app/invite/AB12CD', method: 'HEAD' });
     const head = await onRequest(ctx);
     const get = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD' }));
-    expect(ctx.forwarded).toEqual(['GET']);
+    expect(ctx.forwarded.map((r) => r.method)).toEqual(['GET']);
     expect(head.status).toBe(get.status);
     expect(head.status).toBe(200);
     expect(head.statusText).toBe('');
@@ -135,6 +137,30 @@ describe('the landing middleware', () => {
     expect(head.headers.get('content-length')).toBeNull();
   });
 
+  test('the GET-equivalent keeps the request headers but drops Range', async () => {
+    // A HEAD carrying Range would otherwise come back as 206, whose body is not
+    // the landing shell — the status would neither be promoted nor mean what
+    // the client asked for. Everything else the client sent is kept.
+    const ctx = context({
+      url: 'https://realunit.app/invite/AB12CD',
+      method: 'HEAD',
+      requestHeaders: {
+        range: 'bytes=0-99',
+        'if-range': 'W/"abc"',
+        'accept-language': 'en-GB',
+        'user-agent': 'link-checker/1.0',
+      },
+    });
+    await onRequest(ctx);
+    const [forwarded] = ctx.forwarded;
+    expect(forwarded.method).toBe('GET');
+    expect(forwarded.headers.get('range')).toBeNull();
+    expect(forwarded.headers.get('if-range')).toBeNull();
+    expect(forwarded.headers.get('accept-language')).toBe('en-GB');
+    expect(forwarded.headers.get('user-agent')).toBe('link-checker/1.0');
+    expect(forwarded.url).toBe(ctx.request.url);
+  });
+
   test('a HEAD on a real 404 page keeps saying 404', async () => {
     // The marker guard has to hold on the HEAD path too, not only on GET.
     const ctx = context({
@@ -143,7 +169,7 @@ describe('the landing middleware', () => {
       body: NOT_FOUND_PAGE,
     });
     const res = await onRequest(ctx);
-    expect(ctx.forwarded).toEqual(['GET']);
+    expect(ctx.forwarded.map((r) => r.method)).toEqual(['GET']);
     expect(res.status).toBe(404);
     expect(res.statusText).toBe('Not Found');
     expect(res.body).toBeNull();
@@ -162,6 +188,10 @@ describe('the landing middleware', () => {
     expect(res.statusText).toBe('Not Found');
     expect(res.body).toBeNull();
     expect(res.headers.get('content-length')).toBeNull();
+    // This branch rebuilds the response too, so it has to carry the headers.
+    for (const [name, value] of Object.entries(SITE_HEADERS)) {
+      expect(res.headers.get(name)).toBe(value);
+    }
   });
 
   test('a method that is neither GET nor HEAD is passed through untouched', async () => {

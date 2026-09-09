@@ -33,9 +33,7 @@ export async function onRequest(context) {
   // body, so HEAD asks for the GET-equivalent and answers with that status and
   // those headers, without the body. Otherwise the same link would read as
   // found by GET and as dead by the HEAD a link checker sends first.
-  const response = isHead
-    ? await context.next(new Request(context.request, { method: 'GET' }))
-    : await context.next();
+  const response = isHead ? await context.next(asGet(context.request)) : await context.next();
   const type = response.headers.get('content-type') || '';
   if (!type.includes('text/html')) {
     // Nothing to rewrite. A HEAD still must not carry the body the GET-
@@ -51,6 +49,19 @@ export async function onRequest(context) {
   // A promoted status must not keep "Not Found" as its reason phrase.
   const statusText = status === response.status ? response.statusText : '';
   return new Response(isHead ? null : injected, { status, statusText, headers });
+}
+
+/**
+ * The same request as a GET. Range and If-Range are dropped: a HEAD carrying
+ * them would otherwise come back as 206 Partial Content, whose body is not the
+ * landing shell, so the status would neither be promoted nor mean what the
+ * client asked for. Everything else the client sent is kept.
+ */
+function asGet(request) {
+  const headers = new Headers(request.headers);
+  headers.delete('range');
+  headers.delete('if-range');
+  return new Request(request, { method: 'GET', headers });
 }
 
 /** The same status and headers, with no body and no stale content-length. */
