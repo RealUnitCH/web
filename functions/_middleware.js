@@ -60,9 +60,9 @@ export async function onRequest(context) {
     return platform;
   }
   if (method === 'GET' && platform.status === 200) {
-    // The file is already the right one; the campaign metadata has to go in —
-    // and the store hand-off with it, when the URL carries a code, which on
-    // /invite/ and /promo/ themselves it does not. Its own status stays. Read inside a
+    // The file is already the right one; what the URL supports has to be
+    // written into it, and its own status stays. A code can reach even this
+    // path as a query parameter, so nothing here assumes there is none. Read inside a
     // guard for the same reason as the shell below: a body stream that fails
     // would take the Function down, and a Function that throws makes Pages
     // serve the assets directly.
@@ -131,9 +131,10 @@ function isHtml(contentType) {
 }
 
 /**
- * The landing after injectLandingFromRequestUrl: the URL tags, the locale and
- * the document language always, the campaign metadata and the store hand-off
- * only when the URL carries a code.
+ * The landing with injectLandingFromRequestUrl applied. What that writes
+ * depends on the URL — the campaign tags and the store hand-off on a code, the
+ * English copy and locale on ?lang=en — and functions/lib/itunes-banner.js is
+ * where each of those decisions lives.
  */
 function answer(html, sourceHeaders, request, method, status = 200) {
   const injected = injectLandingFromRequestUrl(html, request.url);
