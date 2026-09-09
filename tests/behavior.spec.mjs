@@ -694,6 +694,66 @@ test.describe('account-merge flow', () => {
 
 const REFERRAL_CODE_ENDPOINT = '**/v1/realunit/referral/code/**';
 
+test.describe('invite and promo landing without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('says why nothing resolves instead of spinning for ever', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only check');
+    for (const path of ['/invite/AB12CD', '/promo/EVT1']) {
+      await page.goto(path);
+      // Nothing can resolve the code, so the loading state must not be the
+      // only thing on screen.
+      await expect(page.locator('#state-loading')).toBeHidden();
+      // Assert what the visitor can see, not what the bytes contain: a rule
+      // like `noscript section { display: none }` would keep the markup and
+      // still leave the page blank. Measured on this Playwright version with
+      // javaScriptEnabled:false: role and CSS locators do reach into
+      // <noscript>, getByText does not — its text engine skips that subtree.
+      const heading = page.getByRole('heading', { name: 'JavaScript ist deaktiviert' });
+      await expect(heading).toBeVisible();
+      await expect(heading).toHaveAttribute('lang', 'de');
+      // Full text, not a substring: a truncated or half-translated paragraph
+      // would otherwise stay green.
+      // toHaveText matches textContent, which display:none leaves untouched —
+      // so the visibility of each paragraph is asserted separately.
+      await expect(page.locator('main noscript p[lang="de"]')).toBeVisible();
+      await expect(page.locator('main noscript p[lang="de"]')).toHaveText(
+        'Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript. ' +
+          'Aktiviere JavaScript und lade die Seite neu. Die App selbst findest du über die Links ' +
+          'unten.',
+      );
+      await expect(page.locator('main noscript p[lang="en"]')).toBeVisible();
+      await expect(page.locator('main noscript p[lang="en"]')).toHaveText(
+        'This page resolves your code through the RealUnit app and needs JavaScript. Enable ' +
+          'JavaScript and reload the page. The app itself is linked below.',
+      );
+      // The copy tells the visitor the app is linked below, so the links have
+      // to be there without JS.
+      await expect(page.locator('nav.stores a[data-store="apple"]')).toBeVisible();
+      await expect(page.locator('nav.stores a[data-store="play"]')).toBeVisible();
+    }
+  });
+});
+
+test.describe('the no-JavaScript notice stays inside <noscript>', () => {
+  test('a visitor with JavaScript never sees it', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only check');
+    // Dropping the <noscript> wrapper would show every visitor a warning about
+    // JavaScript being off. Nothing else in the suite would go red for that:
+    // the case above runs only with scripting disabled, where the wrapper's
+    // children are parsed as ordinary markup either way.
+    // ?mock= keeps this off the network; the notice is a property of the
+    // shell, not of the lookup result.
+    for (const path of ['/invite/AB12CD?mock=loading', '/promo/EVT1?mock=loading']) {
+      await page.goto(path);
+      await expect(page.locator('main noscript')).toHaveCount(1);
+      await expect(page.getByRole('heading', { name: 'JavaScript ist deaktiviert' })).toHaveCount(
+        0,
+      );
+    }
+  });
+});
+
 test.describe('invite and promo landing', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only invite-flow checks');

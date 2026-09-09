@@ -16,6 +16,7 @@ import {
   shareTitle,
   injectShareDescriptionHtml,
   shareDescription,
+  landingStatus,
   parseLangFromUrl,
   injectShareLocaleHtml,
   injectSiteNameHtml,
@@ -32,11 +33,22 @@ describe('shouldRewriteItunesBanner', () => {
   test('invite and promo HTML paths only', () => {
     expect(shouldRewriteItunesBanner('/invite')).toBe(true);
     expect(shouldRewriteItunesBanner('/invite/AB12CD')).toBe(true);
+    expect(shouldRewriteItunesBanner('/promo')).toBe(true);
     expect(shouldRewriteItunesBanner('/promo/EVT1')).toBe(true);
     expect(shouldRewriteItunesBanner('/invite/invite.js')).toBe(false);
     expect(shouldRewriteItunesBanner('/js/invite-banner.js')).toBe(false);
     expect(shouldRewriteItunesBanner('/')).toBe(false);
     expect(shouldRewriteItunesBanner('/.well-known/apple-app-site-association')).toBe(false);
+    // The prefix has to end at a segment boundary: a path that merely starts
+    // with the same letters is somebody else's.
+    expect(shouldRewriteItunesBanner('/invitee')).toBe(false);
+    expect(shouldRewriteItunesBanner('/invite-old')).toBe(false);
+    expect(shouldRewriteItunesBanner('/promotion')).toBe(false);
+    expect(shouldRewriteItunesBanner('/promo-old')).toBe(false);
+    // A doubled slash makes the first segment empty, so neither the exact
+    // comparison nor the prefix matches.
+    expect(shouldRewriteItunesBanner('//invite/AB12CD')).toBe(false);
+    expect(shouldRewriteItunesBanner('/invites/AB12CD')).toBe(false);
   });
 });
 
@@ -359,7 +371,7 @@ describe('injectLandingFromRequestUrl', () => {
       '<meta name="description" content="Öffne die RealUnit-App mit diesem Code." />';
     const out = injectLandingFromRequestUrl(shell, 'https://www.realunit.app/invite/AB12CD?mock=1');
     expect(out).toContain('app-argument=realunit-wallet://invite/AB12CD');
-    expect(out).toContain('content="https://realunit.app/invite/AB12CD"');
+    expect(out).toContain('property="og:url" content="https://realunit.app/invite/AB12CD"');
     expect(out).toContain('href="https://realunit.app/invite/AB12CD"');
     expect(out).toContain('name="twitter:url" content="https://realunit.app/invite/AB12CD"');
     expect(out).toContain('property="og:title" content="RealUnit — Einladung AB12CD"');
@@ -389,8 +401,17 @@ describe('injectLandingFromRequestUrl', () => {
     expect(out).toContain(
       'https://play.google.com/store/apps/details?id=swiss.realunit.app&referrer=invite%3DAB12CD',
     );
-    expect(out).toContain('data-android-app');
-    expect(out).toContain('data-ios-app');
+    // The hrefs, not just the attribute names: swapping the two would send
+    // Android users to the iOS hand-off and back, and the names alone would
+    // not notice.
+    expect(out).toContain(
+      'data-android-app href="android-app://swiss.realunit.app/https/realunit.app/invite/AB12CD"',
+    );
+    expect(out).toContain('data-ios-app href="ios-app://6759720010/realunit-wallet/invite/AB12CD"');
+    // The iPad card carries the same scheme as the phone one and was asserted
+    // nowhere; a wrong value there would have gone unnoticed.
+    expect(out).toContain('name="twitter:app:url:ipad" content="realunit-wallet://invite/AB12CD"');
+    expect(out).toContain('name="twitter:app:id:ipad" content="6759720010"');
     expect(out).toContain('al:android:url');
     expect(out).toContain('property="al:android:url" content="realunit-wallet://invite/AB12CD"');
     expect(out).toContain('property="al:android:class" content="swiss.realunit.app.MainActivity"');
@@ -520,6 +541,28 @@ describe('referral code injection hardening', () => {
     expect(out).toContain('AB&quot;&gt;&lt;');
   });
 
+  test('an alternate link that already exists is replaced, not doubled', () => {
+    // The fixtures so far only ever reached the insert branch, because no shell
+    // ships these links; the replace branch had never run.
+    for (const existing of [
+      '<link rel="alternate" data-android-app href="android-app://old" />',
+      '<link data-android-app rel="alternate" href="android-app://old" />',
+      // href before the attribute: the upsert has a separate branch for that
+      // order, and the two fixtures above both leave it unrun.
+      '<link rel="alternate" href="android-app://old" data-android-app />',
+    ]) {
+      const out = injectLandingFromRequestUrl(
+        '<head>' + existing + '</head>',
+        'https://realunit.app/invite/AB12CD',
+      );
+      expect(out).toContain(
+        'href="android-app://swiss.realunit.app/https/realunit.app/invite/AB12CD"',
+      );
+      expect(out).not.toContain('android-app://old');
+      expect(out.match(/data-android-app/g)).toHaveLength(1);
+    }
+  });
+
   test('injectShareTitleHtml escapes a raw code and never breaks the attribute', () => {
     const out = injectShareTitleHtml(base, 'invite', 'A"><B', 'de');
     expect(out).not.toContain('<B');
@@ -557,6 +600,149 @@ describe('referral code injection hardening', () => {
   test('a $ in the value is inserted literally, not as a replacement backreference', () => {
     const out = injectShareTitleHtml(base, 'promo', '$1$&', 'de');
     expect(out).toContain('RealUnit — Promo-Code $1$&amp;');
+  });
+});
+
+describe('an English locale without a code keeps English copy', () => {
+  test('shareTitle falls back to a generic English title', () => {
+    expect(shareTitle('invite', null, 'en')).toBe('RealUnit — Invitation');
+    expect(shareTitle('promo', null, 'en')).toBe('RealUnit — Promo code');
+    // German is the shell's own language, so there is nothing to replace.
+    expect(shareTitle('invite', null, 'de')).toBeNull();
+    expect(shareTitle('invite', null, null)).toBeNull();
+    // A missing kind stays null even in English: it must not render as an
+    // invitation just because that is the more common case.
+    expect(shareTitle(null, null, 'en')).toBeNull();
+  });
+
+  test('shareDescription falls back to a generic English description', () => {
+    expect(shareDescription(null, 'en')).toBe('Open the RealUnit app with this code.');
+    expect(shareDescription(null, 'de')).toBeNull();
+  });
+
+  test('the fallback copy is the same string the page renders', () => {
+    // Both modules claim in a comment to reuse I18N.en. The literals above pin
+    // the wording; this pins the claim, so editing the catalogue alone — which
+    // public/invite/invite.js reads at runtime — turns the suite red instead of
+    // silently splitting the crawler snapshot from the rendered page.
+    const en = window.RealUnitInvite.I18N.en;
+    expect(shareTitle('invite', null, 'en')).toBe(en['doc.title.invite']);
+    expect(shareTitle('promo', null, 'en')).toBe(en['doc.title.promo']);
+    expect(shareDescription(null, 'en')).toBe(en['doc.desc']);
+  });
+
+  test('a codeless English landing is rewritten end to end, German is untouched', () => {
+    const shell =
+      '<html lang="de"><title>RealUnit — Einladung</title>' +
+      '<meta property="og:title" content="RealUnit — Einladung" />' +
+      '<meta property="og:image:alt" content="RealUnit" />' +
+      '<meta property="og:locale" content="de_CH" />' +
+      '<meta property="og:description" content="Öffne die RealUnit-App mit diesem Code." />';
+
+    // The helpers returning a string is not the point — the point is that the
+    // bytes a crawler snapshots actually change.
+    const en = injectLandingFromRequestUrl(shell, 'https://realunit.app/invite/?lang=en');
+    expect(en).toContain('<html lang="en">');
+    expect(en).toContain('<title>RealUnit — Invitation</title>');
+    expect(en).toContain('property="og:title" content="RealUnit — Invitation"');
+    expect(en).toContain(
+      'property="og:description" content="Open the RealUnit app with this code."',
+    );
+
+    const promo = injectLandingFromRequestUrl(shell, 'https://realunit.app/promo/?lang=en');
+    expect(promo).toContain('<title>RealUnit — Promo code</title>');
+
+    // Without ?lang=en the German copy must be left as it is. The pass still
+    // adds og:site_name, which is language-independent, so this checks the copy
+    // rather than byte equality.
+    const de = injectLandingFromRequestUrl(shell, 'https://realunit.app/invite/');
+    expect(de).toContain('<title>RealUnit — Einladung</title>');
+    expect(de).toContain(
+      'property="og:description" content="Öffne die RealUnit-App mit diesem Code."',
+    );
+  });
+
+  test('a code still wins over the fallback', () => {
+    expect(shareTitle('promo', 'EVT1', 'en')).toBe('RealUnit — Promo code EVT1');
+    expect(shareDescription('EVT1', 'en')).toBe('Open the RealUnit app with code EVT1.');
+  });
+
+  test('the codeless title does not become the image alt', () => {
+    // og:image:alt describes the picture, and without a code the picture is
+    // the generic og.png the shell already labels "RealUnit".
+    const shell = '<meta property="og:image:alt" content="RealUnit" />';
+    expect(injectShareImageAltHtml(shell, 'invite', null, 'en')).toBe(shell);
+    expect(injectShareImageAltHtml(shell, 'invite', 'AB12CD', 'en')).toContain(
+      'content="RealUnit — Invitation AB12CD"',
+    );
+  });
+});
+
+describe('landingStatus', () => {
+  // Both marks, as the shipped shells carry them.
+  const shell = '<section id="state-loading" role="status" aria-busy="true"></section>';
+
+  test('promotes a not-found landing to found', () => {
+    expect(landingStatus(404, shell)).toBe(200);
+  });
+
+  test('leaves every other status alone, including its 4xx neighbours', () => {
+    expect(landingStatus(200, shell)).toBe(200);
+    expect(landingStatus(500, shell)).toBe(500);
+    expect(landingStatus(302, shell)).toBe(302);
+    // Only 404 is the Pages artefact this exists for. Widening the condition to
+    // the whole 4xx range would promote a real refusal or a withdrawn code.
+    expect(landingStatus(403, shell)).toBe(403);
+    expect(landingStatus(410, shell)).toBe(410);
+    expect(landingStatus(451, shell)).toBe(451);
+  });
+
+  test('refuses to promote a body that is not a landing', () => {
+    // The site's own 404 page must keep saying 404 rather than look healthy.
+    expect(landingStatus(404, '<title>Seite nicht gefunden — RealUnit</title>')).toBe(404);
+    // One mark alone is not a landing shell.
+    expect(landingStatus(404, '<section id="state-loading"></section>')).toBe(404);
+    expect(landingStatus(404, '<section aria-busy="true"></section>')).toBe(404);
+    expect(landingStatus(404, '')).toBe(404);
+    expect(landingStatus(404, null)).toBe(404);
+    expect(landingStatus(404, undefined)).toBe(404);
+  });
+});
+
+describe('the browser mirror and the function module say the same thing', () => {
+  // public/js/lib/invite-core.js carries a second copy of shareTitle and
+  // shareDescription. Nothing in production calls its HTML injectors, so a
+  // divergence would not fail any other test — this one pins the pair.
+  const mirror = window.RealUnitInvite;
+  const kinds = ['invite', 'promo', null, undefined, ''];
+  const codes = [null, undefined, '', 'AB12CD', 'EVT1'];
+  const langs = ['en', 'de', null, undefined, 'fr'];
+
+  test('shareTitle agrees across the whole matrix', () => {
+    for (const kind of kinds) {
+      for (const code of codes) {
+        for (const lang of langs) {
+          expect([kind, code, lang, mirror.shareTitle(kind, code, lang)]).toEqual([
+            kind,
+            code,
+            lang,
+            shareTitle(kind, code, lang),
+          ]);
+        }
+      }
+    }
+  });
+
+  test('shareDescription agrees across the whole matrix', () => {
+    for (const code of codes) {
+      for (const lang of langs) {
+        expect([code, lang, mirror.shareDescription(code, lang)]).toEqual([
+          code,
+          lang,
+          shareDescription(code, lang),
+        ]);
+      }
+    }
   });
 });
 

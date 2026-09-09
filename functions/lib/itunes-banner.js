@@ -424,9 +424,70 @@ export function parseLangFromUrl(urlLike) {
   }
 }
 
+/**
+ * The marks the landing shells carry and the site's 404 page does not. The
+ * caller has already established that the path is a landing, so the only
+ * question left is whether the asset server handed back the shell or the 404
+ * page — but see isLandingShell for why one mark was not enough.
+ */
+const LANDING_MARKERS = ['id="state-loading"', 'aria-busy="true"'];
+
+/**
+ * Whether these bytes are a landing shell rather than some other page.
+ *
+ * Two marks rather than one, because a single substring is a thin thing to
+ * promote a status on: an error document that happened to carry the id — in a
+ * comment, in a script, in a copied snippet — would be answered 200 with an
+ * invitation's metadata.
+ *
+ * This stays a substring test, so it does not require the two marks to sit in
+ * the same element, or in an element at all. What makes two of them enough is
+ * therefore not this function but a property of the site, and that property is
+ * held by a test rather than by a parser: of every page the repo ships, only
+ * the two landings reach both marks. The 404 page carries neither, and the two
+ * other shells that carry the id — account-merge and confirm-aktionariat —
+ * carry no aria-busy. test/middleware.test.mjs walks public/ and pins exactly
+ * that.
+ */
+export function isLandingShell(html) {
+  return typeof html === 'string' && LANDING_MARKERS.every((mark) => html.includes(mark));
+}
+
+/**
+ * Report a rewritten landing as found.
+ *
+ * _routes.json sends /invite/<code> to the Function, and the asset lookup
+ * behind context.next() resolves the code-less shell through the _redirects
+ * 200-rewrite while keeping the not-found status of the path that was asked
+ * for. Measured on the deploy: the body is the landing, the status is 404.
+ * Browsers render it anyway, but share crawlers drop a 404 before they read
+ * the tags injectLandingFromRequestUrl has by now written into the body. The
+ * injection is why these pages exist; this function is what stops the status
+ * from throwing the injected tags away.
+ *
+ * Only a body that really is the landing shell is promoted. If a broken deploy
+ * ever serves the site's 404 page on these paths, it has to keep saying 404
+ * instead of looking healthy.
+ */
+export function landingStatus(status, html) {
+  if (status !== 404) return status;
+  if (!isLandingShell(html)) return status;
+  return 200;
+}
+
 /** Crawlers snapshot og:title / twitter:title from the HTML bytes. Names wait for lookup JS. */
 export function shareTitle(kind, code, lang) {
-  if (!kind || !code) return null;
+  // Keep the kind guard first: this function is exported, and a missing kind
+  // must not silently render as an invitation.
+  if (!kind) return null;
+  // Without a code there is nothing code-specific to say, but ?lang=en still
+  // flips html lang and og:locale — leaving the German shell text under an
+  // English locale for crawlers. Fall back to a generic English title, using
+  // the same strings as I18N.en in invite-core.js.
+  if (!code) {
+    if (lang !== 'en') return null;
+    return kind === 'promo' ? 'RealUnit — Promo code' : 'RealUnit — Invitation';
+  }
   if (lang === 'en') {
     return kind === 'promo' ? 'RealUnit — Promo code ' + code : 'RealUnit — Invitation ' + code;
   }
@@ -458,6 +519,10 @@ export function injectShareTitleHtml(html, kind, code, lang) {
 /** Crawlers snapshot og:image:alt / twitter:image:alt from the HTML bytes. */
 export function injectShareImageAltHtml(html, kind, code, lang) {
   if (typeof html !== 'string') return html;
+  // Alt text describes the image, and without a code the image is the generic
+  // og.png the shell already labels "RealUnit". The codeless English title
+  // from shareTitle is a page title, not a picture caption, so it stops here.
+  if (!code) return html;
   const alt = shareTitle(kind, code, lang);
   if (!alt) return html;
   const safe = htmlEscape(alt);
@@ -477,7 +542,10 @@ export function injectShareImageAltHtml(html, kind, code, lang) {
 
 /** Crawlers snapshot og:description from the HTML bytes. Names wait for lookup JS. */
 export function shareDescription(code, lang) {
-  if (!code) return null;
+  // Same reason as shareTitle: an English locale must not keep German copy.
+  // Same string as I18N.en['doc.desc'] in invite-core.js, so the crawler
+  // snapshot and the JS-rendered page do not disagree.
+  if (!code) return lang === 'en' ? 'Open the RealUnit app with this code.' : null;
   if (lang === 'en') return 'Open the RealUnit app with code ' + code + '.';
   return 'Öffne die RealUnit-App mit dem Code ' + code + '.';
 }

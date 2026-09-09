@@ -34,6 +34,10 @@ export const PROJECTS = ['desktop-chromium', 'tablet-chromium', 'mobile-safari']
 //   waitFor  — optional confirm/merge-page state ('confirmed' | 'already-completed' |
 //              'invalid' | 'no-registration' | 'unavailable') to wait for before the
 //              shot (the ?mock hook renders it after a short delay)
+//   noJs     — optional; render this view with scripting disabled. The landings
+//              resolve their code in JS, so without it they would sit in the
+//              loading state for ever; the <noscript> panel is what the visitor
+//              actually sees, and it is a real page state like any other
 //   projects — the viewports this view applies to
 //
 // Coverage: the landing page in both its equal-badge (desktop/tablet) and
@@ -505,6 +509,21 @@ export const VIEWS = [
     platform: 'android',
     waitFor: 'invalid',
     projects: ['mobile-safari'],
+  },
+  // The JS-less landings. Nothing resolves the code without scripting, so the
+  // <noscript> panel replaces the loading state; it carries user-facing copy in
+  // both languages and is covered here on every viewport it can reach.
+  {
+    slug: 'invite-noscript',
+    path: '/invite/AB12CD',
+    noJs: true,
+    projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'],
+  },
+  {
+    slug: 'promo-noscript',
+    path: '/promo/EVT1',
+    noJs: true,
+    projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'],
   },
 ];
 

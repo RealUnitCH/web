@@ -9,8 +9,16 @@ This repo is the **realunit.app** website — public, static. See the
   `public/` ships verbatim to Cloudflare Pages — what you commit is what gets
   served. The one exception is the invite/promo HTML: `functions/_middleware.js`
   rewrites those bytes on the way out so crawlers see the code in
-  `apple-itunes-app`, `og:*` and the App Links before any script runs. Nothing
-  else is transformed, and there is no server-side rendering. The dev dependencies exist **only** for the quality gates below
+  `apple-itunes-app`, `og:*` and the App Links before any script runs. It also
+  reports a rewritten landing as `200`: Pages resolves `/invite/<code>` to the
+  code-less shell through the `_redirects` rewrite but keeps the not-found
+  status of the path that was asked for, and a crawler drops a `404` before it
+  reads the tags. The promotion is guarded on the two landing marks — `id="state-loading"` and `aria-busy="true"`, which both landings carry together in one tag and no other page the site ships carries together — so the site's
+  own 404 page keeps saying 404, and HEAD answers with the same status as GET.
+  Both methods are resolved internally as one full GET, without `Range` /
+  `If-Range` and without the conditional request headers, because the whole document
+  is rewritten and the status is decided from its body. The conditional request headers are dropped rather than evaluated, which is a deliberate deviation from RFC 9110 §13.1: a rewritten landing emits no validator to condition on, so the answer is always the current representation and never a 304 or a 412. A pass-through answer keeps the origin's own headers, validator included. `scripts/dev-server.mjs` shares the injection and answers HEAD without a body, but has no promotion, no marker guard and no header stripping: its own routing serves the landings as `200` and never produces the not-found status the promotion exists to correct. Nothing else is transformed, and there is no server-side
+  rendering. The dev dependencies exist **only** for the quality gates below
   (formatting, HTML validation, unit tests, screenshots); nothing compiles or
   bundles the site.
 - **Invite/promo HTML rewrite is banner, canonical, and store handoff.** Safari,
@@ -45,8 +53,9 @@ This repo is the **realunit.app** website — public, static. See the
     adding any other host to that allowlist needs a reason in the PR.
   - Inline `style="…"` attributes and `<style>` blocks are fine (`style-src`
     allows `'unsafe-inline'`).
-- **Put the reusable, side-effect-free JS in `public/js/lib/`.** That is the only
-  code with a unit-coverage gate (see below); DOM/network glue stays in the
+- **Put the reusable, side-effect-free JS in `public/js/lib/`.** It carries a
+  unit-coverage gate (see below), as do `functions/lib/**` and the Function
+  entry point `functions/_middleware.js`; DOM/network glue stays in the
   page-level scripts and is covered by the Playwright suite.
 - **Don't put mutable files under `public/assets/`.** That path has an immutable,
   one-year cache header — only content-hashed or otherwise stable-named assets
@@ -73,14 +82,14 @@ sanity-check anything touching scripts/images in the dev deployment.
 Every pull request must pass the gates below; CI runs them as required status
 checks.
 
-| Gate              | Command                 | What it enforces                                                                                                         |
-| ----------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Formatting        | `npm run format:check`  | Prettier formatting of the maintained code (the hand-written HTML pages are validated, not reformatted)                  |
-| HTML validity     | `npm run validate:html` | Valid markup on every page under `public/`                                                                               |
-| Site completeness | `npm run check:site`    | Every `<html lang>`, every internal link/asset resolves, and each glue script loads its `js/lib` core first              |
-| Unit coverage     | `npm run test:coverage` | 100% line/branch/function/statement coverage of the extracted browser logic (`public/js/lib/**`)                         |
-| Functional        | `npm run test:e2e`      | Playwright smoke + behavior suite (every page loads, platform detection, the full confirm flow)                          |
-| Visual regression | `npm run e2e:docker`    | Every view in the visual matrix (page × viewport × language × state) matches its committed baseline, then `check:visual` |
+| Gate              | Command                 | What it enforces                                                                                                                                            |
+| ----------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formatting        | `npm run format:check`  | Prettier formatting of the maintained code (the hand-written HTML pages are validated, not reformatted)                                                     |
+| HTML validity     | `npm run validate:html` | Valid markup on every page under `public/`                                                                                                                  |
+| Site completeness | `npm run check:site`    | Every `<html lang>`, every internal link/asset resolves, and each glue script loads its `js/lib` core first                                                 |
+| Unit coverage     | `npm run test:coverage` | 100% line/branch/function/statement coverage of `public/js/lib/**` and `functions/_middleware.js`; `functions/lib/**` at its ratchet in `vitest.config.mjs` |
+| Functional        | `npm run test:e2e`      | Playwright smoke + behavior suite (every page loads, platform detection, the full confirm flow)                                                             |
+| Visual regression | `npm run e2e:docker`    | Every view in the visual matrix (page × viewport × language × state) matches its committed baseline, then `check:visual`                                    |
 
 `npm run check` runs the first four locally in one go. The Playwright suites run
 against a local dev server (`test:e2e`); the visual gate runs in a pinned
@@ -101,9 +110,12 @@ The shipped page scripts (`public/platform.js`,
 than chase 100% coverage through the DOM, the **pure** logic — platform
 detection, language resolution, API-base derivation, response→state mapping, and
 the i18n copy — is extracted into `public/js/lib/` (side-effect free, exposed on
-a `window.*` global) and unit-tested to 100% with Vitest + jsdom. Everything else
-is covered end-to-end by the Playwright functional suite
-(`tests/behavior.spec.mjs`).
+a `window.*` global) and unit-tested to 100% with Vitest + jsdom. The rest of
+those page scripts is covered end-to-end by the Playwright functional suite
+(`tests/behavior.spec.mjs`). Two more surfaces carry their own unit-coverage
+gate and are not page scripts at all: `functions/lib/**` at the ratchet set in
+`vitest.config.mjs`, and the Pages Function entry point
+`functions/_middleware.js` at 100% — see the quality-gates table above.
 
 If you add a file under `public/js/lib/`, it must reach 100% coverage or the
 Quality gate fails (the threshold reports every matched file, tested or not). A
@@ -129,7 +141,7 @@ npm run e2e:docker:update   # regenerate baselines after an intentional UI chang
 The visual matrix lives in `tests/pages.mjs` (`VIEWS`), which is the single
 source of truth — do not maintain a second list here. It currently covers six
 families: the invite and promo landings (each in their loading, resolved,
-invalid, missing-code and platform-matched variants), the confirm-page states,
+invalid, missing-code, platform-matched and JS-less variants), the confirm-page states,
 the account-merge pages, the home landing in its equal-badge and
 platform-matched layouts, and the 404 page — across `desktop-chromium`,
 `tablet-chromium` and `mobile-safari`. `check:visual` enforces that every view × applicable viewport

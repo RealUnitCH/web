@@ -45,7 +45,17 @@ uploaded to Cloudflare Pages.
   custom scheme; `twitter:app:country` is CH) are injected
   into the HTML bytes from the request URL (`functions/_middleware.js` on
   Cloudflare Pages, and the local dev-server) so Safari, Play, WhatsApp, X,
-  and share crawlers can snapshot them before JS. `og:title`, `og:description`,
+  and share crawlers can snapshot them before JS. On Cloudflare Pages, and only
+  there, `functions/_middleware.js` also reports a rewritten landing as `200`:
+  Pages resolves `/invite/<code>` to the code-less shell through the
+  `_redirects` rewrite but keeps the not-found status of the path that was asked
+  for, and a crawler drops a `404` before it reads the tags. The promotion is
+  guarded on two marks the landings carry and the site's 404 page does not, and
+  HEAD answers with the same status as GET. Both methods are resolved internally
+  as one full GET, without `Range` / `If-Range` and without the conditional
+  request headers, because the whole document is rewritten and the status is decided
+  from its body. The conditional request headers are dropped rather than evaluated, which is a deliberate deviation from RFC 9110 §13.1: a rewritten landing emits no validator to condition on, so the answer is always the current representation and never a 304 or a 412. A pass-through answer keeps the origin's own headers, validator included. `scripts/dev-server.mjs` shares the injection and answers HEAD without a body, but has no promotion, no marker guard and no header stripping: its own routing serves the landings as `200` and never produces the not-found status the promotion exists to correct.
+  `og:title`, `og:description`,
   and image alt name the campaign code; `?lang=en` sets English copy and `og:locale=en_GB`;
   invitee names wait for lookup JS. `/js/invite-banner.js` in `<head>`
   is the CSP-safe JS fallback — Cloudflare Pages CSP blocks inline `<script>`.
@@ -92,7 +102,9 @@ From v2 a build toolchain (Astro) is introduced; the plain-image landing stays t
 ## Testing
 
 The site still ships verbatim — the tooling is dev-only. Pure browser logic lives
-in `public/js/lib/**` and is unit-tested to 100% (Vitest + jsdom); the pages,
+in `public/js/lib/**` and is unit-tested to 100% (Vitest + jsdom), as is the
+Pages Function entry point `functions/_middleware.js`; `functions/lib/**` is
+measured at its ratchet in `vitest.config.mjs`. The pages,
 platform detection and the full confirm flow are covered by Playwright
 (functional + screenshot regression). See [CONTRIBUTING](CONTRIBUTING.md#quality-gates)
 for the gate list and commands (`npm run check`, `npm run test:e2e`,

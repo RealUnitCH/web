@@ -745,6 +745,20 @@ describe('URLs', () => {
     expect(enTitle).toContain('<title>RealUnit — Invitation AB12CD</title>');
   });
 
+  test('the codeless English copy is exported but unreachable from this file', () => {
+    // functions/lib/itunes-banner.js answers a codeless ?lang=en landing with
+    // English copy. These exported helpers agree with it (pinned in
+    // test/itunes-banner-function.test.mjs), but this module's own injectors
+    // never get there: parseCodeFromLocation returns null without a code, so
+    // the browser page is unaffected either way.
+    expect(parseCodeFromLocation('/invite', '?lang=en', '')).toBeNull();
+    expect(shareTitle('invite', null, 'en')).toBe('RealUnit — Invitation');
+    expect(shareDescription(null, 'en')).toBe('Open the RealUnit app with this code.');
+    const shell = '<html lang="de"><title>RealUnit — Einladung</title>';
+    expect(injectShareTitleHtml(shell, '/invite', '?lang=en', '')).toBe(shell);
+    expect(injectShareDescriptionHtml(shell, '/invite', '?lang=en', '')).toBe(shell);
+  });
+
   test('injectShareImageAltHtml writes og:image:alt from the path', () => {
     const shell =
       '<meta property="og:image:alt" content="RealUnit" />' +
