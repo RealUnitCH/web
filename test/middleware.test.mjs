@@ -91,6 +91,15 @@ describe('the landing middleware', () => {
     expect(await res.text()).toContain('RealUnit — Promo-Code EVT1');
   });
 
+  test('a refusal on a landing path is passed on, not promoted', async () => {
+    // Only the 404 Pages produces for these paths is an artefact. A 403 or a
+    // 410 means what it says, even when the body happens to be the shell.
+    for (const status of [403, 410]) {
+      const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD', status }));
+      expect(res.status).toBe(status);
+    }
+  });
+
   test('a real 404 page on a landing path keeps saying 404', async () => {
     // A broken deploy has to stay visibly broken rather than look healthy.
     const res = await onRequest(

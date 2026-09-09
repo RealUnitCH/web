@@ -641,10 +641,15 @@ describe('landingStatus', () => {
     expect(landingStatus(404, shell)).toBe(200);
   });
 
-  test('leaves every other status alone', () => {
+  test('leaves every other status alone, including its 4xx neighbours', () => {
     expect(landingStatus(200, shell)).toBe(200);
     expect(landingStatus(500, shell)).toBe(500);
     expect(landingStatus(302, shell)).toBe(302);
+    // Only 404 is the Pages artefact this exists for. Widening the condition to
+    // the whole 4xx range would promote a real refusal or a withdrawn code.
+    expect(landingStatus(403, shell)).toBe(403);
+    expect(landingStatus(410, shell)).toBe(410);
+    expect(landingStatus(451, shell)).toBe(451);
   });
 
   test('refuses to promote a body that is not a landing', () => {
