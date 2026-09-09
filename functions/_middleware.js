@@ -123,10 +123,42 @@ export async function onRequest(context) {
  * untouched instead.
  */
 function isRewritableHtml(contentType) {
-  const type = contentType || '';
-  if (type.split(';', 1)[0].trim().toLowerCase() !== 'text/html') return false;
-  const charset = /;\s*charset\s*=\s*"?([^";]+)"?/i.exec(type);
-  return !charset || /^utf-?8$/i.test(charset[1].trim());
+  const [media, ...params] = splitContentType(contentType || '');
+  if (media.trim().toLowerCase() !== 'text/html') return false;
+  const charsets = params
+    .map((param) => param.trim())
+    .filter((param) => param.slice(0, param.indexOf('=')).trim().toLowerCase() === 'charset')
+    .map((param) =>
+      param
+        .slice(param.indexOf('=') + 1)
+        .trim()
+        .replace(/^"|"$/g, ''),
+    );
+  // No charset at all means the default, which is what we assume. Two that
+  // disagree, or one that is not UTF-8, means hands off.
+  return charsets.every((charset) => /^utf-?8$/i.test(charset));
+}
+
+/**
+ * A Content-Type split on its parameter separators, quotes respected.
+ *
+ * A quoted parameter value may contain a semicolon, so splitting on the
+ * character alone would read `foo="x;charset=utf-8"` as a charset and miss the
+ * real one behind it.
+ */
+function splitContentType(type) {
+  const parts = [];
+  let start = 0;
+  let quoted = false;
+  for (let i = 0; i < type.length; i += 1) {
+    if (type[i] === '"') quoted = !quoted;
+    else if (type[i] === ';' && !quoted) {
+      parts.push(type.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(type.slice(start));
+  return parts;
 }
 
 /**

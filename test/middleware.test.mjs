@@ -38,6 +38,8 @@ const SITE_HEADERS = {
 const SHELL = page('invite/index.html');
 const PROMO_SHELL = page('promo/index.html');
 const NOT_FOUND_PAGE = page('404.html');
+// .length counts UTF-16 units; a Content-Length counts bytes.
+const SHELL_BYTES = new TextEncoder().encode(SHELL).length;
 
 function context({
   url,
@@ -134,6 +136,13 @@ describe('the landing middleware', () => {
     // Anything else is handed on rather than decoded as UTF-8 and relabelled.
     expect(await rewritten('text/html; charset=utf-16')).toBe(false);
     expect(await rewritten('text/html; charset=windows-1252')).toBe(false);
+    expect(await rewritten('text/html; charset="iso-8859-1"')).toBe(false);
+    // A semicolon inside a quoted value is not a parameter separator, so the
+    // charset that counts is the real one behind it.
+    expect(await rewritten('text/html; foo="x;charset=utf-8"; charset=iso-8859-1')).toBe(false);
+    expect(await rewritten('text/html; foo="x;charset=iso-8859-1"; charset=utf-8')).toBe(true);
+    // Two that disagree means hands off rather than picking one.
+    expect(await rewritten('text/html; charset=utf-8; charset=iso-8859-1')).toBe(false);
   });
 
   test('a rewritten answer says UTF-8 even when the origin left it out', async () => {
@@ -329,8 +338,10 @@ describe('the landing middleware', () => {
             status: 206,
             headers: new Headers({
               'content-type': 'text/html; charset=utf-8',
-              'content-length': String(SHELL.length),
-              'content-range': `bytes 0-${SHELL.length - 1}/4162`,
+              // Real byte counts: .length counts UTF-16 units, and a range has
+              // to describe bytes of something that exists.
+              'content-length': String(SHELL_BYTES),
+              'content-range': `bytes 0-${SHELL_BYTES - 1}/${SHELL_BYTES}`,
               etag: 'W/"the-whole-thing"',
               ...SITE_HEADERS,
             }),
@@ -343,10 +354,10 @@ describe('the landing middleware', () => {
     expect(res.status).toBe(206);
     // Handed on as it came: not rewritten, though the body is the shell.
     expect(await res.text()).toBe(SHELL);
-    expect(res.headers.get('content-length')).toBe(String(SHELL.length));
+    expect(res.headers.get('content-length')).toBe(String(SHELL_BYTES));
     // Nothing was rewritten, so the range metadata and the validator still
     // describe what the origin sent.
-    expect(res.headers.get('content-range')).toBe(`bytes 0-${SHELL.length - 1}/4162`);
+    expect(res.headers.get('content-range')).toBe(`bytes 0-${SHELL_BYTES - 1}/${SHELL_BYTES}`);
     expect(res.headers.get('etag')).toBe('W/"the-whole-thing"');
 
     // A HEAD on the same answer keeps the status and the headers, and drops
@@ -354,8 +365,8 @@ describe('the landing middleware', () => {
     const head = await partial('HEAD');
     expect(head.status).toBe(206);
     expect(head.body).toBeNull();
-    expect(head.headers.get('content-length')).toBe(String(SHELL.length));
-    expect(head.headers.get('content-range')).toBe(`bytes 0-${SHELL.length - 1}/4162`);
+    expect(head.headers.get('content-length')).toBe(String(SHELL_BYTES));
+    expect(head.headers.get('content-range')).toBe(`bytes 0-${SHELL_BYTES - 1}/${SHELL_BYTES}`);
     expect(head.headers.get('etag')).toBe('W/"the-whole-thing"');
   });
 
