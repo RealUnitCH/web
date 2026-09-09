@@ -38,6 +38,12 @@ describe('shouldRewriteItunesBanner', () => {
     expect(shouldRewriteItunesBanner('/js/invite-banner.js')).toBe(false);
     expect(shouldRewriteItunesBanner('/')).toBe(false);
     expect(shouldRewriteItunesBanner('/.well-known/apple-app-site-association')).toBe(false);
+    // The prefix has to end at a segment boundary: a path that merely starts
+    // with the same letters is somebody else's.
+    expect(shouldRewriteItunesBanner('/invitee')).toBe(false);
+    expect(shouldRewriteItunesBanner('/invite-old')).toBe(false);
+    expect(shouldRewriteItunesBanner('/promotion')).toBe(false);
+    expect(shouldRewriteItunesBanner('/promo-old')).toBe(false);
   });
 });
 
@@ -390,8 +396,13 @@ describe('injectLandingFromRequestUrl', () => {
     expect(out).toContain(
       'https://play.google.com/store/apps/details?id=swiss.realunit.app&referrer=invite%3DAB12CD',
     );
-    expect(out).toContain('data-android-app');
-    expect(out).toContain('data-ios-app');
+    // The hrefs, not just the attribute names: swapping the two would send
+    // Android users to the iOS hand-off and back, and the names alone would
+    // not notice.
+    expect(out).toContain(
+      'data-android-app href="android-app://swiss.realunit.app/https/realunit.app/invite/AB12CD"',
+    );
+    expect(out).toContain('data-ios-app href="ios-app://6759720010/realunit-wallet/invite/AB12CD"');
     expect(out).toContain('al:android:url');
     expect(out).toContain('property="al:android:url" content="realunit-wallet://invite/AB12CD"');
     expect(out).toContain('property="al:android:class" content="swiss.realunit.app.MainActivity"');
