@@ -8,7 +8,11 @@
  * /js/invite-banner.js and invite.js run.
  * public/ stays generic; this is not a site-wide renderer.
  */
-import { injectLandingFromRequestUrl, shouldRewriteItunesBanner } from './lib/itunes-banner.js';
+import {
+  injectLandingFromRequestUrl,
+  landingStatus,
+  shouldRewriteItunesBanner,
+} from './lib/itunes-banner.js';
 
 export async function onRequest(context) {
   const url = new URL(context.request.url);
@@ -24,9 +28,11 @@ export async function onRequest(context) {
   const injected = injectLandingFromRequestUrl(html, context.request.url);
   const headers = new Headers(response.headers);
   headers.delete('content-length');
+  const status = landingStatus(response.status, injected);
   return new Response(injected, {
-    status: response.status,
-    statusText: response.statusText,
+    status,
+    // A promoted status must not keep "Not Found" as its reason phrase.
+    statusText: status === response.status ? response.statusText : '',
     headers,
   });
 }

@@ -16,6 +16,7 @@ import {
   shareTitle,
   injectShareDescriptionHtml,
   shareDescription,
+  landingStatus,
   parseLangFromUrl,
   injectShareLocaleHtml,
   injectSiteNameHtml,
@@ -630,6 +631,28 @@ describe('an English locale without a code keeps English copy', () => {
     expect(injectShareImageAltHtml(shell, 'invite', 'AB12CD', 'en')).toContain(
       'content="RealUnit — Invitation AB12CD"',
     );
+  });
+});
+
+describe('landingStatus', () => {
+  const shell = '<section id="state-loading"></section>';
+
+  test('promotes a not-found landing to found', () => {
+    expect(landingStatus(404, shell)).toBe(200);
+  });
+
+  test('leaves every other status alone', () => {
+    expect(landingStatus(200, shell)).toBe(200);
+    expect(landingStatus(500, shell)).toBe(500);
+    expect(landingStatus(302, shell)).toBe(302);
+  });
+
+  test('refuses to promote a body that is not a landing', () => {
+    // The site's own 404 page must keep saying 404 rather than look healthy.
+    expect(landingStatus(404, '<title>Seite nicht gefunden — RealUnit</title>')).toBe(404);
+    expect(landingStatus(404, '')).toBe(404);
+    expect(landingStatus(404, null)).toBe(404);
+    expect(landingStatus(404, undefined)).toBe(404);
   });
 });
 

@@ -424,6 +424,34 @@ export function parseLangFromUrl(urlLike) {
   }
 }
 
+/**
+ * The landing shell carries this id in both /invite and /promo; the site's
+ * 404 page does not. It is the marker for "the bytes we are holding really are
+ * a landing page".
+ */
+const LANDING_MARKER = 'id="state-loading"';
+
+/**
+ * Report a rewritten landing as found.
+ *
+ * _routes.json sends /invite/<code> to the Function, and the asset lookup
+ * behind context.next() resolves the code-less shell through the _redirects
+ * 200-rewrite while keeping the not-found status of the path that was asked
+ * for. Measured on the deploy: the body is the landing, the status is 404.
+ * Browsers render it anyway, but share crawlers drop a 404 before they read
+ * the tags this module just wrote — which is the whole reason the rewrite
+ * exists.
+ *
+ * Only a body that really is the landing shell is promoted. If a broken deploy
+ * ever serves the site's 404 page on these paths, it has to keep saying 404
+ * instead of looking healthy.
+ */
+export function landingStatus(status, html) {
+  if (status !== 404) return status;
+  if (typeof html !== 'string' || !html.includes(LANDING_MARKER)) return status;
+  return 200;
+}
+
 /** Crawlers snapshot og:title / twitter:title from the HTML bytes. Names wait for lookup JS. */
 export function shareTitle(kind, code, lang) {
   // Keep the kind guard first: this function is exported, and a missing kind
