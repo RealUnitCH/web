@@ -207,7 +207,7 @@ describe('the landing middleware', () => {
     ]) {
       expect(res.headers.get(stale)).toBeNull();
     }
-    // The ones that describe the resource rather than the bytes stay.
+    // The ones the rewrite does not invalidate stay.
     for (const [name, value] of Object.entries(SITE_HEADERS)) {
       expect(res.headers.get(name)).toBe(value);
     }
@@ -276,10 +276,11 @@ describe('the landing middleware', () => {
     expect(await res.text()).toContain('RealUnit — Einladung AB12CD');
   });
 
-  test('the GET-equivalent keeps the request headers but drops Range', async () => {
+  test('the GET-equivalent drops Range and keeps the unrelated headers', async () => {
     // A HEAD carrying Range would otherwise come back as 206, whose body is not
     // the landing shell — the status would neither be promoted nor mean what
-    // the client asked for. Everything else the client sent is kept.
+    // the client asked for. Headers unrelated to choosing the representation
+    // are kept; the conditional ones are covered by their own case above.
     const ctx = context({
       url: 'https://realunit.app/invite/AB12CD',
       method: 'HEAD',

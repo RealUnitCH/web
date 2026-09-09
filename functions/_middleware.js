@@ -48,13 +48,13 @@ export async function onRequest(context) {
   const html = await response.text();
   const injected = injectLandingFromRequestUrl(html, context.request.url);
   const headers = new Headers(response.headers);
-  // The headers that describe the bytes rather than the resource, and so become
-  // stale the moment those bytes change: the length, the encoding, the two
-  // validators, the range and the integrity digests of RFC 9530 and its
-  // predecessors. A stale validator is worse than none — a conditional request
-  // would be answered 304 against a document the client never received — and a
-  // body labelled gzip that is not gzip does not render at all. The body handed
-  // on from here is always the decoded, rewritten string.
+  // The headers that rewriting the representation invalidates or makes
+  // unreliable: the length, the content coding, both validators, the range
+  // metadata and the integrity digests of RFC 9530 and its predecessors. A
+  // stale validator is worse than none — a conditional request would be
+  // answered 304 against a document the client never received — and a body
+  // labelled gzip that is not gzip does not render at all. The body handed on
+  // from here is always the decoded, rewritten string.
   //
   // Measured on the deploy: Pages sets neither ETag nor Last-Modified on these
   // paths today but does serve them Content-Encoding: gzip, so that one is not
