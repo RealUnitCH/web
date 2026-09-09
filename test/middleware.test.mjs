@@ -140,9 +140,20 @@ describe('the landing middleware', () => {
   });
 
   test('the charset is read whatever shape it comes in', async () => {
+    // A rewritten answer is promoted, declares UTF-8 and carries the injected
+    // title; an untouched one keeps the origin's status, type and bytes.
     const rewritten = async (type) => {
       const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD', type }));
-      return res.status === 200;
+      const html = await res.text();
+      if (res.status === 200) {
+        expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
+        expect(html).toContain('RealUnit — Einladung AB12CD');
+        return true;
+      }
+      expect(res.status).toBe(404);
+      expect(res.headers.get('content-type')).toBe(type);
+      expect(html).toBe(SHELL);
+      return false;
     };
     // Quoted, unusually spelled and differently cased UTF-8 all still count —
     // the parameter name is case-insensitive too.
@@ -541,7 +552,7 @@ describe('the landing middleware', () => {
         'user-agent': 'link-checker/1.0',
       },
     });
-    await onRequest(ctx);
+    const res = await onRequest(ctx);
     const [forwarded] = ctx.forwarded;
     expect(forwarded.method).toBe('GET');
     expect(forwarded.headers.get('range')).toBeNull();
@@ -549,6 +560,11 @@ describe('the landing middleware', () => {
     expect(forwarded.headers.get('accept-language')).toBe('en-GB');
     expect(forwarded.headers.get('user-agent')).toBe('link-checker/1.0');
     expect(forwarded.url).toBe(ctx.request.url);
+    // And the answer is the whole document, not a partial one: stripping the
+    // header would mean little if the response were still treated as a 206.
+    expect(res.status).toBe(200);
+    expect(res.statusText).toBe('');
+    expect(res.body).toBeNull();
   });
 
   test('a HEAD on a real 404 page keeps saying 404', async () => {

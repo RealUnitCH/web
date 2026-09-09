@@ -54,7 +54,7 @@ uploaded to Cloudflare Pages.
   HEAD answers with the same status as GET. Both methods are resolved internally
   as one full GET, without `Range` / `If-Range` and without the conditional
   request headers, because the whole document is rewritten and the status is decided
-  from its body. `scripts/dev-server.mjs` shares the injection and answers HEAD without a body, but has no promotion, no marker guard and no header stripping: its own routing serves the landings as `200` and never produces the not-found status the promotion exists to correct.
+  from its body. The conditional request headers are dropped rather than evaluated, which is a deliberate deviation from RFC 9110 §13.1: these paths emit no validator, so the answer is always the current representation and never a 304 or a 412. `scripts/dev-server.mjs` shares the injection and answers HEAD without a body, but has no promotion, no marker guard and no header stripping: its own routing serves the landings as `200` and never produces the not-found status the promotion exists to correct.
   `og:title`, `og:description`,
   and image alt name the campaign code; `?lang=en` sets English copy and `og:locale=en_GB`;
   invitee names wait for lookup JS. `/js/invite-banner.js` in `<head>`
