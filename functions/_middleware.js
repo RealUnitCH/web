@@ -81,7 +81,8 @@ export async function onRequest(context) {
   // body, and the body is what tells the landing shell from any other page —
   // deciding from an empty one would hand back the file's own validators
   // beside a GET that had them stripped. Both cases therefore read the shell
-  // from the binding, and both answer as the GET does.
+  // from the binding, and both answer as the GET would — a HEAD without a
+  // body, which the platform expects of it anyway.
   const assets = context.env && context.env.ASSETS;
   if (!assets) {
     // No binding, no shell to read. The platform's answer stands: it is the
@@ -130,7 +131,9 @@ function isHtml(contentType) {
 }
 
 /**
- * The landing, with the campaign written into it.
+ * The landing after injectLandingFromRequestUrl: the URL tags, the locale and
+ * the document language always, the campaign metadata and the store hand-off
+ * only when the URL carries a code.
  */
 function answer(html, sourceHeaders, request, method, status = 200) {
   const injected = injectLandingFromRequestUrl(html, request.url);

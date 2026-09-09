@@ -35,8 +35,8 @@ export default defineConfig({
           branches: 87,
           statements: 98,
         },
-        // The middleware decides which page and which status every crawler
-        // sees. It was outside `include` while it did so, which is how a
+        // The middleware decides which page and which status a crawler of an
+        // invite or promo landing sees. It was outside `include` while it did so, which is how a
         // change that served the 404 page on every invite link passed a full
         // review. It is measured at 100% and stays there.
         'functions/_middleware.js': {
