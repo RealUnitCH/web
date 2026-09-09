@@ -28,12 +28,17 @@ export async function onRequest(context) {
     return context.next();
   }
   const isHead = method === 'HEAD';
-  // The status has to be decided from the body: the marker in it is what tells
-  // the landing shell from the site's own 404 page. A HEAD response carries no
-  // body, so HEAD asks for the GET-equivalent and answers with that status and
-  // those headers, without the body. Otherwise the same link would read as
-  // found by GET and as dead by the HEAD a link checker sends first.
-  const response = isHead ? await context.next(asGet(context.request)) : await context.next();
+  // Both methods ask for the same thing: the whole document as a GET.
+  //
+  // HEAD, because the status has to be decided from the body — the marker in it
+  // is what tells the landing shell from the site's own 404 page. A HEAD
+  // response carries none, and without this the same link would read as found
+  // by GET and as dead by the HEAD a link checker sends first.
+  //
+  // A full document, because this pass rewrites all of it. A partial
+  // representation would be injected into a fragment and returned under a
+  // Content-Range describing the bytes before the rewrite.
+  const response = await context.next(asFullGet(context.request));
   const type = response.headers.get('content-type') || '';
   if (!type.includes('text/html')) {
     // Nothing to rewrite. A HEAD still must not carry the body the GET-
@@ -52,12 +57,15 @@ export async function onRequest(context) {
 }
 
 /**
- * The same request as a GET. Range and If-Range are dropped: a HEAD carrying
- * them would otherwise come back as 206 Partial Content, whose body is not the
- * landing shell, so the status would neither be promoted nor mean what the
- * client asked for. Everything else the client sent is kept.
+ * The same request as a GET for the whole document. Range and If-Range are
+ * dropped so the answer cannot come back as 206 Partial Content, whose body is
+ * neither the landing shell nor what the rewrite would produce. Everything else
+ * the client sent is kept.
+ *
+ * Measured on the deploy: Pages answers a Range request on these paths with the
+ * full document today, so this is a guard rather than a live fix.
  */
-function asGet(request) {
+function asFullGet(request) {
   const headers = new Headers(request.headers);
   headers.delete('range');
   headers.delete('if-range');

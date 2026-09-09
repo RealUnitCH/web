@@ -146,6 +146,23 @@ describe('the landing middleware', () => {
     expect(head.headers.get('content-length')).toBeNull();
   });
 
+  test('a plain GET with Range is forwarded without it', async () => {
+    // This pass rewrites the whole document, so a partial representation is
+    // never useful: it would be injected into a fragment and returned under a
+    // Content-Range describing the bytes before the rewrite.
+    const ctx = context({
+      url: 'https://realunit.app/invite/AB12CD',
+      requestHeaders: { range: 'bytes=0-99', 'if-range': 'W/"abc"' },
+    });
+    const res = await onRequest(ctx);
+    const [forwarded] = ctx.forwarded;
+    expect(forwarded.method).toBe('GET');
+    expect(forwarded.headers.get('range')).toBeNull();
+    expect(forwarded.headers.get('if-range')).toBeNull();
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('RealUnit — Einladung AB12CD');
+  });
+
   test('the GET-equivalent keeps the request headers but drops Range', async () => {
     // A HEAD carrying Range would otherwise come back as 206, whose body is not
     // the landing shell — the status would neither be promoted nor mean what
