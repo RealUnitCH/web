@@ -7,12 +7,42 @@ This repo is the **realunit.app** website — public, static. See the
 
 - **No build toolchain for the site.** Plain HTML/CSS/JS only. Everything in
   `public/` ships verbatim to Cloudflare Pages — what you commit is what gets
-  served. The dev dependencies exist **only** for the quality gates below
+  served. The one exception is the invite/promo HTML: `functions/_middleware.js`
+  rewrites those bytes on the way out so crawlers see the code in
+  `apple-itunes-app`, `og:*` and the App Links before any script runs. Nothing
+  else is transformed, and there is no server-side rendering. The dev dependencies exist **only** for the quality gates below
   (formatting, HTML validation, unit tests, screenshots); nothing compiles or
   bundles the site.
+- **Invite/promo HTML rewrite is banner, canonical, and store handoff.** Safari,
+  Play, and share crawlers snapshot `apple-itunes-app`, `og:url`,
+  `rel=canonical`, `twitter:url`, `og:title`, `twitter:title`,
+  `og:description`, `twitter:description`, `og:image:alt`, `twitter:image:alt`,
+  `og:locale`, `og:site_name`, html `lang`, the Play
+  referrer, android-app / ios-app alternate links, Facebook App Links
+  (`al:ios:url` / `al:android:url` are `realunit-wallet://…`; `al:android:class`
+  is `swiss.realunit.app.MainActivity`; `al:web:url`
+  is the HTTPS landing), and Twitter App Card `twitter:app:url:iphone` /
+  `twitter:app:url:ipad` / `twitter:app:url:googleplay` (same custom scheme)
+  from the HTML bytes before
+  `/js/invite-banner.js` / `invite.js` run, so `functions/_middleware.js`
+  (repo-root `functions/`, picked up by `wrangler pages deploy public`) and
+  `scripts/dev-server.mjs` inject those from the request URL (www folded onto
+  the apex). The campaign code is in `og:title` / `twitter:title` /
+  `og:description` / `og:image:alt` / `twitter:image:alt`; `?lang=en` sets English title/description/alt and `og:locale`;
+  invitee names wait for lookup JS. The committed
+  `public/invite` and `public/promo` HTML stay generic (`app-id` only, og:url /
+  twitter:url `/invite/` or `/promo/`, `og:site_name` RealUnit, generic titles and descriptions, Play
+  href without referrer, no `al:*`, no `twitter:app:*`, `format-detection`
+  `telephone=no, date=no` so iOS does not turn the code or Aktionstext date
+  into a link, `x-apple-data-detectors="false"` on `#ok-code` / `#ok-body`
+  because Safari re-scans JS-inserted text, no inline
+  `<script>`). Do not add other Pages Functions or server-side rendering.
 - **Keep the page self-contained.** `public/_headers` sets a strict CSP:
-  - No inline `<script>` and no external resources of any kind (scripts, styles,
-    images, fonts, fetch). Load JS from **same-origin** files instead.
+  - No inline `<script>` and no third-party resources (scripts, styles, images,
+    fonts). Load JS from **same-origin** files instead. The single permitted
+    network call is the code lookup against the DFX API, which is why
+    `connect-src` names `api.dfx.swiss` and `dev.api.dfx.swiss` explicitly —
+    adding any other host to that allowlist needs a reason in the PR.
   - Inline `style="…"` attributes and `<style>` blocks are fine (`style-src`
     allows `'unsafe-inline'`).
 - **Put the reusable, side-effect-free JS in `public/js/lib/`.** That is the only
@@ -96,10 +126,13 @@ npm run e2e:docker          # run the suite + compare against baselines + check:
 npm run e2e:docker:update   # regenerate baselines after an intentional UI change
 ```
 
-The visual matrix lives in `tests/pages.mjs` (`VIEWS`): the landing page in both
-its equal-badge and platform-matched layouts, every confirm-page state in both
-languages, and the 404 page — across `desktop-chromium`, `tablet-chromium` and
-`mobile-safari`. `check:visual` enforces that every view × applicable viewport
+The visual matrix lives in `tests/pages.mjs` (`VIEWS`), which is the single
+source of truth — do not maintain a second list here. It currently covers six
+families: the invite and promo landings (each in their loading, resolved,
+invalid, missing-code and platform-matched variants), the confirm-page states,
+the account-merge pages, the home landing in its equal-badge and
+platform-matched layouts, and the 404 page — across `desktop-chromium`,
+`tablet-chromium` and `mobile-safari`. `check:visual` enforces that every view × applicable viewport
 has exactly one committed baseline, nothing is orphaned, and the report ran them
 all. When you intentionally change a page's look, run `e2e:docker:update` and
 commit the updated PNGs under `tests/__screenshots__/`.
