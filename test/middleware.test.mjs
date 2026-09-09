@@ -10,6 +10,31 @@ import { onRequest } from '../functions/_middleware.js';
 // Resolved from the project root: vitest runs from there, and the jsdom
 // environment does not give this module a usable import.meta.url.
 const page = (name) => readFileSync(resolve('public', name), 'utf8');
+
+// The header values public/_headers really sets, read from the file so the
+// fixture cannot drift from production. This checks that the middleware passes
+// them through — a dropped security header does not show up in coverage, which
+// measures execution and not values. It does not review the policy itself:
+// changing _headers moves both sides together, by design.
+function headerRule(pattern, name) {
+  const rules = page('_headers').split(/\r?\n/);
+  const start = rules.findIndex((line) => line.trim() === pattern);
+  if (start < 0) throw new Error(`public/_headers has no rule for ${pattern}`);
+  for (const line of rules.slice(start + 1)) {
+    if (!line.startsWith(' ') && !line.startsWith('\t')) break;
+    const [key, ...rest] = line.trim().split(':');
+    if (key.toLowerCase() === name) return rest.join(':').trim();
+  }
+  throw new Error(`public/_headers sets no ${name} for ${pattern}`);
+}
+
+const SITE_HEADERS = {
+  'content-security-policy': headerRule('/*', 'content-security-policy'),
+  'x-content-type-options': headerRule('/*', 'x-content-type-options'),
+  'x-frame-options': headerRule('/*', 'x-frame-options'),
+  'referrer-policy': headerRule('/*', 'referrer-policy'),
+  'cache-control': headerRule('/invite/*', 'cache-control'),
+};
 const SHELL = page('invite/index.html');
 const PROMO_SHELL = page('promo/index.html');
 const NOT_FOUND_PAGE = page('404.html');
@@ -24,16 +49,7 @@ function context({
   const headers = new Headers({
     'content-type': type,
     'content-length': String(body.length),
-    // Representative of what public/_headers sets for these paths: the
-    // cache-control value is the real one, the CSP is a short stand-in for a
-    // much longer policy. All of it has to survive the response being rebuilt
-    // — a dropped security header would not show up in coverage, which
-    // measures execution and not values.
-    'cache-control': 'public, max-age=60',
-    'content-security-policy': "default-src 'self'",
-    'x-content-type-options': 'nosniff',
-    'x-frame-options': 'SAMEORIGIN',
-    'referrer-policy': 'strict-origin-when-cross-origin',
+    ...SITE_HEADERS,
   });
   const forwarded = [];
   const next = (request) => {
@@ -59,11 +75,9 @@ describe('the landing middleware', () => {
     expect(html).toContain('RealUnit — Einladung AB12CD');
     expect(res.headers.get('content-length')).toBeNull();
     expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
-    expect(res.headers.get('cache-control')).toBe('public, max-age=60');
-    expect(res.headers.get('content-security-policy')).toBe("default-src 'self'");
-    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
-    expect(res.headers.get('x-frame-options')).toBe('SAMEORIGIN');
-    expect(res.headers.get('referrer-policy')).toBe('strict-origin-when-cross-origin');
+    for (const [name, value] of Object.entries(SITE_HEADERS)) {
+      expect(res.headers.get(name)).toBe(value);
+    }
   });
 
   test('a promo landing is promoted the same way', async () => {
@@ -115,17 +129,24 @@ describe('the landing middleware', () => {
     // stream, and text() cannot tell the two apart.
     expect(head.body).toBeNull();
     expect(await head.text()).toBe('');
-    for (const name of [
-      'content-type',
-      'cache-control',
-      'content-security-policy',
-      'x-content-type-options',
-      'x-frame-options',
-      'referrer-policy',
-    ]) {
+    for (const name of ['content-type', ...Object.keys(SITE_HEADERS)]) {
       expect(head.headers.get(name)).toBe(get.headers.get(name));
     }
     expect(head.headers.get('content-length')).toBeNull();
+  });
+
+  test('a HEAD on a real 404 page keeps saying 404', async () => {
+    // The marker guard has to hold on the HEAD path too, not only on GET.
+    const ctx = context({
+      url: 'https://realunit.app/invite/AB12CD',
+      method: 'HEAD',
+      body: NOT_FOUND_PAGE,
+    });
+    const res = await onRequest(ctx);
+    expect(ctx.forwarded).toEqual(['GET']);
+    expect(res.status).toBe(404);
+    expect(res.statusText).toBe('Not Found');
+    expect(res.body).toBeNull();
   });
 
   test('a HEAD on a response that is not HTML keeps its status and carries no body', async () => {
