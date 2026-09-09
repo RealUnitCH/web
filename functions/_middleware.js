@@ -168,9 +168,10 @@ function unquote(value) {
 }
 
 /**
- * Statuses this pass hands on untouched: they carry no representation of their
+ * Statuses this pass does not rewrite: they carry no representation of their
  * own, or only part of one, so there is nothing to rewrite and their headers
- * still describe what the origin meant.
+ * still describe what the origin meant. A GET gets the origin's answer back
+ * unchanged; a HEAD gets a new, body-less one with the same status and headers.
  */
 const PASSED_ON = new Set([204, 205, 206, 304]);
 

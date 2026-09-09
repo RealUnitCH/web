@@ -38,8 +38,11 @@ const SITE_HEADERS = {
 const SHELL = page('invite/index.html');
 const PROMO_SHELL = page('promo/index.html');
 const NOT_FOUND_PAGE = page('404.html');
-// .length counts UTF-16 units; a Content-Length counts bytes.
-const SHELL_BYTES = new TextEncoder().encode(SHELL).length;
+// .length counts UTF-16 units; a Content-Length counts bytes, and these pages
+// carry multi-byte characters.
+const bytes = (text) => new TextEncoder().encode(text).length;
+const SHELL_BYTES = bytes(SHELL);
+const NOT_FOUND_BYTES = bytes(NOT_FOUND_PAGE);
 
 function context({
   url,
@@ -51,7 +54,7 @@ function context({
 }) {
   const headers = new Headers({
     'content-type': type,
-    'content-length': String(body.length),
+    'content-length': String(bytes(body)),
     ...SITE_HEADERS,
   });
   const forwarded = [];
@@ -196,7 +199,7 @@ describe('the landing middleware', () => {
             statusText: 'OK',
             headers: new Headers({
               'content-type': 'text/html; charset=utf-8',
-              'content-length': String(SHELL.length),
+              'content-length': String(SHELL_BYTES),
               'content-encoding': 'gzip',
               ...SITE_HEADERS,
             }),
@@ -304,7 +307,7 @@ describe('the landing middleware', () => {
         statusText: 'Not Found',
         headers: new Headers({
           'content-type': 'text/html; charset=utf-8',
-          'content-length': String(SHELL.length),
+          'content-length': String(SHELL_BYTES),
           etag: 'W/"before-the-rewrite"',
           'last-modified': 'Tue, 09 Sep 2026 00:00:00 GMT',
           'content-range': 'bytes 0-99/4162',
@@ -391,9 +394,10 @@ describe('the landing middleware', () => {
     expect(head.headers.get('etag')).toBe('W/"the-whole-thing"');
   });
 
-  // The origin's own answer for the two cases below, kept so the tests can
-  // require that it is handed on as the very same object rather than rebuilt
-  // into something that merely looks like it.
+  // The origin's own answer for the two cases below. The GET case can require
+  // that this very object comes back, which no look-alike would satisfy; the
+  // HEAD case cannot, because a body-less answer has to be a new object, so it
+  // compares the whole status and header set instead.
   function notFoundUpstream(method) {
     const ctx = context({ url: 'https://realunit.app/invite/AB12CD', method });
     let upstream;
@@ -406,7 +410,7 @@ describe('the landing middleware', () => {
         statusText: 'Not Found',
         headers: new Headers({
           'content-type': 'text/html; charset=utf-8',
-          'content-length': String(NOT_FOUND_PAGE.length),
+          'content-length': String(NOT_FOUND_BYTES),
           'content-encoding': 'gzip',
           etag: 'W/"the-404-page"',
           ...SITE_HEADERS,
@@ -445,7 +449,7 @@ describe('the landing middleware', () => {
     const res = await onRequest(ctx);
     expect(await res.text()).toBe(SHELL);
     // Passed through, so the header the rewrite would have dropped is still there.
-    expect(res.headers.get('content-length')).toBe(String(SHELL.length));
+    expect(res.headers.get('content-length')).toBe(String(SHELL_BYTES));
   });
 
   test('HEAD answers like GET by asking for the GET-equivalent', async () => {
@@ -573,11 +577,24 @@ describe('the landing middleware', () => {
   });
 
   test('a method that is neither GET nor HEAD is passed through untouched', async () => {
-    const res = await onRequest(
-      context({ url: 'https://realunit.app/invite/AB12CD', method: 'POST' }),
-    );
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD', method: 'POST' });
+    let upstream;
+    ctx.next = () => {
+      upstream = new Response(SHELL, {
+        status: 404,
+        headers: new Headers({
+          'content-type': 'text/html; charset=utf-8',
+          'content-length': String(SHELL_BYTES),
+          etag: 'W/"untouched"',
+        }),
+      });
+      return Promise.resolve(upstream);
+    };
+    const res = await onRequest(ctx);
+    // The origin's own answer, as with the other pass-through branches.
+    expect(res).toBe(upstream);
     expect(res.status).toBe(404);
-    expect(res.headers.get('content-length')).toBe(String(SHELL.length));
+    expect(res.headers.get('etag')).toBe('W/"untouched"');
     expect(await res.text()).toBe(SHELL);
   });
 

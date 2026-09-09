@@ -360,7 +360,7 @@ describe('injectLandingFromRequestUrl', () => {
       '<meta name="description" content="Öffne die RealUnit-App mit diesem Code." />';
     const out = injectLandingFromRequestUrl(shell, 'https://www.realunit.app/invite/AB12CD?mock=1');
     expect(out).toContain('app-argument=realunit-wallet://invite/AB12CD');
-    expect(out).toContain('content="https://realunit.app/invite/AB12CD"');
+    expect(out).toContain('property="og:url" content="https://realunit.app/invite/AB12CD"');
     expect(out).toContain('href="https://realunit.app/invite/AB12CD"');
     expect(out).toContain('name="twitter:url" content="https://realunit.app/invite/AB12CD"');
     expect(out).toContain('property="og:title" content="RealUnit — Einladung AB12CD"');
@@ -610,7 +610,9 @@ describe('an English locale without a code keeps English copy', () => {
     const promo = injectLandingFromRequestUrl(shell, 'https://realunit.app/promo/?lang=en');
     expect(promo).toContain('<title>RealUnit — Promo code</title>');
 
-    // Without ?lang=en the German shell must be left exactly as it is.
+    // Without ?lang=en the German copy must be left as it is. The pass still
+    // adds og:site_name, which is language-independent, so this checks the copy
+    // rather than byte equality.
     const de = injectLandingFromRequestUrl(shell, 'https://realunit.app/invite/');
     expect(de).toContain('<title>RealUnit — Einladung</title>');
     expect(de).toContain(
