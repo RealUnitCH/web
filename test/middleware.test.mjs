@@ -28,8 +28,8 @@ const bytes = (text) => new TextEncoder().encode(text).length;
 // The platform's own answer on a landing path, which is what this pass exists
 // to replace: `_routes.json` hands the request here first, so the 200-rewrite
 // in `_redirects` never runs and the asset lookup answers with the 404 page.
-function platformAnswer() {
-  return new Response(NOT_FOUND_PAGE, {
+function notFoundAnswer(method) {
+  return new Response(method === 'HEAD' ? null : NOT_FOUND_PAGE, {
     status: 404,
     statusText: 'Not Found',
     headers: new Headers({
@@ -47,6 +47,7 @@ function context({
   shellStatus = 200,
   shellHeaders = {},
   withAssets = true,
+  platformAnswer: makePlatform = notFoundAnswer,
 } = {}) {
   const nextCalls = [];
   const assetFetches = [];
@@ -55,7 +56,7 @@ function context({
     request: new Request(url, { method }),
     next: (request) => {
       nextCalls.push(request);
-      platform = platformAnswer();
+      platform = makePlatform(method);
       return Promise.resolve(platform);
     },
     nextCalls,
@@ -94,9 +95,9 @@ describe('the landing middleware', () => {
     const res = await onRequest(ctx);
     expect(res.status).toBe(200);
     expect(ctx.assetFetches).toEqual(['https://realunit.app/invite/index.html']);
-    // context.next() is never reached on this path: its answer is the wrong
-    // page, which is the bug rather than the fallback.
-    expect(ctx.nextCalls).toEqual([]);
+    // The platform is asked first and with no argument of ours; its 404 is
+    // what says the rewrite never resolved this path.
+    expect(ctx.nextCalls).toEqual([undefined]);
     const html = await res.text();
     expect(html).toContain('RealUnit — Einladung AB12CD');
     expect(html).toContain('og:title');
@@ -110,15 +111,6 @@ describe('the landing middleware', () => {
     expect(ctx.assetFetches).toEqual(['https://realunit.app/promo/index.html']);
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('EVT1');
-  });
-
-  test('the codeless landings are answered from their own shells too', async () => {
-    const invite = context({ url: 'https://realunit.app/invite' });
-    await onRequest(invite);
-    expect(invite.assetFetches).toEqual(['https://realunit.app/invite/index.html']);
-    const promo = context({ url: 'https://realunit.app/promo', shell: PROMO_SHELL });
-    await onRequest(promo);
-    expect(promo.assetFetches).toEqual(['https://realunit.app/promo/index.html']);
   });
 
   test('a HEAD gets the same status and no body', async () => {
@@ -211,6 +203,91 @@ describe('the landing middleware', () => {
     const res = await onRequest(ctx);
     expect(res).toBe(ctx.platform());
     expect(res.status).toBe(404);
+  });
+
+  test('the codeless landing is rewritten in place, not fetched again', async () => {
+    // /invite/ is a real file, so the platform already answers it correctly.
+    // Only the metadata has to be written in; the asset binding is not touched
+    // and the status the platform gave stays.
+    const ctx = context({
+      url: 'https://realunit.app/invite/',
+      platformAnswer: () =>
+        new Response(SHELL, {
+          status: 200,
+          headers: new Headers({
+            'content-type': 'text/html; charset=utf-8',
+            'content-length': String(bytes(SHELL)),
+            etag: 'W/"the-shell"',
+          }),
+        }),
+    });
+    const res = await onRequest(ctx);
+    expect(ctx.assetFetches).toEqual([]);
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('RealUnit — Einladung');
+    expect(isLandingShell(html)).toBe(true);
+    // Rewritten, so the headers that described the bytes before it are gone.
+    expect(res.headers.get('etag')).toBeNull();
+    expect(res.headers.get('content-length')).toBeNull();
+  });
+
+  test("the platform's redirect on /invite/index.html is left alone", async () => {
+    // Pages canonicalises the explicit file name to the directory. That is a
+    // 308 and not this pass's business; answering it with the landing instead
+    // would quietly create a second URL for the same page.
+    let redirect;
+    const ctx = context({
+      url: 'https://realunit.app/invite/index.html',
+      platformAnswer: () => {
+        redirect = new Response(null, {
+          status: 308,
+          headers: new Headers({ location: '/invite/' }),
+        });
+        return redirect;
+      },
+    });
+    const res = await onRequest(ctx);
+    expect(res).toBe(redirect);
+    expect(res.status).toBe(308);
+    expect(res.headers.get('location')).toBe('/invite/');
+    expect(ctx.assetFetches).toEqual([]);
+  });
+
+  test('a non-HTML answer the platform gives is handed on untouched', async () => {
+    let asset;
+    const ctx = context({
+      url: 'https://realunit.app/invite/',
+      platformAnswer: () => {
+        asset = new Response('{}', {
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json', etag: 'W/"json"' }),
+        });
+        return asset;
+      },
+    });
+    const res = await onRequest(ctx);
+    expect(res).toBe(asset);
+    expect(res.headers.get('etag')).toBe('W/"json"');
+  });
+
+  test('an HTML answer that is not the shell is handed on untouched', async () => {
+    // A broken deploy serving the site's 404 page under /invite/ with a 200
+    // must not be dressed up as an invitation.
+    let other;
+    const ctx = context({
+      url: 'https://realunit.app/invite/',
+      platformAnswer: () => {
+        other = new Response(NOT_FOUND_PAGE, {
+          status: 200,
+          headers: new Headers({ 'content-type': 'text/html; charset=utf-8' }),
+        });
+        return other;
+      },
+    });
+    const res = await onRequest(ctx);
+    expect(res).toBe(other);
+    expect(await res.text()).toBe(NOT_FOUND_PAGE);
   });
 
   test('the marks the pass keys on live where they have to', () => {

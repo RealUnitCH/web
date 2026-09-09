@@ -38,25 +38,60 @@ export async function onRequest(context) {
   if (method !== 'GET' && method !== 'HEAD') {
     return context.next();
   }
+  // The platform's own answer first, because most of what it says is right and
+  // only one case is not. A real file under these paths comes back 200 — that
+  // is /invite/ and /promo/ themselves — and /invite/index.html comes back as
+  // the 308 that canonicalises it. Both stand. Only the code-bearing paths
+  // come back 404, because the 200-rewrite that was meant to resolve them
+  // never runs, and those are the ones this pass has to answer itself.
+  const platform = await context.next();
+  if (platform.status !== 404) {
+    return await rewritten(platform, context.request, method);
+  }
   const assets = context.env && context.env.ASSETS;
   if (!assets) {
-    // No binding, no shell to read. Hand the request on rather than invent an
-    // answer: the platform's own is wrong on these paths, but it is honest.
-    return context.next();
+    // No binding, no shell to read. The platform's answer stands: it is the
+    // wrong page, but it is not one this pass invented.
+    return platform;
   }
   const shellPath = url.pathname.startsWith('/promo') ? LANDING_SHELL.promo : LANDING_SHELL.invite;
   const shell = await assets.fetch(new Request(new URL(shellPath, url).toString()));
   if (!shell.ok) {
-    return context.next();
+    return platform;
   }
   const html = await shell.text();
   if (!isLandingShell(html)) {
     // The file under that name is not the landing shell any more. Serving it
     // as one would describe something the visitor is not looking at.
-    return context.next();
+    return platform;
   }
-  const injected = injectLandingFromRequestUrl(html, context.request.url);
-  const headers = new Headers(shell.headers);
+  return answer(html, shell.headers, context.request, method);
+}
+
+/**
+ * The platform's own answer, rewritten in place when it is the landing shell.
+ * This is the /invite/ and /promo/ case: the file exists, the status is right,
+ * and only the metadata has to be written into it. Anything else — a redirect,
+ * a non-HTML asset, a page that is not the shell — is handed back untouched.
+ */
+async function rewritten(response, request, method) {
+  const type = response.headers.get('content-type') || '';
+  if (!type.toLowerCase().startsWith('text/html')) {
+    return response;
+  }
+  const html = await response.clone().text();
+  if (!isLandingShell(html)) {
+    return response;
+  }
+  return answer(html, response.headers, request, method, response.status);
+}
+
+/**
+ * The landing, with the campaign written into it.
+ */
+function answer(html, sourceHeaders, request, method, status = 200) {
+  const injected = injectLandingFromRequestUrl(html, request.url);
+  const headers = new Headers(sourceHeaders);
   // Everything that described the bytes before the rewrite: the length, the
   // content coding — the body was decoded by text() and leaves here as plain
   // text — both validators, and the integrity digests of RFC 9530 and its
@@ -75,8 +110,8 @@ export async function onRequest(context) {
     headers.delete(stale);
   }
   headers.set('content-type', 'text/html; charset=utf-8');
-  // The shell exists, so the answer is 200 — for HEAD as well as for GET. That
-  // is the whole point: WhatsApp, iMessage, Slack, Facebook and X drop a 404
-  // before they read the tags this pass just wrote.
-  return new Response(method === 'HEAD' ? null : injected, { status: 200, headers });
+  // The shell exists, so a code-bearing path is answered 200 — for HEAD as
+  // well as for GET. That is the whole point: WhatsApp, iMessage, Slack,
+  // Facebook and X drop a 404 before they read the tags just written.
+  return new Response(method === 'HEAD' ? null : injected, { status, headers });
 }
