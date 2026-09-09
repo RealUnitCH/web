@@ -58,14 +58,28 @@ export async function onRequest(context) {
   const status = landingStatus(response.status, injected);
   // A promoted status must not keep "Not Found" as its reason phrase.
   const statusText = status === response.status ? response.statusText : '';
-  return new Response(isHead ? null : injected, { status, statusText, headers });
+  // 204, 205 and 304 must not carry a body. Pairing one with a body throws,
+  // which would turn such an answer into a 500 instead of passing it on.
+  const sendNoBody = isHead || status === 204 || status === 205 || status === 304;
+  return new Response(sendNoBody ? null : injected, { status, statusText, headers });
 }
 
+/** Headers that let the answer be something other than the full document. */
+const PARTIAL_OR_CONDITIONAL = [
+  'range',
+  'if-range',
+  'if-none-match',
+  'if-modified-since',
+  'if-match',
+  'if-unmodified-since',
+];
+
 /**
- * The same request as a GET for the whole document. Range and If-Range are
- * dropped so the answer cannot come back as 206 Partial Content, whose body is
- * neither the landing shell nor what the rewrite would produce. Everything else
- * the client sent is kept.
+ * The same request as a GET for the whole document. Every header that could
+ * make the answer something else is dropped: Range would allow 206, the
+ * conditional ones 304 or 412. None of those bodies is the landing shell, and
+ * the status here is decided from the body. Everything else the client sent is
+ * kept.
  *
  * Measured on the deploy with a Range GET, reading the body rather than only
  * the headers: Pages answers with the full document today and no 206, so this
@@ -73,9 +87,17 @@ export async function onRequest(context) {
  */
 function asFullGet(request) {
   const headers = new Headers(request.headers);
-  headers.delete('range');
-  headers.delete('if-range');
-  return new Request(request, { method: 'GET', headers });
+  for (const name of PARTIAL_OR_CONDITIONAL) {
+    headers.delete(name);
+  }
+  try {
+    return new Request(request, { method: 'GET', headers });
+  } catch {
+    // A GET or HEAD carrying a body cannot be re-methoded: the constructor
+    // refuses to pair one with GET. Rebuild from the URL instead, which drops
+    // the platform's request metadata but keeps the request answerable.
+    return new Request(request.url, { method: 'GET', headers });
+  }
 }
 
 /** The same status and headers, with no body and no stale content-length. */

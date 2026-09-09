@@ -55,8 +55,11 @@ function context({
   const forwarded = [];
   const next = (request) => {
     forwarded.push(request || ctx.request);
+    // 204, 205 and 304 cannot be built with a body — which is the very thing
+    // the middleware has to respect when it rebuilds the response.
+    const upstream = status === 204 || status === 205 || status === 304 ? null : body;
     return Promise.resolve(
-      new Response(body, { status, statusText: status === 404 ? 'Not Found' : 'OK', headers }),
+      new Response(upstream, { status, statusText: status === 404 ? 'Not Found' : 'OK', headers }),
     );
   };
   // A real Request, because the middleware derives the GET-equivalent from it.
@@ -100,6 +103,57 @@ describe('the landing middleware', () => {
       expect(res.statusText).toBe('OK');
       // The rewrite still runs; what must not change is the status.
       expect(await res.text()).toContain('RealUnit — Einladung AB12CD');
+    }
+  });
+
+  test('conditional headers are dropped so the answer is the full document', async () => {
+    // Range would allow a 206, the conditional headers a 304 or a 412. None of
+    // those bodies is the landing shell, and the status is decided from the
+    // body.
+    const ctx = context({
+      url: 'https://realunit.app/invite/AB12CD',
+      requestHeaders: {
+        'if-none-match': 'W/"abc"',
+        'if-modified-since': 'Tue, 09 Sep 2026 00:00:00 GMT',
+        'if-match': 'W/"abc"',
+        'if-unmodified-since': 'Tue, 09 Sep 2026 00:00:00 GMT',
+        'accept-language': 'de-CH',
+      },
+    });
+    await onRequest(ctx);
+    const [forwarded] = ctx.forwarded;
+    for (const name of ['if-none-match', 'if-modified-since', 'if-match', 'if-unmodified-since']) {
+      expect(forwarded.headers.get(name)).toBeNull();
+    }
+    expect(forwarded.headers.get('accept-language')).toBe('de-CH');
+  });
+
+  test('a GET that carries a body is still answered, not thrown on', async () => {
+    // The Request constructor refuses to pair a body with GET, so re-methoding
+    // such a request throws. It is rebuilt from the URL instead, which drops
+    // the platform's request metadata but keeps the request answerable.
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD' });
+    const withBody = new Request('https://realunit.app/invite/AB12CD', {
+      method: 'POST',
+      body: 'not what a GET should carry',
+    });
+    Object.defineProperty(withBody, 'method', { value: 'GET' });
+    ctx.request = withBody;
+    const res = await onRequest(ctx);
+    const [forwarded] = ctx.forwarded;
+    expect(forwarded.method).toBe('GET');
+    expect(forwarded.url).toBe('https://realunit.app/invite/AB12CD');
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('RealUnit — Einladung AB12CD');
+  });
+
+  test('a status that must not carry a body is passed on instead of throwing', async () => {
+    // Pairing 204, 205 or 304 with a body throws, which would turn such an
+    // answer into a 500.
+    for (const status of [204, 205, 304]) {
+      const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD', status }));
+      expect(res.status).toBe(status);
+      expect(res.body).toBeNull();
     }
   });
 
