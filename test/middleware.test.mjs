@@ -424,6 +424,40 @@ describe('the landing middleware', () => {
     expect(ctx.assetFetches).toEqual([]);
   });
 
+  test('the redirect and the non-HTML answer are left alone for a HEAD too', async () => {
+    // Both leave before the branch that reads the shell, whatever the method —
+    // which is the bound on "a HEAD takes the same route as the 404".
+    let redirect;
+    const redirectCtx = context({
+      url: 'https://realunit.app/invite/index.html',
+      method: 'HEAD',
+      platformAnswer: () => {
+        redirect = new Response(null, {
+          status: 308,
+          headers: new Headers({ location: '/invite/' }),
+        });
+        return redirect;
+      },
+    });
+    expect(await onRequest(redirectCtx)).toBe(redirect);
+    expect(redirectCtx.assetFetches).toEqual([]);
+
+    let asset;
+    const assetCtx = context({
+      url: 'https://realunit.app/invite/',
+      method: 'HEAD',
+      platformAnswer: () => {
+        asset = new Response(null, {
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+        });
+        return asset;
+      },
+    });
+    expect(await onRequest(assetCtx)).toBe(asset);
+    expect(assetCtx.assetFetches).toEqual([]);
+  });
+
   test('a non-HTML answer the platform gives is handed on untouched', async () => {
     let asset;
     const ctx = context({

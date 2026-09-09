@@ -101,7 +101,10 @@ From v2 a build toolchain (Astro) is introduced; the plain-image landing stays t
 ## Testing
 
 The site still ships verbatim — the tooling is dev-only. Pure browser logic lives
-in `public/js/lib/**` and is unit-tested to 100% (Vitest + jsdom); the pages,
+in `public/js/lib/**` and is unit-tested to 100% (Vitest + jsdom), as is
+`functions/_middleware.js`, which decides which page a landing path is answered
+with; `functions/lib/**` is measured and ratcheted at the level it reaches
+today. The pages,
 platform detection and the full confirm flow are covered by Playwright
 (functional + screenshot regression). See [CONTRIBUTING](CONTRIBUTING.md#quality-gates)
 for the gate list and commands (`npm run check`, `npm run test:e2e`,

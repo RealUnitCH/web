@@ -46,9 +46,11 @@ export async function onRequest(context) {
   // needs only its metadata written in. Only the code-bearing paths come back
   // 404, because the 200-rewrite that was meant to resolve them never runs.
   //
-  // A HEAD is the exception to all of it: its answer carries no body, so the
-  // shell cannot be recognised in it, and every HEAD under these paths takes
-  // the same route as that 404.
+  // A HEAD is the exception to the middle case: its answer carries no body, so
+  // the shell cannot be recognised in it. A HEAD that still has a 200 or a 404
+  // after the two guards below therefore takes the same route as that 404. A
+  // redirect and a non-HTML answer leave before those guards, whatever the
+  // method.
   const platform = await context.next();
   if (platform.status !== 200 && platform.status !== 404) {
     return platform;
@@ -58,8 +60,9 @@ export async function onRequest(context) {
     return platform;
   }
   if (method === 'GET' && platform.status === 200) {
-    // The file is already the right one; the metadata and the code-bearing
-    // store hand-off have to go in, and its own status stays. Read inside a
+    // The file is already the right one; the campaign metadata has to go in —
+    // and the store hand-off with it, when the URL carries a code, which on
+    // /invite/ and /promo/ themselves it does not. Its own status stays. Read inside a
     // guard for the same reason as the shell below: a body stream that fails
     // would take the Function down, and a Function that throws makes Pages
     // serve the assets directly.
