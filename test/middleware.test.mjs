@@ -692,21 +692,23 @@ describe('the landing middleware', () => {
     expect(res.status).toBe(404);
     expect(await res.text()).toBe(mentionsIt);
 
-    // Documented boundary, not a claim of correctness: a page that spells the
-    // attribute out in a comment does read as a landing shell. No page under
-    // these paths does, and the contract test above pins that.
+    // Even the exact attribute in a comment is not enough on its own: the shell
+    // is recognised by two marks, and an error document does not arrive at both.
     const quoted = await onRequest(
       context({ url: 'https://realunit.app/invite/AB12CD', body: quotesIt }),
     );
-    expect(quoted.status).toBe(200);
+    expect(quoted.status).toBe(404);
+    expect(await quoted.text()).toBe(quotesIt);
   });
 
   test('the marker the promotion keys on lives where it has to', () => {
     // The contract the promotion tests rely on, asserted against the shipped
     // files rather than assumed.
-    expect(SHELL).toContain('id="state-loading"');
-    expect(PROMO_SHELL).toContain('id="state-loading"');
-    expect(NOT_FOUND_PAGE).not.toContain('id="state-loading"');
+    for (const mark of ['id="state-loading"', 'aria-busy="true"']) {
+      expect(SHELL).toContain(mark);
+      expect(PROMO_SHELL).toContain(mark);
+      expect(NOT_FOUND_PAGE).not.toContain(mark);
+    }
   });
 
   test('a response with no content-type is passed through untouched', async () => {

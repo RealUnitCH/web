@@ -425,18 +425,25 @@ export function parseLangFromUrl(urlLike) {
 }
 
 /**
- * The landing shell carries this id in both /invite and /promo; the site's
- * 404 page does not. Two other pages carry it as well, which does not matter:
- * the caller has already established that the path is a landing, so the only
+ * The marks the landing shells carry and the site's 404 page does not. The
+ * caller has already established that the path is a landing, so the only
  * question left is whether the asset server handed back the shell or the 404
- * page. test/middleware.test.mjs asserts that contract against the shipped
- * files rather than a copy of them.
+ * page — but see isLandingShell for why one mark was not enough.
  */
-const LANDING_MARKER = 'id="state-loading"';
+const LANDING_MARKERS = ['id="state-loading"', 'aria-busy="true"'];
 
-/** Whether these bytes are a landing shell rather than some other page. */
+/**
+ * Whether these bytes are a landing shell rather than some other page.
+ *
+ * Two marks rather than one, because a single substring is a thin thing to
+ * promote a status on: an error document that happened to carry the id — in a
+ * comment, in a script, in a copied snippet — would be answered 200 with an
+ * invitation's metadata. Both marks together are not something another page
+ * arrives at by accident, and test/middleware.test.mjs pins them against the
+ * shipped files.
+ */
 export function isLandingShell(html) {
-  return typeof html === 'string' && html.includes(LANDING_MARKER);
+  return typeof html === 'string' && LANDING_MARKERS.every((mark) => html.includes(mark));
 }
 
 /**

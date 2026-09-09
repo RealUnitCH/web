@@ -33,6 +33,7 @@ describe('shouldRewriteItunesBanner', () => {
   test('invite and promo HTML paths only', () => {
     expect(shouldRewriteItunesBanner('/invite')).toBe(true);
     expect(shouldRewriteItunesBanner('/invite/AB12CD')).toBe(true);
+    expect(shouldRewriteItunesBanner('/promo')).toBe(true);
     expect(shouldRewriteItunesBanner('/promo/EVT1')).toBe(true);
     expect(shouldRewriteItunesBanner('/invite/invite.js')).toBe(false);
     expect(shouldRewriteItunesBanner('/js/invite-banner.js')).toBe(false);
@@ -403,6 +404,10 @@ describe('injectLandingFromRequestUrl', () => {
       'data-android-app href="android-app://swiss.realunit.app/https/realunit.app/invite/AB12CD"',
     );
     expect(out).toContain('data-ios-app href="ios-app://6759720010/realunit-wallet/invite/AB12CD"');
+    // The iPad card carries the same scheme as the phone one and was asserted
+    // nowhere; a wrong value there would have gone unnoticed.
+    expect(out).toContain('name="twitter:app:url:ipad" content="realunit-wallet://invite/AB12CD"');
+    expect(out).toContain('name="twitter:app:id:ipad" content="6759720010"');
     expect(out).toContain('al:android:url');
     expect(out).toContain('property="al:android:url" content="realunit-wallet://invite/AB12CD"');
     expect(out).toContain('property="al:android:class" content="swiss.realunit.app.MainActivity"');
@@ -532,6 +537,25 @@ describe('referral code injection hardening', () => {
     expect(out).toContain('AB&quot;&gt;&lt;');
   });
 
+  test('an alternate link that already exists is replaced, not doubled', () => {
+    // The fixtures so far only ever reached the insert branch, because no shell
+    // ships these links; the replace branch had never run.
+    for (const existing of [
+      '<link rel="alternate" data-android-app href="android-app://old" />',
+      '<link data-android-app rel="alternate" href="android-app://old" />',
+    ]) {
+      const out = injectLandingFromRequestUrl(
+        '<head>' + existing + '</head>',
+        'https://realunit.app/invite/AB12CD',
+      );
+      expect(out).toContain(
+        'href="android-app://swiss.realunit.app/https/realunit.app/invite/AB12CD"',
+      );
+      expect(out).not.toContain('android-app://old');
+      expect(out.match(/data-android-app/g)).toHaveLength(1);
+    }
+  });
+
   test('injectShareTitleHtml escapes a raw code and never breaks the attribute', () => {
     const out = injectShareTitleHtml(base, 'invite', 'A"><B', 'de');
     expect(out).not.toContain('<B');
@@ -648,7 +672,8 @@ describe('an English locale without a code keeps English copy', () => {
 });
 
 describe('landingStatus', () => {
-  const shell = '<section id="state-loading"></section>';
+  // Both marks, as the shipped shells carry them.
+  const shell = '<section id="state-loading" role="status" aria-busy="true"></section>';
 
   test('promotes a not-found landing to found', () => {
     expect(landingStatus(404, shell)).toBe(200);
@@ -668,6 +693,9 @@ describe('landingStatus', () => {
   test('refuses to promote a body that is not a landing', () => {
     // The site's own 404 page must keep saying 404 rather than look healthy.
     expect(landingStatus(404, '<title>Seite nicht gefunden — RealUnit</title>')).toBe(404);
+    // One mark alone is not a landing shell.
+    expect(landingStatus(404, '<section id="state-loading"></section>')).toBe(404);
+    expect(landingStatus(404, '<section aria-busy="true"></section>')).toBe(404);
     expect(landingStatus(404, '')).toBe(404);
     expect(landingStatus(404, null)).toBe(404);
     expect(landingStatus(404, undefined)).toBe(404);
