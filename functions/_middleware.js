@@ -48,9 +48,8 @@ export async function onRequest(context) {
   if (PASSED_ON.has(response.status)) {
     return isHead ? bodyless(response, response.status, response.statusText) : response;
   }
-  const type = response.headers.get('content-type') || '';
-  if (!type.includes('text/html')) {
-    // Nothing to rewrite. Note that the request was already stripped of Range
+  if (!isRewritableHtml(response.headers.get('content-type'))) {
+    // Not ours to rewrite. Note that the request was already stripped of Range
     // and the conditional headers before we could know that — under these
     // paths only HTML is served, and shouldRewriteItunesBanner keeps the asset
     // extensions out, so no caller loses a partial answer it could have had.
@@ -101,13 +100,34 @@ export async function onRequest(context) {
   ]) {
     headers.delete(stale);
   }
-  // response.text() decodes as UTF-8 and a string body is encoded as UTF-8, so
-  // the answer is UTF-8 whatever the origin declared.
+  // The body was read as UTF-8 and goes out as UTF-8. Anything the origin
+  // declared as another encoding was handed on above rather than reaching
+  // here, so this states the fact rather than papering over one.
   headers.set('content-type', 'text/html; charset=utf-8');
   const status = landingStatus(response.status, injected);
   // A promoted status must not keep "Not Found" as its reason phrase.
   const statusText = status === response.status ? response.statusText : '';
   return new Response(isHead ? null : injected, { status, statusText, headers });
+}
+
+/**
+ * Whether this pass may rewrite the body it is about to read.
+ *
+ * The media type is compared as a media type, not as a substring: RFC 9110
+ * makes it case-insensitive, so `Text/HTML` is the same thing, and a parameter
+ * that merely contains the words — `application/json; profile="text/html"` —
+ * is not.
+ *
+ * The charset has to be UTF-8 or absent, because response.text() decodes as
+ * UTF-8 whatever the header says. A body in another encoding would come back
+ * as replacement characters and leave here labelled UTF-8, so it is handed on
+ * untouched instead.
+ */
+function isRewritableHtml(contentType) {
+  const type = contentType || '';
+  if (type.split(';', 1)[0].trim().toLowerCase() !== 'text/html') return false;
+  const charset = /;\s*charset\s*=\s*"?([^";]+)"?/i.exec(type);
+  return !charset || /^utf-?8$/i.test(charset[1].trim());
 }
 
 /**

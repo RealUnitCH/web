@@ -85,12 +85,47 @@ describe('the landing middleware', () => {
     }
   });
 
-  test('the rewritten answer declares UTF-8 whatever the origin said', async () => {
-    // response.text() decodes as UTF-8 and a string body is encoded as UTF-8,
-    // so any other charset on the way out would be a lie.
-    const res = await onRequest(
-      context({ url: 'https://realunit.app/invite/AB12CD', type: 'text/html; charset=iso-8859-1' }),
+  test('the media type is read as a media type, not as a substring', async () => {
+    // RFC 9110 makes it case-insensitive, and a parameter that merely contains
+    // the words is not the type.
+    const mixedCase = await onRequest(
+      context({ url: 'https://realunit.app/invite/AB12CD', type: 'Text/HTML; charset=UTF-8' }),
     );
+    expect(mixedCase.status).toBe(200);
+    expect(await mixedCase.text()).toContain('RealUnit — Einladung AB12CD');
+
+    const lookalike = await onRequest(
+      context({
+        url: 'https://realunit.app/invite/AB12CD',
+        type: 'application/json; profile="text/html"',
+        body: '{}',
+      }),
+    );
+    expect(lookalike.status).toBe(404);
+    expect(await lookalike.text()).toBe('{}');
+  });
+
+  test('a body in another encoding is handed on rather than mislabelled', async () => {
+    // response.text() decodes as UTF-8 whatever the header says, so such a body
+    // would come back as replacement characters and leave here labelled UTF-8.
+    const res = await onRequest(
+      context({
+        url: 'https://realunit.app/invite/AB12CD',
+        type: 'text/html; charset=iso-8859-1',
+      }),
+    );
+    expect(res.status).toBe(404);
+    expect(res.headers.get('content-type')).toBe('text/html; charset=iso-8859-1');
+    expect(await res.text()).toBe(SHELL);
+  });
+
+  test('a rewritten answer says UTF-8 even when the origin left it out', async () => {
+    // The body was read as UTF-8 and goes out as UTF-8, so the answer says so
+    // rather than leaving the client to guess.
+    const res = await onRequest(
+      context({ url: 'https://realunit.app/invite/AB12CD', type: 'text/html' }),
+    );
+    expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
   });
 
@@ -248,25 +283,45 @@ describe('the landing middleware', () => {
   test('a partial answer is passed on instead of being rewritten', async () => {
     // The body is a fragment, so injecting into it and dropping the range
     // metadata would produce a 206 that describes nothing.
-    const res = await onRequest(
-      context({ url: 'https://realunit.app/invite/AB12CD', status: 206, body: '<html' }),
-    );
-    expect(res.status).toBe(206);
-    expect(await res.text()).toBe('<html');
-    expect(res.headers.get('content-length')).toBe('5');
+    const partial = (method) => {
+      const ctx = context({ url: 'https://realunit.app/invite/AB12CD', status: 206, method });
+      // The realistic case: a partial view of the landing page itself. A body
+      // that is not the shell would be handed on by the marker guard anyway,
+      // and would not prove this guard does anything.
+      ctx.next = () =>
+        Promise.resolve(
+          new Response(SHELL, {
+            status: 206,
+            headers: new Headers({
+              'content-type': 'text/html; charset=utf-8',
+              'content-length': String(SHELL.length),
+              'content-range': `bytes 0-${SHELL.length - 1}/4162`,
+              etag: 'W/"the-whole-thing"',
+              ...SITE_HEADERS,
+            }),
+          }),
+        );
+      return onRequest(ctx);
+    };
 
-    // A HEAD on the same answer keeps the status and drops the body.
-    const head = await onRequest(
-      context({
-        url: 'https://realunit.app/invite/AB12CD',
-        method: 'HEAD',
-        status: 206,
-        body: '<html',
-      }),
-    );
+    const res = await partial('GET');
+    expect(res.status).toBe(206);
+    // Handed on as it came: not rewritten, though the body is the shell.
+    expect(await res.text()).toBe(SHELL);
+    expect(res.headers.get('content-length')).toBe(String(SHELL.length));
+    // Nothing was rewritten, so the range metadata and the validator still
+    // describe what the origin sent.
+    expect(res.headers.get('content-range')).toBe(`bytes 0-${SHELL.length - 1}/4162`);
+    expect(res.headers.get('etag')).toBe('W/"the-whole-thing"');
+
+    // A HEAD on the same answer keeps the status and the headers, and drops
+    // only the body.
+    const head = await partial('HEAD');
     expect(head.status).toBe(206);
     expect(head.body).toBeNull();
-    expect(head.headers.get('content-length')).toBe('5');
+    expect(head.headers.get('content-length')).toBe(String(SHELL.length));
+    expect(head.headers.get('content-range')).toBe(`bytes 0-${SHELL.length - 1}/4162`);
+    expect(head.headers.get('etag')).toBe('W/"the-whole-thing"');
   });
 
   test('a real 404 page on a landing path keeps saying 404', async () => {
@@ -396,8 +451,19 @@ describe('the landing middleware', () => {
       return Promise.resolve(new Response('{}', { status: 404, statusText: 'Not Found', headers }));
     };
     const res = await onRequest(ctx);
-    expect(res.headers.get('etag')).toBe('W/"unchanged"');
-    expect(res.headers.get('content-encoding')).toBe('gzip');
+    // Every header the origin sent survives, name for name — listing a few by
+    // hand would miss a regression that drops one nobody thought to name.
+    const sent = new Headers({
+      'content-type': 'application/json',
+      'content-length': '2',
+      etag: 'W/"unchanged"',
+      'content-encoding': 'gzip',
+      ...SITE_HEADERS,
+    });
+    for (const [name, value] of sent) {
+      expect(res.headers.get(name)).toBe(value);
+    }
+    expect([...res.headers.keys()].sort()).toEqual([...sent.keys()].sort());
     expect(res.status).toBe(404);
     expect(res.statusText).toBe('Not Found');
     expect(res.body).toBeNull();
