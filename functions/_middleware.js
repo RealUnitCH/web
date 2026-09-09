@@ -41,10 +41,11 @@ export async function onRequest(context) {
   // Content-Range describing the bytes before the rewrite.
   const response = await context.next(asFullGet(context.request));
   // Answers that carry no representation of their own, or only part of one,
-  // are passed on as they are. A 206 body is a fragment the rewrite would
-  // corrupt; a 304 has to keep the ETag it was matched on, which the rewrite
-  // would strip. Range and the conditional headers are removed above, so an
-  // origin only reaches this line unasked.
+  // are not rewritten: a GET gets the origin's answer back untouched, a HEAD a
+  // body-less copy of it. A 206 body is a fragment the rewrite would corrupt; a
+  // 304 has to keep the ETag it was matched on, which the rewrite would strip.
+  // Range and the conditional headers are removed above, so an origin only
+  // reaches this line unasked.
   if (PASSED_ON.has(response.status)) {
     return isHead ? bodyless(response, response.status, response.statusText) : response;
   }
@@ -56,9 +57,10 @@ export async function onRequest(context) {
     // A HEAD still must not carry the body the GET-equivalent came back with.
     return isHead ? bodyless(response, response.status, response.statusText) : response;
   }
-  // Read from a clone, so that an answer this pass decides not to touch can be
-  // handed on exactly as it came — body and headers both — instead of being
-  // rebuilt from a decoded string under headers that described the original.
+  // Read from a clone, so that an answer this pass decides not to touch keeps
+  // the origin's own body and headers — handed straight on to a GET, copied
+  // without the body to a HEAD — instead of being rebuilt from a decoded
+  // string under headers that described the original.
   const html = await response.clone().text();
   if (!isLandingShell(html)) {
     // Something else is being served here — the site's own 404 page after a

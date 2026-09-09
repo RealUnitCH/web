@@ -1,7 +1,8 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { onRequest } from '../functions/_middleware.js';
+import { isLandingShell } from '../functions/lib/itunes-banner.js';
 
 // The real files, not a hand-written stand-in. The status promotion keys on a
 // marks that live in the landing shells and must never appear in the site's
@@ -10,6 +11,14 @@ import { onRequest } from '../functions/_middleware.js';
 // Resolved from the project root: vitest runs from there, and the jsdom
 // environment does not give this module a usable import.meta.url.
 const page = (name) => readFileSync(resolve('public', name), 'utf8');
+
+// Every page the site ships, named the way page() wants them.
+const shippedHtml = (dir = 'public') =>
+  readdirSync(resolve(dir), { withFileTypes: true }).flatMap((entry) => {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) return shippedHtml(path);
+    return entry.name.endsWith('.html') ? [path.slice('public/'.length)] : [];
+  });
 
 // The header values public/_headers really sets, read from the file so the
 // fixture cannot drift from production. This checks that the middleware passes
@@ -721,6 +730,25 @@ describe('the landing middleware', () => {
       expect(PROMO_SHELL).toContain(mark);
       expect(NOT_FOUND_PAGE).not.toContain(mark);
     }
+  });
+
+  test('of everything the site ships, only the two landings read as a shell', () => {
+    // The check is a substring test: it does not require the two marks to
+    // share an element, or to be in an element at all. What keeps that from
+    // mattering is this property, and it is worth asserting rather than
+    // describing — of every page the site ships, only the two the Function is
+    // routed to reach both marks. The account-merge and Aktionariat shells
+    // carry the id and no aria-busy; the 404 page carries neither. This goes
+    // red the day one of them gains the second mark, which is the day the
+    // guard would have to become a real parse.
+    const files = shippedHtml();
+    for (const known of ['invite/index.html', 'promo/index.html', '404.html']) {
+      expect(files).toContain(known);
+    }
+    expect(files.filter((file) => isLandingShell(page(file))).sort()).toEqual([
+      'invite/index.html',
+      'promo/index.html',
+    ]);
   });
 
   test('a response with no content-type is passed through untouched', async () => {

@@ -13,11 +13,11 @@ This repo is the **realunit.app** website — public, static. See the
   reports a rewritten landing as `200`: Pages resolves `/invite/<code>` to the
   code-less shell through the `_redirects` rewrite but keeps the not-found
   status of the path that was asked for, and a crawler drops a `404` before it
-  reads the tags. The promotion is guarded on the two landing marks — `id="state-loading"` and `aria-busy="true"`, which both landings carry and no error page arrives at together — so the site's
+  reads the tags. The promotion is guarded on the two landing marks — `id="state-loading"` and `aria-busy="true"`, which both landings carry in one tag and no page served under these paths reaches together — so the site's
   own 404 page keeps saying 404, and HEAD answers with the same status as GET.
   Both methods are resolved internally as one full GET, without `Range` /
   `If-Range` and without the conditional request headers, because the whole document
-  is rewritten and the status is decided from its body. The conditional request headers are dropped rather than evaluated, which is a deliberate deviation from RFC 9110 §13.1: these paths emit no validator, so the answer is always the current representation and never a 304 or a 412. `scripts/dev-server.mjs` shares the injection and answers HEAD without a body, but has no promotion, no marker guard and no header stripping: its own routing serves the landings as `200` and never produces the not-found status the promotion exists to correct. Nothing else is transformed, and there is no server-side
+  is rewritten and the status is decided from its body. The conditional request headers are dropped rather than evaluated, which is a deliberate deviation from RFC 9110 §13.1: a rewritten landing emits no validator to condition on, so the answer is always the current representation and never a 304 or a 412. A pass-through answer keeps the origin's own headers, validator included. `scripts/dev-server.mjs` shares the injection and answers HEAD without a body, but has no promotion, no marker guard and no header stripping: its own routing serves the landings as `200` and never produces the not-found status the promotion exists to correct. Nothing else is transformed, and there is no server-side
   rendering. The dev dependencies exist **only** for the quality gates below
   (formatting, HTML validation, unit tests, screenshots); nothing compiles or
   bundles the site.

@@ -438,8 +438,14 @@ const LANDING_MARKERS = ['id="state-loading"', 'aria-busy="true"'];
  * Two marks rather than one, because a single substring is a thin thing to
  * promote a status on: an error document that happened to carry the id — in a
  * comment, in a script, in a copied snippet — would be answered 200 with an
- * invitation's metadata. Both marks together are not something another page
- * arrives at by accident, and test/middleware.test.mjs pins them against the
+ * invitation's metadata.
+ *
+ * This stays a substring test, so it does not require the two marks to sit in
+ * the same element, or in an element at all. What it does establish is that no
+ * page this repo ships reaches both: the landings carry them together in one
+ * tag, the site's 404 page carries neither, and the two other shells that
+ * carry the id — account-merge and confirm-aktionariat — carry no aria-busy
+ * and are not routed here. test/middleware.test.mjs pins that against the
  * shipped files.
  */
 export function isLandingShell(html) {
@@ -454,8 +460,9 @@ export function isLandingShell(html) {
  * 200-rewrite while keeping the not-found status of the path that was asked
  * for. Measured on the deploy: the body is the landing, the status is 404.
  * Browsers render it anyway, but share crawlers drop a 404 before they read
- * the tags this module just wrote — which is the whole reason the rewrite
- * exists.
+ * the tags injectLandingFromRequestUrl has by now written into the body. The
+ * injection is why these pages exist; this function is what stops the status
+ * from throwing the injected tags away.
  *
  * Only a body that really is the landing shell is promoted. If a broken deploy
  * ever serves the site's 404 page on these paths, it has to keep saying 404
