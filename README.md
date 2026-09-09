@@ -47,8 +47,8 @@ uploaded to Cloudflare Pages.
   Cloudflare Pages, and the local dev-server) so Safari, Play, WhatsApp, X,
   and share crawlers can snapshot them before JS. The Function also serves the
   landing for a code-bearing path: `_routes.json` claims `/invite`, `/invite/*`,
-  `/promo` and `/promo/*`, so the `_redirects` 200-rewrites never run and
-  `context.next()` answers those paths with the site's 404 page. The platform is
+  `/promo` and `/promo/*`, so the `_redirects` 200-rewrites never run and,
+  on a code-bearing path, `context.next()` answers with the site's 404 page. The platform is
   asked first and only its `404` is replaced — the shell is read from the asset
   binding by name, checked against the two landing marks, injected and answered
   `200`. `/invite/` and `/promo/` are real files and are only rewritten in
