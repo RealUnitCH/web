@@ -468,11 +468,20 @@ describe('the landing middleware', () => {
     const html = await res.text();
     expect(html).toContain('rel="canonical" href="https://realunit.app/invite"');
     expect(html).toContain('property="og:url" content="https://realunit.app/invite"');
+    expect(html).toContain('name="twitter:url" content="https://realunit.app/invite"');
   });
 
   test('a path the rewrite does not own is passed through untouched', async () => {
     const ctx = context({ url: 'https://realunit.app/', status: 200 });
+    let upstream;
+    const inner = ctx.next;
+    ctx.next = async (request) => {
+      upstream = await inner(request);
+      return upstream;
+    };
     const res = await onRequest(ctx);
+    // The origin's own answer, as on every other pass-through branch.
+    expect(res).toBe(upstream);
     expect(await res.text()).toBe(SHELL);
     // Passed through, so the header the rewrite would have dropped is still there.
     expect(res.headers.get('content-length')).toBe(String(SHELL_BYTES));
