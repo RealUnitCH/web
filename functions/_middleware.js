@@ -128,12 +128,7 @@ function isRewritableHtml(contentType) {
   const charsets = params
     .map((param) => param.trim())
     .filter((param) => param.slice(0, param.indexOf('=')).trim().toLowerCase() === 'charset')
-    .map((param) =>
-      param
-        .slice(param.indexOf('=') + 1)
-        .trim()
-        .replace(/^"|"$/g, ''),
-    );
+    .map((param) => unquote(param.slice(param.indexOf('=') + 1).trim()));
   // No charset at all means the default, which is what we assume. Two that
   // disagree, or one that is not UTF-8, means hands off.
   return charsets.every((charset) => /^utf-?8$/i.test(charset));
@@ -151,14 +146,25 @@ function splitContentType(type) {
   let start = 0;
   let quoted = false;
   for (let i = 0; i < type.length; i += 1) {
-    if (type[i] === '"') quoted = !quoted;
-    else if (type[i] === ';' && !quoted) {
+    const char = type[i];
+    // A quoted-pair (RFC 9110 §5.6.4) escapes whatever follows it, including a
+    // closing quote — skipping the next character keeps `foo="a\";x=y"` from
+    // being read as two parameters.
+    if (quoted && char === '\\') i += 1;
+    else if (char === '"') quoted = !quoted;
+    else if (char === ';' && !quoted) {
       parts.push(type.slice(start, i));
       start = i + 1;
     }
   }
   parts.push(type.slice(start));
   return parts;
+}
+
+/** A quoted-string parameter value with its quotes and escapes resolved. */
+function unquote(value) {
+  if (value.length < 2 || !value.startsWith('"') || !value.endsWith('"')) return value;
+  return value.slice(1, -1).replace(/\\(.)/g, '$1');
 }
 
 /**

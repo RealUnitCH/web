@@ -153,8 +153,14 @@ describe('the landing middleware', () => {
     // charset that counts is the real one behind it.
     expect(await rewritten('text/html; foo="x;charset=utf-8"; charset=iso-8859-1')).toBe(false);
     expect(await rewritten('text/html; foo="x;charset=iso-8859-1"; charset=utf-8')).toBe(true);
-    // Two that disagree means hands off rather than picking one.
+    // Two that disagree means hands off rather than picking one, whichever way
+    // round they come: neither the first nor the last wins.
     expect(await rewritten('text/html; charset=utf-8; charset=iso-8859-1')).toBe(false);
+    expect(await rewritten('text/html; charset=iso-8859-1; charset=utf-8')).toBe(false);
+    // A backslash escapes the next character inside a quoted value, so the
+    // closing quote here is part of the value and the real charset follows.
+    expect(await rewritten('text/html; foo="a\\";charset=utf-8"; charset=iso-8859-1')).toBe(false);
+    expect(await rewritten('text/html; foo="a\\";charset=iso-8859-1"; charset=utf-8')).toBe(true);
   });
 
   test('a rewritten answer says UTF-8 even when the origin left it out', async () => {
@@ -576,17 +582,29 @@ describe('the landing middleware', () => {
   });
 
   test('a response that is not HTML is passed through untouched', async () => {
-    const res = await onRequest(
-      context({ url: 'https://realunit.app/invite/AB12CD', type: 'application/json', body: '{}' }),
-    );
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD' });
+    let upstream;
+    ctx.next = () => {
+      upstream = new Response('{}', {
+        status: 404,
+        statusText: 'Not Found',
+        headers: new Headers({
+          'content-type': 'application/json',
+          'content-length': '2',
+          'content-encoding': 'gzip',
+          etag: 'W/"the-json"',
+          ...SITE_HEADERS,
+        }),
+      });
+      return Promise.resolve(upstream);
+    };
+    const res = await onRequest(ctx);
+    // The origin's own answer, not one rebuilt to look like it.
+    expect(res).toBe(upstream);
     expect(res.status).toBe(404);
     expect(await res.text()).toBe('{}');
-    // Untouched means the headers too: nothing was rewritten on this branch.
-    expect(res.headers.get('content-length')).toBe('2');
-    expect(res.headers.get('content-type')).toBe('application/json');
-    for (const [name, value] of Object.entries(SITE_HEADERS)) {
-      expect(res.headers.get(name)).toBe(value);
-    }
+    expect(res.headers.get('content-encoding')).toBe('gzip');
+    expect(res.headers.get('etag')).toBe('W/"the-json"');
   });
 
   test('the marker the promotion keys on lives where it has to', () => {
@@ -601,13 +619,18 @@ describe('the landing middleware', () => {
     // Constructing a Response from a string sets content-type on its own, so
     // the header is removed again to reach the missing-header path.
     const ctx = context({ url: 'https://realunit.app/invite/AB12CD' });
+    let upstream;
     ctx.next = () => {
-      const res = new Response(SHELL, { status: 404 });
-      res.headers.delete('content-type');
-      return Promise.resolve(res);
+      upstream = new Response(SHELL, { status: 404 });
+      upstream.headers.delete('content-type');
+      upstream.headers.set('etag', 'W/"no-type"');
+      return Promise.resolve(upstream);
     };
     const res = await onRequest(ctx);
+    // The origin's own answer again, not a look-alike.
+    expect(res).toBe(upstream);
     expect(res.headers.get('content-type')).toBeNull();
+    expect(res.headers.get('etag')).toBe('W/"no-type"');
     expect(res.status).toBe(404);
     expect(await res.text()).toBe(SHELL);
   });
