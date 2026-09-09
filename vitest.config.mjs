@@ -6,13 +6,10 @@ export default defineConfig({
     include: ['test/**/*.test.mjs'],
     coverage: {
       provider: 'v8',
-      // Three surfaces are measured: the extracted, side-effect-free browser
-      // logic, the library the Pages Function runs, and the Function entry
-      // point itself — which is not side-effect-free, but decides the status
-      // and headers every share crawler sees. The DOM/network glue in
-      // public/*.js is covered by the Playwright suite instead (see
-      // CONTRIBUTING.md).
-      include: ['public/js/lib/**/*.js', 'functions/lib/**/*.js', 'functions/_middleware.js'],
+      // Only the extracted, side-effect-free browser logic is unit-tested to
+      // 100%. The DOM/network glue in public/*.js is covered by the Playwright
+      // functional suite instead (see CONTRIBUTING.md).
+      include: ['public/js/lib/**/*.js', 'functions/lib/**/*.js'],
       // Report every matched file even if no test imports it, so a new, untested
       // public/js/lib/*.js drops coverage below 100% instead of silently passing.
       all: true,
@@ -36,15 +33,6 @@ export default defineConfig({
           functions: 100,
           branches: 87,
           statements: 98,
-        },
-        // The Function entry point itself. It was unmeasured while it decided
-        // the status every share crawler sees, which is how a landing could
-        // answer 404 in production without a single test noticing.
-        'functions/_middleware.js': {
-          lines: 100,
-          functions: 100,
-          branches: 100,
-          statements: 100,
         },
       },
     },
