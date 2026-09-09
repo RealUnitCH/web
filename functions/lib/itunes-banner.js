@@ -81,6 +81,32 @@ function capCode(raw) {
   return code;
 }
 
+/**
+ * The two marks the landing shells carry in one element and no other page the
+ * site ships carries together: the loading section's id and its aria-busy.
+ */
+const LANDING_MARKS = ['id="state-loading"', 'aria-busy="true"'];
+
+/**
+ * Whether these bytes are a landing shell rather than some other page.
+ *
+ * Two marks rather than one, because a single substring is a thin thing to
+ * serve a page on: an error document that happened to carry the id — in a
+ * comment, in a script, in a copied snippet — would be dressed up as an
+ * invitation.
+ *
+ * This stays a substring test, so it does not require the two marks to sit in
+ * the same element, or in an element at all. What makes two of them enough is
+ * a property of the site rather than of this function, and the property is
+ * held by a test: of every page the repo ships, only the two landings reach
+ * both marks. The 404 page carries neither, and the two other shells that
+ * carry the id — account-merge and confirm-aktionariat — carry no aria-busy.
+ * test/middleware.test.mjs walks public/ and pins exactly that.
+ */
+export function isLandingShell(html) {
+  return typeof html === 'string' && LANDING_MARKS.every((mark) => html.includes(mark));
+}
+
 export function shouldRewriteItunesBanner(pathname) {
   const path = String(pathname || '');
   if (/\.(js|css|map|png|svg|json|jpg|jpeg|webp|ico|txt|xml)$/i.test(path)) {
