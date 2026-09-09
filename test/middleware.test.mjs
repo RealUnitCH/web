@@ -110,18 +110,30 @@ describe('the landing middleware', () => {
     expect(lookalike.headers.get('content-type')).toBe('application/json; profile="text/html"');
   });
 
-  test('a body in another encoding is handed on rather than mislabelled', async () => {
-    // response.text() decodes as UTF-8 whatever the header says, so such a body
-    // would come back as replacement characters and leave here labelled UTF-8.
-    const res = await onRequest(
-      context({
-        url: 'https://realunit.app/invite/AB12CD',
-        type: 'text/html; charset=iso-8859-1',
-      }),
-    );
+  test('a body in another encoding is handed on byte for byte', async () => {
+    // Real ISO-8859-1 bytes, not a JS string: 0xE9 is 'é' there and is not
+    // valid UTF-8 at all. The body carries the landing marker, so only the
+    // charset guard stands between it and the rewrite — without it,
+    // response.text() would turn that byte into U+FFFD and the answer would go
+    // out as different bytes under a UTF-8 label.
+    const latin1 = new Uint8Array([
+      ...new TextEncoder().encode('<section id="state-loading">'),
+      0xe9,
+      ...new TextEncoder().encode('</section>'),
+    ]);
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD' });
+    ctx.next = () =>
+      Promise.resolve(
+        new Response(latin1, {
+          status: 404,
+          statusText: 'Not Found',
+          headers: new Headers({ 'content-type': 'text/html; charset=iso-8859-1' }),
+        }),
+      );
+    const res = await onRequest(ctx);
     expect(res.status).toBe(404);
     expect(res.headers.get('content-type')).toBe('text/html; charset=iso-8859-1');
-    expect(await res.text()).toBe(SHELL);
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(latin1);
   });
 
   test('the charset is read whatever shape it comes in', async () => {
