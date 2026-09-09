@@ -107,9 +107,12 @@ The shipped page scripts (`public/platform.js`,
 than chase 100% coverage through the DOM, the **pure** logic — platform
 detection, language resolution, API-base derivation, response→state mapping, and
 the i18n copy — is extracted into `public/js/lib/` (side-effect free, exposed on
-a `window.*` global) and unit-tested to 100% with Vitest + jsdom. Everything else
-is covered end-to-end by the Playwright functional suite
-(`tests/behavior.spec.mjs`).
+a `window.*` global) and unit-tested to 100% with Vitest + jsdom. The rest of
+those page scripts is covered end-to-end by the Playwright functional suite
+(`tests/behavior.spec.mjs`). Two more surfaces carry their own unit-coverage
+gate and are not page scripts at all: `functions/lib/**` at its documented
+ratchet, and the Pages Function entry point `functions/_middleware.js` at 100%
+— see the quality-gates table above.
 
 If you add a file under `public/js/lib/`, it must reach 100% coverage or the
 Quality gate fails (the threshold reports every matched file, tested or not). A

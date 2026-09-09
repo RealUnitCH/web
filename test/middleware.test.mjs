@@ -24,9 +24,11 @@ function context({
   const headers = new Headers({
     'content-type': type,
     'content-length': String(body.length),
-    // What public/_headers sets for these paths. All of it has to survive the
-    // response being rebuilt — a dropped security header would not show up in
-    // coverage, which measures execution and not values.
+    // Representative of what public/_headers sets for these paths: the
+    // cache-control value is the real one, the CSP is a short stand-in for a
+    // much longer policy. All of it has to survive the response being rebuilt
+    // — a dropped security header would not show up in coverage, which
+    // measures execution and not values.
     'cache-control': 'public, max-age=60',
     'content-security-policy': "default-src 'self'",
     'x-content-type-options': 'nosniff',
@@ -48,7 +50,7 @@ describe('the landing middleware', () => {
   test('reports a rewritten landing as found instead of not found', async () => {
     // Measured on the deploy: Pages resolves /invite/<code> to the shell through
     // the _redirects rewrite but keeps the not-found status of the asked path.
-    // Share crawlers drop a 404 before they read the tags written just above.
+    // Share crawlers drop a 404 before they read the rewritten meta tags.
     const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD' }));
     expect(res.status).toBe(200);
     // A promoted status must not keep "Not Found" as its reason phrase.
@@ -158,7 +160,7 @@ describe('the landing middleware', () => {
   });
 
   test('the marker the promotion keys on lives where it has to', () => {
-    // The contract the two tests above rely on, asserted against the shipped
+    // The contract the promotion tests rely on, asserted against the shipped
     // files rather than assumed.
     expect(SHELL).toContain('id="state-loading"');
     expect(PROMO_SHELL).toContain('id="state-loading"');
