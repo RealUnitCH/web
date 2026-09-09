@@ -195,7 +195,11 @@ describe('the landing middleware', () => {
     const html = await res.text();
     expect(res.status).toBe(200);
     expect(html).toContain('RealUnit — Invitation AB12CD');
-    expect(html).toContain('en_GB');
+    // The shell already carries en_GB as the alternate locale, so only the
+    // main tag and the document language tell the injection apart from it.
+    expect(html).toContain('<meta property="og:locale" content="en_GB"');
+    expect(html).not.toContain('<meta property="og:locale" content="de_CH"');
+    expect(html).toContain('<html lang="en"');
   });
 
   test('the headers the rewrite invalidates are dropped', async () => {
@@ -287,7 +291,7 @@ describe('the landing middleware', () => {
     // Only the metadata has to be written in; the asset binding is not touched
     // and the status the platform gave stays.
     const ctx = context({
-      url: 'https://realunit.app/invite/',
+      url: 'https://realunit.app/invite/?lang=en',
       platformAnswer: () =>
         new Response(SHELL, {
           status: 200,
@@ -302,7 +306,12 @@ describe('the landing middleware', () => {
     expect(ctx.assetFetches).toEqual([]);
     expect(res.status).toBe(200);
     const html = await res.text();
-    expect(html).toContain('RealUnit — Einladung');
+    // Asked in English, because on the German codeless landing the injection
+    // writes back what the shell already said and nothing here could tell the
+    // two apart. The locale and the document language do change.
+    expect(html).toContain('<meta property="og:locale" content="en_GB"');
+    expect(html).not.toContain('<meta property="og:locale" content="de_CH"');
+    expect(html).toContain('<html lang="en"');
     expect(isLandingShell(html)).toBe(true);
     // Rewritten, so the headers that described the bytes before it are gone.
     expect(res.headers.get('etag')).toBeNull();
@@ -395,6 +404,7 @@ describe('the landing middleware', () => {
       expect(get.headers.get(name)).toBeNull();
     }
     expect(head.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    expect(head.headers.get('cache-control')).toBe('public, max-age=60');
     expect(head.headers.get('cache-control')).toBe(get.headers.get('cache-control'));
     // And the two got there differently, which is the point of the case: the
     // GET is rewritten in place, the HEAD reads the shell from the binding.
