@@ -95,7 +95,15 @@ describe('the landing middleware', () => {
     expect(head.status).toBe(get.status);
     expect(head.status).toBe(200);
     expect(head.statusText).toBe('');
+    // No body at all, not an empty one: `new Response('')` would still carry a
+    // stream, and text() cannot tell the two apart.
+    expect(head.body).toBeNull();
     expect(await head.text()).toBe('');
+    // The same headers GET gets, including the length dropped because it
+    // described the bytes before the rewrite.
+    expect(head.headers.get('content-length')).toBeNull();
+    expect(head.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    expect(head.headers.get('cache-control')).toBe('public, max-age=60');
   });
 
   test('a HEAD whose body the platform withheld keeps its status', async () => {
