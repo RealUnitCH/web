@@ -6,9 +6,12 @@ export default defineConfig({
     include: ['test/**/*.test.mjs'],
     coverage: {
       provider: 'v8',
-      // Only the extracted, side-effect-free browser logic is unit-tested to
-      // 100%. The DOM/network glue in public/*.js is covered by the Playwright
-      // functional suite instead (see CONTRIBUTING.md).
+      // Three surfaces are measured: the extracted, side-effect-free browser
+      // logic, the library the Pages Function runs, and the Function entry
+      // point itself — which is not side-effect-free, but decides the status
+      // and headers every share crawler sees. The DOM/network glue in
+      // public/*.js is covered by the Playwright suite instead (see
+      // CONTRIBUTING.md).
       include: ['public/js/lib/**/*.js', 'functions/lib/**/*.js', 'functions/_middleware.js'],
       // Report every matched file even if no test imports it, so a new, untested
       // public/js/lib/*.js drops coverage below 100% instead of silently passing.

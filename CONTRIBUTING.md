@@ -9,8 +9,13 @@ This repo is the **realunit.app** website — public, static. See the
   `public/` ships verbatim to Cloudflare Pages — what you commit is what gets
   served. The one exception is the invite/promo HTML: `functions/_middleware.js`
   rewrites those bytes on the way out so crawlers see the code in
-  `apple-itunes-app`, `og:*` and the App Links before any script runs. Nothing
-  else is transformed, and there is no server-side rendering. The dev dependencies exist **only** for the quality gates below
+  `apple-itunes-app`, `og:*` and the App Links before any script runs. It also
+  reports a rewritten landing as `200`: Pages resolves `/invite/<code>` to the
+  code-less shell through the `_redirects` rewrite but keeps the not-found
+  status of the path that was asked for, and a crawler drops a `404` before it
+  reads the tags. The promotion is guarded on the landing marker, so the site's
+  own 404 page keeps saying 404. Nothing else is transformed, and there is no
+  server-side rendering. The dev dependencies exist **only** for the quality gates below
   (formatting, HTML validation, unit tests, screenshots); nothing compiles or
   bundles the site.
 - **Invite/promo HTML rewrite is banner, canonical, and store handoff.** Safari,
@@ -45,8 +50,9 @@ This repo is the **realunit.app** website — public, static. See the
     adding any other host to that allowlist needs a reason in the PR.
   - Inline `style="…"` attributes and `<style>` blocks are fine (`style-src`
     allows `'unsafe-inline'`).
-- **Put the reusable, side-effect-free JS in `public/js/lib/`.** That is the only
-  code with a unit-coverage gate (see below); DOM/network glue stays in the
+- **Put the reusable, side-effect-free JS in `public/js/lib/`.** It carries a
+  unit-coverage gate (see below), as do `functions/lib/**` and the Function
+  entry point `functions/_middleware.js`; DOM/network glue stays in the
   page-level scripts and is covered by the Playwright suite.
 - **Don't put mutable files under `public/assets/`.** That path has an immutable,
   one-year cache header — only content-hashed or otherwise stable-named assets
@@ -73,14 +79,14 @@ sanity-check anything touching scripts/images in the dev deployment.
 Every pull request must pass the gates below; CI runs them as required status
 checks.
 
-| Gate              | Command                 | What it enforces                                                                                                         |
-| ----------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Formatting        | `npm run format:check`  | Prettier formatting of the maintained code (the hand-written HTML pages are validated, not reformatted)                  |
-| HTML validity     | `npm run validate:html` | Valid markup on every page under `public/`                                                                               |
-| Site completeness | `npm run check:site`    | Every `<html lang>`, every internal link/asset resolves, and each glue script loads its `js/lib` core first              |
-| Unit coverage     | `npm run test:coverage` | 100% line/branch/function/statement coverage of the extracted browser logic (`public/js/lib/**`)                         |
-| Functional        | `npm run test:e2e`      | Playwright smoke + behavior suite (every page loads, platform detection, the full confirm flow)                          |
-| Visual regression | `npm run e2e:docker`    | Every view in the visual matrix (page × viewport × language × state) matches its committed baseline, then `check:visual` |
+| Gate              | Command                 | What it enforces                                                                                                                                |
+| ----------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formatting        | `npm run format:check`  | Prettier formatting of the maintained code (the hand-written HTML pages are validated, not reformatted)                                         |
+| HTML validity     | `npm run validate:html` | Valid markup on every page under `public/`                                                                                                      |
+| Site completeness | `npm run check:site`    | Every `<html lang>`, every internal link/asset resolves, and each glue script loads its `js/lib` core first                                     |
+| Unit coverage     | `npm run test:coverage` | 100% line/branch/function/statement coverage of `public/js/lib/**` and `functions/_middleware.js`; `functions/lib/**` at its documented ratchet |
+| Functional        | `npm run test:e2e`      | Playwright smoke + behavior suite (every page loads, platform detection, the full confirm flow)                                                 |
+| Visual regression | `npm run e2e:docker`    | Every view in the visual matrix (page × viewport × language × state) matches its committed baseline, then `check:visual`                        |
 
 `npm run check` runs the first four locally in one go. The Playwright suites run
 against a local dev server (`test:e2e`); the visual gate runs in a pinned

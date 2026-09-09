@@ -34,6 +34,8 @@ describe('the landing middleware', () => {
     // Share crawlers drop a 404 before they read the tags written just above.
     const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD' }));
     expect(res.status).toBe(200);
+    // A promoted status must not keep "Not Found" as its reason phrase.
+    expect(res.statusText).toBe('');
     const html = await res.text();
     expect(html).toContain('RealUnit — Einladung AB12CD');
     expect(res.headers.get('content-length')).toBeNull();
@@ -43,6 +45,7 @@ describe('the landing middleware', () => {
   test('a promo landing is promoted the same way', async () => {
     const res = await onRequest(context({ url: 'https://realunit.app/promo/EVT1' }));
     expect(res.status).toBe(200);
+    expect(res.statusText).toBe('');
     expect(await res.text()).toContain('RealUnit — Promo-Code EVT1');
   });
 
@@ -52,6 +55,8 @@ describe('the landing middleware', () => {
       context({ url: 'https://realunit.app/invite/AB12CD', body: NOT_FOUND_PAGE }),
     );
     expect(res.status).toBe(404);
+    // Untouched status keeps its reason phrase.
+    expect(res.statusText).toBe('Not Found');
   });
 
   test('a landing that was already found keeps its status', async () => {
