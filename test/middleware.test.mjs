@@ -174,9 +174,9 @@ describe('the landing middleware', () => {
       expect(res.headers.get(name)).toBeNull();
     }
     expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
-    // Built rather than copied, so a header public/_headers sets is not
-    // carried in and then set again by Pages. Measured on the deploy before
-    // this change: /invite/ answered with its Cache-Control twice over.
+    // Built rather than copied, so nothing the source carried reaches the
+    // answer unexamined. public/_headers is applied by Pages afterwards and is
+    // what puts the site's own headers back.
     expect(res.headers.get('cache-control')).toBeNull();
     expect([...res.headers.keys()]).toEqual(['content-type']);
   });

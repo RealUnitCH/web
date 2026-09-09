@@ -55,9 +55,7 @@ export async function onRequest(context) {
     return platform;
   }
   const shellPath = url.pathname.startsWith('/promo') ? LANDING_SHELL.promo : LANDING_SHELL.invite;
-  const shell = await assets.fetch(
-    new Request(new URL(shellPath, url).toString(), { redirect: 'manual' }),
-  );
+  const shell = await assets.fetch(new Request(new URL(shellPath, url).toString()));
   if (!shell.ok) {
     return platform;
   }
@@ -96,9 +94,9 @@ function answer(html, request, method, status = 200) {
   // Built rather than copied. Every header the source carried either described
   // the bytes before the rewrite — the length, the content coding, both
   // validators, the integrity digests of RFC 9530 and its predecessors — or
-  // came from public/_headers, which Pages applies to this answer again.
-  // Copying the second kind is how /invite/ has been answering with its
-  // Cache-Control twice over, measured on the deploy before this change.
+  // came from public/_headers, which Pages applies to this answer again. A
+  // stale validator is the one that does damage: a conditional request would
+  // be answered 304 against a document the client never received.
   const headers = new Headers({ 'content-type': 'text/html; charset=utf-8' });
   // The shell exists, so a code-bearing path is answered 200 — for HEAD as
   // well as for GET. That is the whole point: WhatsApp, iMessage, Slack,
