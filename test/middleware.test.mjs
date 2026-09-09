@@ -280,18 +280,21 @@ describe('the landing middleware', () => {
     // answer into a 500.
     for (const status of [204, 205, 304]) {
       const ctx = context({ url: 'https://realunit.app/invite/AB12CD', status });
-      ctx.next = () =>
-        Promise.resolve(
-          new Response(null, {
-            status,
-            headers: new Headers({
-              'content-type': 'text/html; charset=utf-8',
-              etag: 'W/"the-one-it-was-matched-on"',
-              ...SITE_HEADERS,
-            }),
+      let upstream;
+      ctx.next = () => {
+        upstream = new Response(null, {
+          status,
+          headers: new Headers({
+            'content-type': 'text/html; charset=utf-8',
+            etag: 'W/"the-one-it-was-matched-on"',
+            ...SITE_HEADERS,
           }),
-        );
+        });
+        return Promise.resolve(upstream);
+      };
       const res = await onRequest(ctx);
+      // The origin's own answer, like the other pass-through branches.
+      expect(res).toBe(upstream);
       expect(res.status).toBe(status);
       expect(res.body).toBeNull();
       // A 304 has to keep the validator it was matched on, and none of these
@@ -354,30 +357,33 @@ describe('the landing middleware', () => {
   test('a partial answer is passed on instead of being rewritten', async () => {
     // The body is a fragment, so injecting into it and dropping the range
     // metadata would produce a 206 that describes nothing.
+    let partialUpstream;
     const partial = (method) => {
       const ctx = context({ url: 'https://realunit.app/invite/AB12CD', status: 206, method });
       // The realistic case: a partial view of the landing page itself. A body
       // that is not the shell would be handed on by the marker guard anyway,
       // and would not prove this guard does anything.
-      ctx.next = () =>
-        Promise.resolve(
-          new Response(SHELL, {
-            status: 206,
-            headers: new Headers({
-              'content-type': 'text/html; charset=utf-8',
-              // Real byte counts: .length counts UTF-16 units, and a range has
-              // to describe bytes of something that exists.
-              'content-length': String(SHELL_BYTES),
-              'content-range': `bytes 0-${SHELL_BYTES - 1}/${SHELL_BYTES}`,
-              etag: 'W/"the-whole-thing"',
-              ...SITE_HEADERS,
-            }),
+      ctx.next = () => {
+        partialUpstream = new Response(SHELL, {
+          status: 206,
+          headers: new Headers({
+            'content-type': 'text/html; charset=utf-8',
+            // Real byte counts: .length counts UTF-16 units, and a range has
+            // to describe bytes of something that exists.
+            'content-length': String(SHELL_BYTES),
+            'content-range': `bytes 0-${SHELL_BYTES - 1}/${SHELL_BYTES}`,
+            etag: 'W/"the-whole-thing"',
+            ...SITE_HEADERS,
           }),
-        );
+        });
+        return Promise.resolve(partialUpstream);
+      };
       return onRequest(ctx);
     };
 
     const res = await partial('GET');
+    // The origin's own answer on the GET path, as on the other branches.
+    expect(res).toBe(partialUpstream);
     expect(res.status).toBe(206);
     // Handed on as it came: not rewritten, though the body is the shell.
     expect(await res.text()).toBe(SHELL);
@@ -441,10 +447,20 @@ describe('the landing middleware', () => {
     expect(await res.text()).toBe(NOT_FOUND_PAGE);
   });
 
-  test('a landing that was already found keeps its status', async () => {
+  test('a landing that was already found keeps its status and is still rewritten', async () => {
+    // The promotion is not the only thing this pass does. An answer that
+    // already said 200 still gets its tags written, so a change that handed
+    // those through untouched has somewhere to fail.
     const res = await onRequest(context({ url: 'https://realunit.app/invite/', status: 200 }));
     expect(res.status).toBe(200);
     expect(res.statusText).toBe('OK');
+    expect(res.headers.get('content-length')).toBeNull();
+    // Measured: on this codeless landing the rewrite normalises the canonical
+    // and the two URL tags to the form without a trailing slash. The shell
+    // ships them with one, so this holds only if the rewrite actually ran.
+    const html = await res.text();
+    expect(html).toContain('rel="canonical" href="https://realunit.app/invite"');
+    expect(html).toContain('property="og:url" content="https://realunit.app/invite"');
   });
 
   test('a path the rewrite does not own is passed through untouched', async () => {
