@@ -55,7 +55,17 @@ export async function onRequest(context) {
     return platform;
   }
   const shellPath = url.pathname.startsWith('/promo') ? LANDING_SHELL.promo : LANDING_SHELL.invite;
-  const shell = await assets.fetch(new Request(new URL(shellPath, url).toString()));
+  // Always a GET, whatever the client sent: the body is what tells the landing
+  // shell from any other file under that name, and a HEAD would come back
+  // without one. Asked in a try, because a binding that rejects would
+  // otherwise take the whole Function down — and a Function that throws makes
+  // Pages serve the assets directly, which is the very answer this replaces.
+  let shell;
+  try {
+    shell = await assets.fetch(new Request(new URL(shellPath, url).toString()));
+  } catch {
+    return platform;
+  }
   if (!shell.ok) {
     return platform;
   }

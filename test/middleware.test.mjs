@@ -51,6 +51,7 @@ function context({
 } = {}) {
   const nextCalls = [];
   const assetFetches = [];
+  const assetMethods = [];
   let platform;
   const ctx = {
     request: new Request(url, { method }),
@@ -61,6 +62,7 @@ function context({
     },
     nextCalls,
     assetFetches,
+    assetMethods,
     platform: () => platform,
   };
   if (withAssets) {
@@ -68,12 +70,16 @@ function context({
       ASSETS: {
         fetch: (request) => {
           assetFetches.push(request.url);
+          assetMethods.push(request.method);
+          // Path-aware, so that asking for the wrong shell returns the wrong
+          // page rather than the one the case expects anyway.
+          const file = request.url.endsWith('/promo/index.html') ? PROMO_SHELL : shell;
           return Promise.resolve(
-            new Response(shellStatus === 200 ? shell : 'no such asset', {
+            new Response(shellStatus === 200 ? file : 'no such asset', {
               status: shellStatus,
               headers: new Headers({
                 'content-type': 'text/html; charset=utf-8',
-                'content-length': String(bytes(shell)),
+                'content-length': String(bytes(file)),
                 ...shellHeaders,
               }),
             }),
@@ -107,8 +113,29 @@ describe('the landing middleware', () => {
     expect(isLandingShell(html)).toBe(true);
   });
 
+  test('the shell is always asked for with GET, whatever the client sent', async () => {
+    // The body is what tells the landing shell from any other file under that
+    // name. A HEAD forwarded to the binding would come back without one, the
+    // marks would not be found, and the answer would fall back to the 404 the
+    // platform gave — which is the bug this pass exists to remove.
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD', method: 'HEAD' });
+    const res = await onRequest(ctx);
+    expect(ctx.assetMethods).toEqual(['GET']);
+    expect(res.status).toBe(200);
+  });
+
+  test('a binding that rejects leaves the platform answer standing', async () => {
+    // A Function that throws makes Pages serve the assets directly, which is
+    // exactly the wrong answer this pass replaces. Measured once, the hard way.
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD' });
+    ctx.env = { ASSETS: { fetch: () => Promise.reject(new Error('binding is having a day')) } };
+    const res = await onRequest(ctx);
+    expect(res).toBe(ctx.platform());
+    expect(res.status).toBe(404);
+  });
+
   test('a promo link is served from the promo shell, not the invite one', async () => {
-    const ctx = context({ url: 'https://realunit.app/promo/EVT1', shell: PROMO_SHELL });
+    const ctx = context({ url: 'https://realunit.app/promo/EVT1' });
     const res = await onRequest(ctx);
     expect(ctx.assetFetches).toEqual(['https://realunit.app/promo/index.html']);
     expect(res.status).toBe(200);
