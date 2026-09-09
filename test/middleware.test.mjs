@@ -361,6 +361,24 @@ describe('the landing middleware', () => {
     expect(res.headers.get('etag')).toBe('W/"json"');
   });
 
+  test('a 200 with no content-type at all is handed on untouched', async () => {
+    // Constructing a Response from a string sets the header on its own, so it
+    // is removed again to reach the missing-header case.
+    let bare;
+    const ctx = context({
+      url: 'https://realunit.app/invite/',
+      platformAnswer: () => {
+        bare = new Response(SHELL, { status: 200 });
+        bare.headers.delete('content-type');
+        return bare;
+      },
+    });
+    const res = await onRequest(ctx);
+    expect(res).toBe(bare);
+    expect(res.headers.get('content-type')).toBeNull();
+    expect(ctx.assetFetches).toEqual([]);
+  });
+
   test('an HTML answer that is not the shell is handed on untouched', async () => {
     // A broken deploy serving the site's 404 page under /invite/ with a 200
     // must not be dressed up as an invitation.
