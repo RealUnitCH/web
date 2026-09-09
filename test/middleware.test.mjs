@@ -692,6 +692,17 @@ describe('the landing middleware', () => {
     expect(res.status).toBe(404);
     expect(await res.text()).toBe(mentionsIt);
 
+    // Both words as prose, without the attribute syntax: loosening the marks to
+    // bare words would accept this, and nothing else in the suite would notice.
+    const wordsOnly =
+      '<html lang="de"><head><title>Seite nicht gefunden</title></head>' +
+      '<body><p>state-loading und aria-busy sind hier nur Wörter.</p></body></html>';
+    const prose = await onRequest(
+      context({ url: 'https://realunit.app/invite/AB12CD', body: wordsOnly }),
+    );
+    expect(prose.status).toBe(404);
+    expect(await prose.text()).toBe(wordsOnly);
+
     // Even the exact attribute in a comment is not enough on its own: the shell
     // is recognised by two marks, and an error document does not arrive at both.
     const quoted = await onRequest(
