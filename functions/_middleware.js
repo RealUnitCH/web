@@ -93,7 +93,12 @@ export async function onRequest(context) {
     // as one would describe something the visitor is not looking at.
     return platform;
   }
-  return answer(html, shell.headers, context.request, method);
+  // The headers describe the URL that was asked for, so they come from the
+  // platform's answer wherever it had one — public/_headers matches on the
+  // request path, and the shell's own answer was matched on /invite/index.html.
+  // Only when the platform had nothing to say does the shell's set stand in.
+  const source = platform.status === 200 ? platform.headers : shell.headers;
+  return answer(html, source, context.request, method);
 }
 
 /** Whether the answer is HTML at all, read as a media type and not a substring. */
