@@ -201,12 +201,17 @@ const PARTIAL_OR_CONDITIONAL = [
  *
  * This is a deliberate deviation from RFC 9110 §13.1, stated rather than
  * hidden: a client sending `If-None-Match: *` is answered 200 with the whole
- * document where 304 was called for, and `If-Match` never produces 412. These
- * paths emit no ETag and no Last-Modified, so a client only reaches that case
- * by sending a precondition it was never given one for. The answer is always
- * the current representation, which is never wrong, only larger than it had to
- * be. Evaluating preconditions properly would mean minting a validator for the
- * rewritten document, which is a bigger change than this one.
+ * document where 304 was called for, and `If-Match` never produces 412.
+ *
+ * The two kinds of precondition are not equally hard. A tag or date condition
+ * would need a validator minted for the rewritten document, which none of
+ * these paths emits and which is a larger change than this one. The wildcard
+ * forms need no validator at all — they ask only whether a current
+ * representation exists, which is already known here — so they are dropped for
+ * uniformity, not out of necessity.
+ *
+ * What a client gets either way is the current representation: never wrong,
+ * only larger than it had to be.
  *
  * Measured on the deploy with a Range GET, reading the body rather than only
  * the headers: Pages answers with the full document today and no 206, so this
