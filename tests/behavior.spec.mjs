@@ -709,13 +709,43 @@ test.describe('invite and promo landing without JavaScript', () => {
       // still leave the page blank. Measured on this Playwright version with
       // javaScriptEnabled:false: role and CSS locators do reach into
       // <noscript>, getByText does not — its text engine skips that subtree.
-      await expect(page.getByRole('heading', { name: 'JavaScript ist deaktiviert' })).toBeVisible();
-      await expect(page.locator('main noscript p[lang="en"]')).toBeVisible();
-      await expect(page.locator('main noscript p[lang="en"]')).toContainText('needs JavaScript');
+      const heading = page.getByRole('heading', { name: 'JavaScript ist deaktiviert' });
+      await expect(heading).toBeVisible();
+      await expect(heading).toHaveAttribute('lang', 'de');
+      // Full text, not a substring: a truncated or half-translated paragraph
+      // would otherwise stay green.
+      await expect(page.locator('main noscript p[lang="de"]')).toHaveText(
+        'Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript. ' +
+          'Aktiviere JavaScript und lade die Seite neu. Die App selbst findest du über die Links ' +
+          'unten.',
+      );
+      await expect(page.locator('main noscript p[lang="en"]')).toHaveText(
+        'This page resolves your code through the RealUnit app and needs JavaScript. Enable ' +
+          'JavaScript and reload the page. The app itself is linked below.',
+      );
       // The copy tells the visitor the app is linked below, so the links have
       // to be there without JS.
       await expect(page.locator('nav.stores a[data-store="apple"]')).toBeVisible();
       await expect(page.locator('nav.stores a[data-store="play"]')).toBeVisible();
+    }
+  });
+});
+
+test.describe('the no-JavaScript notice stays inside <noscript>', () => {
+  test('a visitor with JavaScript never sees it', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only check');
+    // Dropping the <noscript> wrapper would show every visitor a warning about
+    // JavaScript being off. Nothing else in the suite would go red for that:
+    // the case above runs only with scripting disabled, where the wrapper's
+    // children are parsed as ordinary markup either way.
+    // ?mock= keeps this off the network; the notice is a property of the
+    // shell, not of the lookup result.
+    for (const path of ['/invite/AB12CD?mock=loading', '/promo/EVT1?mock=loading']) {
+      await page.goto(path);
+      await expect(page.locator('main noscript')).toHaveCount(1);
+      await expect(page.getByRole('heading', { name: 'JavaScript ist deaktiviert' })).toHaveCount(
+        0,
+      );
     }
   });
 });
