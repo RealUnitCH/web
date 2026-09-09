@@ -6,10 +6,11 @@ export default defineConfig({
     include: ['test/**/*.test.mjs'],
     coverage: {
       provider: 'v8',
-      // Only the extracted, side-effect-free browser logic is unit-tested to
-      // 100%. The DOM/network glue in public/*.js is covered by the Playwright
+      // The extracted, side-effect-free browser logic and the Pages Function
+      // that decides which page a landing path is answered with. The
+      // DOM/network glue in public/*.js is covered by the Playwright
       // functional suite instead (see CONTRIBUTING.md).
-      include: ['public/js/lib/**/*.js', 'functions/lib/**/*.js'],
+      include: ['public/js/lib/**/*.js', 'functions/lib/**/*.js', 'functions/_middleware.js'],
       // Report every matched file even if no test imports it, so a new, untested
       // public/js/lib/*.js drops coverage below 100% instead of silently passing.
       all: true,
@@ -33,6 +34,16 @@ export default defineConfig({
           functions: 100,
           branches: 87,
           statements: 98,
+        },
+        // The middleware decides which page and which status a crawler of an
+        // invite or promo landing sees. It was outside `include` while it did so, which is how a
+        // change that served the 404 page on every invite link passed a full
+        // review. It is measured at 100% and stays there.
+        'functions/_middleware.js': {
+          lines: 100,
+          functions: 100,
+          branches: 100,
+          statements: 100,
         },
       },
     },
