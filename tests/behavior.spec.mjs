@@ -714,11 +714,15 @@ test.describe('invite and promo landing without JavaScript', () => {
       await expect(heading).toHaveAttribute('lang', 'de');
       // Full text, not a substring: a truncated or half-translated paragraph
       // would otherwise stay green.
+      // toHaveText matches textContent, which display:none leaves untouched —
+      // so the visibility of each paragraph is asserted separately.
+      await expect(page.locator('main noscript p[lang="de"]')).toBeVisible();
       await expect(page.locator('main noscript p[lang="de"]')).toHaveText(
         'Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript. ' +
           'Aktiviere JavaScript und lade die Seite neu. Die App selbst findest du über die Links ' +
           'unten.',
       );
+      await expect(page.locator('main noscript p[lang="en"]')).toBeVisible();
       await expect(page.locator('main noscript p[lang="en"]')).toHaveText(
         'This page resolves your code through the RealUnit app and needs JavaScript. Enable ' +
           'JavaScript and reload the page. The app itself is linked below.',
