@@ -65,10 +65,14 @@ export async function onRequest(context) {
   // labelled gzip that is not gzip does not render at all. The body handed on
   // from here is always the decoded, rewritten string.
   //
-  // Measured on the deploy: Pages sets neither ETag nor Last-Modified on these
-  // paths today but does serve them Content-Encoding: gzip, so that one is not
-  // hypothetical — the edge applies it after this Function, and dropping the
-  // header here costs nothing if it was never on the object.
+  // Content-Encoding goes because response.text() decoded the body: whatever
+  // the origin declared, what leaves here is plain text. Whether the header
+  // was on the object at all is a separate question — the gzip visible on the
+  // deploy is applied by the edge after this Function — and deleting a header
+  // that was never there costs nothing.
+  //
+  // Measured on the deploy: ETag and Last-Modified are not set on these paths
+  // today, so those two are a guard rather than a live fix.
   for (const stale of [
     'content-length',
     'content-encoding',
@@ -125,18 +129,20 @@ function asFullGet(request) {
   for (const name of PARTIAL_OR_CONDITIONAL) {
     headers.delete(name);
   }
-  try {
+  if (request.body === null) {
     return new Request(request, { method: 'GET', headers });
-  } catch {
-    // A GET or HEAD carrying a body cannot be re-methoded: the constructor
-    // refuses to pair one with GET. Rebuild from the URL instead, which drops
-    // the platform's request metadata but keeps the request answerable. The
-    // headers that described that body go with it, or the new request would
-    // announce one it does not carry.
-    headers.delete('content-length');
-    headers.delete('content-type');
-    return new Request(request.url, { method: 'GET', headers });
   }
+  // A GET or HEAD carrying a body cannot be re-methoded: the constructor
+  // refuses to pair one with GET. Rebuild from the URL instead, which drops the
+  // platform's request metadata but keeps the request answerable. The headers
+  // that described that body go with it, or the new request would announce one
+  // it does not carry.
+  //
+  // Asked rather than caught, so that any other constructor failure still
+  // surfaces instead of being quietly rerouted through here.
+  headers.delete('content-length');
+  headers.delete('content-type');
+  return new Request(request.url, { method: 'GET', headers });
 }
 
 /** The same status and headers, with no body and no stale content-length. */

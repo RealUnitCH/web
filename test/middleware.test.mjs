@@ -191,8 +191,8 @@ describe('the landing middleware', () => {
           etag: 'W/"before-the-rewrite"',
           'last-modified': 'Tue, 09 Sep 2026 00:00:00 GMT',
           'content-range': 'bytes 0-99/4162',
-          // Measured on the deploy: these paths really are served gzipped, and
-          // a body labelled gzip that is not gzip does not render at all.
+          // The body left here decoded, so a carried-over encoding would be
+          // wrong whatever the origin declared.
           'content-encoding': 'gzip',
           // Not observed on this deploy, dropped for the same reason as the
           // validators: they describe bytes this pass replaces.
@@ -398,6 +398,12 @@ describe('the landing middleware', () => {
     );
     expect(res.status).toBe(404);
     expect(await res.text()).toBe('{}');
+    // Untouched means the headers too: nothing was rewritten on this branch.
+    expect(res.headers.get('content-length')).toBe('2');
+    expect(res.headers.get('content-type')).toBe('application/json');
+    for (const [name, value] of Object.entries(SITE_HEADERS)) {
+      expect(res.headers.get(name)).toBe(value);
+    }
   });
 
   test('the marker the promotion keys on lives where it has to', () => {
