@@ -760,9 +760,10 @@ test.describe('invite and promo landing', () => {
   });
 
   test('a lookup that never answers gives up after the fifteen-second budget', async ({ page }) => {
-    // The budget existed only as an exported number, asserted against itself in
-    // the unit suite. What it is for is this: a request that never answers must
-    // not leave the visitor on the loading state for ever.
+    // The unit suite pinned the exported number against a literal and stopped
+    // there; nothing exercised what the number is for. This does: a request
+    // that never answers must not leave the visitor on the loading state for
+    // ever.
     // Real time, not the fake clock: the budget's timer is armed while the page
     // loads, and a clock installed before that leaves the page in a state this
     // case is not about.

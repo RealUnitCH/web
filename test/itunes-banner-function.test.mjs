@@ -61,8 +61,10 @@ describe('the asset-suffix rule', () => {
       'txt',
       'xml',
     ];
-    // Asked as one question, so a set that grows on one side and not the other
-    // fails here rather than in production. `html` is in the sweep too: the two
+    // Asked as one question, so a suffix that moves to one side and not the
+    // other fails here rather than in production. The sweep is a list of its
+    // own, not the rule's: it catches a divergence on what it enumerates, and
+    // a suffix neither side knows is nobody's disagreement. `html` is in the sweep too: the two
     // have to agree on it as well, and they agree that it is a code.
     //
     // Two segments, which is the shape a shared link has. Deeper paths are a
@@ -83,8 +85,9 @@ describe('the asset-suffix rule', () => {
         { kind: 'invite', code: null },
       ]);
     }
-    // And a dot that names no file type is a code like any other, on both
-    // sides — otherwise this case would pass on a list that swallows every dot.
+    // And a suffix this rule does not call an asset is a code like any other,
+    // on both sides — otherwise the case would pass on a rule that swallowed
+    // every dot.
     expect(shouldRewriteItunesBanner('/invite/AB12CD.PDF')).toBe(true);
     expect(parseLandingFromUrl('https://realunit.app/invite/AB12CD.PDF')).toEqual({
       kind: 'invite',
