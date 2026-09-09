@@ -85,6 +85,15 @@ describe('the landing middleware', () => {
     }
   });
 
+  test('the rewritten answer declares UTF-8 whatever the origin said', async () => {
+    // response.text() decodes as UTF-8 and a string body is encoded as UTF-8,
+    // so any other charset on the way out would be a lie.
+    const res = await onRequest(
+      context({ url: 'https://realunit.app/invite/AB12CD', type: 'text/html; charset=iso-8859-1' }),
+    );
+    expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
+  });
+
   test('a promo landing is promoted the same way', async () => {
     const res = await onRequest(
       context({ url: 'https://realunit.app/promo/EVT1', body: PROMO_SHELL }),
@@ -138,6 +147,7 @@ describe('the landing middleware', () => {
       body: 'not what a GET should carry',
     });
     withBody.headers.set('range', 'bytes=0-99');
+    withBody.headers.set('content-length', '27');
     withBody.headers.set('if-none-match', 'W/"abc"');
     withBody.headers.set('accept-language', 'de-CH');
     Object.defineProperty(withBody, 'method', { value: 'GET' });
@@ -150,6 +160,9 @@ describe('the landing middleware', () => {
     expect(forwarded.headers.get('range')).toBeNull();
     expect(forwarded.headers.get('if-none-match')).toBeNull();
     expect(forwarded.headers.get('accept-language')).toBe('de-CH');
+    // The rebuilt request carries no body, so it must not announce one.
+    expect(forwarded.headers.get('content-length')).toBeNull();
+    expect(forwarded.headers.get('content-type')).toBeNull();
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('RealUnit — Einladung AB12CD');
   });
@@ -211,6 +224,29 @@ describe('the landing middleware', () => {
     for (const [name, value] of Object.entries(SITE_HEADERS)) {
       expect(res.headers.get(name)).toBe(value);
     }
+  });
+
+  test('a partial answer is passed on instead of being rewritten', async () => {
+    // The body is a fragment, so injecting into it and dropping the range
+    // metadata would produce a 206 that describes nothing.
+    const res = await onRequest(
+      context({ url: 'https://realunit.app/invite/AB12CD', status: 206, body: '<html' }),
+    );
+    expect(res.status).toBe(206);
+    expect(await res.text()).toBe('<html');
+    expect(res.headers.get('content-length')).toBe('5');
+
+    // A HEAD on the same answer keeps the status and drops the body.
+    const head = await onRequest(
+      context({
+        url: 'https://realunit.app/invite/AB12CD',
+        method: 'HEAD',
+        status: 206,
+        body: '<html',
+      }),
+    );
+    expect(head.status).toBe(206);
+    expect(head.body).toBeNull();
   });
 
   test('a real 404 page on a landing path keeps saying 404', async () => {
@@ -316,14 +352,28 @@ describe('the landing middleware', () => {
   });
 
   test('a HEAD on a response that is not HTML keeps its status and carries no body', async () => {
-    const res = await onRequest(
-      context({
-        url: 'https://realunit.app/invite/AB12CD',
-        method: 'HEAD',
-        type: 'application/json',
-        body: '{}',
-      }),
-    );
+    const ctx = context({
+      url: 'https://realunit.app/invite/AB12CD',
+      method: 'HEAD',
+      type: 'application/json',
+      body: '{}',
+    });
+    // Nothing was rewritten here, so the validators still describe what the
+    // origin sent and must survive. Only the length has to go, because the
+    // answer carries no body.
+    ctx.next = () => {
+      const headers = new Headers({
+        'content-type': 'application/json',
+        'content-length': '2',
+        etag: 'W/"unchanged"',
+        'content-encoding': 'gzip',
+        ...SITE_HEADERS,
+      });
+      return Promise.resolve(new Response('{}', { status: 404, statusText: 'Not Found', headers }));
+    };
+    const res = await onRequest(ctx);
+    expect(res.headers.get('etag')).toBe('W/"unchanged"');
+    expect(res.headers.get('content-encoding')).toBe('gzip');
     expect(res.status).toBe(404);
     expect(res.statusText).toBe('Not Found');
     expect(res.body).toBeNull();

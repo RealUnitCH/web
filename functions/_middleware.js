@@ -39,10 +39,19 @@ export async function onRequest(context) {
   // representation would be injected into a fragment and returned under a
   // Content-Range describing the bytes before the rewrite.
   const response = await context.next(asFullGet(context.request));
+  // A partial answer cannot be rewritten: the body is a fragment and the range
+  // metadata would stop matching it. Range is stripped above, so this only ever
+  // fires for an origin that answers 206 unasked.
+  if (response.status === 206) {
+    return isHead ? bodyless(response, response.status, response.statusText) : response;
+  }
   const type = response.headers.get('content-type') || '';
   if (!type.includes('text/html')) {
-    // Nothing to rewrite. A HEAD still must not carry the body the GET-
-    // equivalent came back with.
+    // Nothing to rewrite. Note that the request was already stripped of Range
+    // and the conditional headers before we could know that — under these
+    // paths only HTML is served, and shouldRewriteItunesBanner keeps the asset
+    // extensions out, so no caller loses a partial answer it could have had.
+    // A HEAD still must not carry the body the GET-equivalent came back with.
     return isHead ? bodyless(response, response.status, response.statusText) : response;
   }
   const html = await response.text();
@@ -73,6 +82,9 @@ export async function onRequest(context) {
   ]) {
     headers.delete(stale);
   }
+  // response.text() decodes as UTF-8 and a string body is encoded as UTF-8, so
+  // the answer is UTF-8 whatever the origin declared.
+  headers.set('content-type', 'text/html; charset=utf-8');
   const status = landingStatus(response.status, injected);
   // A promoted status must not keep "Not Found" as its reason phrase.
   const statusText = status === response.status ? response.statusText : '';
@@ -118,7 +130,11 @@ function asFullGet(request) {
   } catch {
     // A GET or HEAD carrying a body cannot be re-methoded: the constructor
     // refuses to pair one with GET. Rebuild from the URL instead, which drops
-    // the platform's request metadata but keeps the request answerable.
+    // the platform's request metadata but keeps the request answerable. The
+    // headers that described that body go with it, or the new request would
+    // announce one it does not carry.
+    headers.delete('content-length');
+    headers.delete('content-type');
     return new Request(request.url, { method: 'GET', headers });
   }
 }
