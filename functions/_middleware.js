@@ -9,7 +9,7 @@
  * The same pass reports a rewritten landing as found: Pages resolves
  * /invite/<code> to the code-less shell through the _redirects rewrite but
  * keeps the not-found status of the path that was asked for, and a crawler
- * drops a 404 before it reads the tags written just above.
+ * drops a 404 before it reads the tags this pass just wrote.
  * public/ stays generic; this is not a site-wide renderer.
  */
 import {

@@ -79,14 +79,14 @@ sanity-check anything touching scripts/images in the dev deployment.
 Every pull request must pass the gates below; CI runs them as required status
 checks.
 
-| Gate              | Command                 | What it enforces                                                                                                                                |
-| ----------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Formatting        | `npm run format:check`  | Prettier formatting of the maintained code (the hand-written HTML pages are validated, not reformatted)                                         |
-| HTML validity     | `npm run validate:html` | Valid markup on every page under `public/`                                                                                                      |
-| Site completeness | `npm run check:site`    | Every `<html lang>`, every internal link/asset resolves, and each glue script loads its `js/lib` core first                                     |
-| Unit coverage     | `npm run test:coverage` | 100% line/branch/function/statement coverage of `public/js/lib/**` and `functions/_middleware.js`; `functions/lib/**` at its documented ratchet |
-| Functional        | `npm run test:e2e`      | Playwright smoke + behavior suite (every page loads, platform detection, the full confirm flow)                                                 |
-| Visual regression | `npm run e2e:docker`    | Every view in the visual matrix (page × viewport × language × state) matches its committed baseline, then `check:visual`                        |
+| Gate              | Command                 | What it enforces                                                                                                                                            |
+| ----------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formatting        | `npm run format:check`  | Prettier formatting of the maintained code (the hand-written HTML pages are validated, not reformatted)                                                     |
+| HTML validity     | `npm run validate:html` | Valid markup on every page under `public/`                                                                                                                  |
+| Site completeness | `npm run check:site`    | Every `<html lang>`, every internal link/asset resolves, and each glue script loads its `js/lib` core first                                                 |
+| Unit coverage     | `npm run test:coverage` | 100% line/branch/function/statement coverage of `public/js/lib/**` and `functions/_middleware.js`; `functions/lib/**` at its ratchet in `vitest.config.mjs` |
+| Functional        | `npm run test:e2e`      | Playwright smoke + behavior suite (every page loads, platform detection, the full confirm flow)                                                             |
+| Visual regression | `npm run e2e:docker`    | Every view in the visual matrix (page × viewport × language × state) matches its committed baseline, then `check:visual`                                    |
 
 `npm run check` runs the first four locally in one go. The Playwright suites run
 against a local dev server (`test:e2e`); the visual gate runs in a pinned
@@ -110,9 +110,9 @@ the i18n copy — is extracted into `public/js/lib/` (side-effect free, exposed 
 a `window.*` global) and unit-tested to 100% with Vitest + jsdom. The rest of
 those page scripts is covered end-to-end by the Playwright functional suite
 (`tests/behavior.spec.mjs`). Two more surfaces carry their own unit-coverage
-gate and are not page scripts at all: `functions/lib/**` at its documented
-ratchet, and the Pages Function entry point `functions/_middleware.js` at 100%
-— see the quality-gates table above.
+gate and are not page scripts at all: `functions/lib/**` at the ratchet set in
+`vitest.config.mjs`, and the Pages Function entry point
+`functions/_middleware.js` at 100% — see the quality-gates table above.
 
 If you add a file under `public/js/lib/`, it must reach 100% coverage or the
 Quality gate fails (the threshold reports every matched file, tested or not). A
