@@ -53,7 +53,7 @@ uploaded to Cloudflare Pages.
   guarded on a marker the landings carry and the site's 404 page does not, and
   HEAD answers with the same status as GET. Both methods are resolved internally
   as one full GET, without `Range` / `If-Range` and without the conditional
-  validators, because the whole document is rewritten and the status is decided
+  request headers, because the whole document is rewritten and the status is decided
   from its body. `scripts/dev-server.mjs` shares the injection and answers HEAD without a body, but has no promotion, no marker guard and no header stripping: its own routing serves the landings as `200` and never produces the not-found status the promotion exists to correct.
   `og:title`, `og:description`,
   and image alt name the campaign code; `?lang=en` sets English copy and `og:locale=en_GB`;

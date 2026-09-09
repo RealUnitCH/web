@@ -196,7 +196,7 @@ describe('the landing middleware', () => {
     }
   });
 
-  test('conditional headers are dropped so the answer is the full document', async () => {
+  test('conditional headers are stripped from the GET-equivalent', async () => {
     // Range would allow a 206, the conditional headers a 304 or a 412. None of
     // those bodies is the landing shell, and the status is decided from the
     // body.
@@ -210,12 +210,15 @@ describe('the landing middleware', () => {
         'accept-language': 'de-CH',
       },
     });
-    await onRequest(ctx);
+    const res = await onRequest(ctx);
     const [forwarded] = ctx.forwarded;
     for (const name of ['if-none-match', 'if-modified-since', 'if-match', 'if-unmodified-since']) {
       expect(forwarded.headers.get(name)).toBeNull();
     }
     expect(forwarded.headers.get('accept-language')).toBe('de-CH');
+    // And the answer that comes back is the whole document, not a 304.
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('RealUnit — Einladung AB12CD');
   });
 
   test('a GET that carries a body is still answered, not thrown on', async () => {
@@ -370,18 +373,47 @@ describe('the landing middleware', () => {
     expect(head.headers.get('etag')).toBe('W/"the-whole-thing"');
   });
 
+  // The origin's own answer for the two cases below, kept so the tests can
+  // require that it is handed on as the very same object rather than rebuilt
+  // into something that merely looks like it.
+  function notFoundUpstream(method) {
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD', method });
+    let upstream;
+    ctx.next = (request) => {
+      // The recorder the default next() provides, kept: the HEAD case has to
+      // show that a GET-equivalent was asked for.
+      ctx.forwarded.push(request || ctx.request);
+      upstream = new Response(NOT_FOUND_PAGE, {
+        status: 404,
+        statusText: 'Not Found',
+        headers: new Headers({
+          'content-type': 'text/html; charset=utf-8',
+          'content-length': String(NOT_FOUND_PAGE.length),
+          'content-encoding': 'gzip',
+          etag: 'W/"the-404-page"',
+          ...SITE_HEADERS,
+        }),
+      });
+      return Promise.resolve(upstream);
+    };
+    return { ctx, sent: () => upstream };
+  }
+
   test('a real 404 page on a landing path keeps saying 404', async () => {
     // A broken deploy has to stay visibly broken rather than look healthy.
-    const res = await onRequest(
-      context({ url: 'https://realunit.app/invite/AB12CD', body: NOT_FOUND_PAGE }),
-    );
+    const { ctx, sent } = notFoundUpstream('GET');
+    const res = await onRequest(ctx);
     expect(res.status).toBe(404);
     // Untouched status keeps its reason phrase.
     expect(res.statusText).toBe('Not Found');
+    // Handed on as the origin's own answer, not rebuilt from its text: that is
+    // what keeps the encoding and the validator describing the actual bytes.
+    expect(res).toBe(sent());
+    expect(res.headers.get('content-encoding')).toBe('gzip');
+    expect(res.headers.get('etag')).toBe('W/"the-404-page"');
     // And an untouched page keeps its own copy: rewriting the 404 page's title
     // into an invitation would misdescribe what the visitor is looking at.
     expect(await res.text()).toBe(NOT_FOUND_PAGE);
-    expect(res.headers.get('content-length')).toBe(String(NOT_FOUND_PAGE.length));
   });
 
   test('a landing that was already found keeps its status', async () => {
@@ -464,16 +496,17 @@ describe('the landing middleware', () => {
 
   test('a HEAD on a real 404 page keeps saying 404', async () => {
     // The marker guard has to hold on the HEAD path too, not only on GET.
-    const ctx = context({
-      url: 'https://realunit.app/invite/AB12CD',
-      method: 'HEAD',
-      body: NOT_FOUND_PAGE,
-    });
+    const { ctx, sent } = notFoundUpstream('HEAD');
     const res = await onRequest(ctx);
     expect(ctx.forwarded.map((r) => r.method)).toEqual(['GET']);
     expect(res.status).toBe(404);
     expect(res.statusText).toBe('Not Found');
     expect(res.body).toBeNull();
+    // Only the body is left off; every header the origin sent is still there.
+    for (const [name, value] of sent().headers) {
+      expect(res.headers.get(name)).toBe(value);
+    }
+    expect([...res.headers.keys()].sort()).toEqual([...sent().headers.keys()].sort());
   });
 
   test('a HEAD on a response that is not HTML keeps its status and carries no body', async () => {

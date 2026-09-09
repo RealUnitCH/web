@@ -16,7 +16,7 @@ This repo is the **realunit.app** website — public, static. See the
   reads the tags. The promotion is guarded on the landing marker, so the site's
   own 404 page keeps saying 404, and HEAD answers with the same status as GET.
   Both methods are resolved internally as one full GET, without `Range` /
-  `If-Range` and without the conditional validators, because the whole document
+  `If-Range` and without the conditional request headers, because the whole document
   is rewritten and the status is decided from its body. `scripts/dev-server.mjs` shares the injection and answers HEAD without a body, but has no promotion, no marker guard and no header stripping: its own routing serves the landings as `200` and never produces the not-found status the promotion exists to correct. Nothing else is transformed, and there is no server-side
   rendering. The dev dependencies exist **only** for the quality gates below
   (formatting, HTML validation, unit tests, screenshots); nothing compiles or
