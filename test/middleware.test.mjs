@@ -137,12 +137,19 @@ describe('the landing middleware', () => {
       method: 'POST',
       body: 'not what a GET should carry',
     });
+    withBody.headers.set('range', 'bytes=0-99');
+    withBody.headers.set('if-none-match', 'W/"abc"');
+    withBody.headers.set('accept-language', 'de-CH');
     Object.defineProperty(withBody, 'method', { value: 'GET' });
     ctx.request = withBody;
     const res = await onRequest(ctx);
     const [forwarded] = ctx.forwarded;
     expect(forwarded.method).toBe('GET');
     expect(forwarded.url).toBe('https://realunit.app/invite/AB12CD');
+    // The fallback has to carry the cleaned headers, not the original ones.
+    expect(forwarded.headers.get('range')).toBeNull();
+    expect(forwarded.headers.get('if-none-match')).toBeNull();
+    expect(forwarded.headers.get('accept-language')).toBe('de-CH');
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('RealUnit — Einladung AB12CD');
   });
@@ -174,6 +181,12 @@ describe('the landing middleware', () => {
           // Measured on the deploy: these paths really are served gzipped, and
           // a body labelled gzip that is not gzip does not render at all.
           'content-encoding': 'gzip',
+          // Not observed on this deploy, dropped for the same reason as the
+          // validators: they describe bytes this pass replaces.
+          'content-digest': 'sha-256=:before:',
+          'repr-digest': 'sha-256=:before:',
+          digest: 'sha-256=before',
+          'content-md5': 'before',
           ...SITE_HEADERS,
         }),
       });
@@ -187,6 +200,10 @@ describe('the landing middleware', () => {
       'etag',
       'last-modified',
       'content-range',
+      'content-digest',
+      'repr-digest',
+      'digest',
+      'content-md5',
     ]) {
       expect(res.headers.get(stale)).toBeNull();
     }

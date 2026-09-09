@@ -45,14 +45,16 @@ uploaded to Cloudflare Pages.
   custom scheme; `twitter:app:country` is CH) are injected
   into the HTML bytes from the request URL (`functions/_middleware.js` on
   Cloudflare Pages, and the local dev-server) so Safari, Play, WhatsApp, X,
-  and share crawlers can snapshot them before JS. The same pass reports a
-  rewritten landing as `200`: Pages resolves `/invite/<code>` to the code-less
-  shell through the `_redirects` rewrite but keeps the not-found status of the
-  path that was asked for, and a crawler drops a `404` before it reads the tags.
-  The promotion is guarded on a marker the landings carry and the site's 404
-  page does not, and HEAD answers with the same status as GET. Both methods are
-  resolved internally as one full GET without `Range` / `If-Range`, because the
-  whole document is rewritten and the status is decided from its body.
+  and share crawlers can snapshot them before JS. On Cloudflare Pages, and only
+  there, `functions/_middleware.js` also reports a rewritten landing as `200`:
+  Pages resolves `/invite/<code>` to the code-less shell through the
+  `_redirects` rewrite but keeps the not-found status of the path that was asked
+  for, and a crawler drops a `404` before it reads the tags. The promotion is
+  guarded on a marker the landings carry and the site's 404 page does not, and
+  HEAD answers with the same status as GET. Both methods are resolved internally
+  as one full GET, without `Range` / `If-Range` and without the conditional
+  validators, because the whole document is rewritten and the status is decided
+  from its body. `scripts/dev-server.mjs` shares the injection and answers HEAD without a body, but has no promotion, no marker guard and no header stripping: its own routing serves the landings as `200` and never produces the not-found status the promotion exists to correct.
   `og:title`, `og:description`,
   and image alt name the campaign code; `?lang=en` sets English copy and `og:locale=en_GB`;
   invitee names wait for lookup JS. `/js/invite-banner.js` in `<head>`
