@@ -1005,7 +1005,16 @@
   // Crawlers snapshot og:title / twitter:title from the HTML bytes.
   // Names wait for lookup JS; the request URL can already name the code.
   function shareTitle(kind, code, lang) {
-    if (!kind || !code) return null;
+    // Kept byte-identical to shareTitle in functions/lib/itunes-banner.js;
+    // test/itunes-banner-function.test.mjs pins the two against each other.
+    // The codeless branch is unreachable through this file's own injectors —
+    // parseCodeFromLocation returns null without a code — but the function is
+    // exported, so it must not answer differently from the server module.
+    if (!kind) return null;
+    if (!code) {
+      if (lang !== 'en') return null;
+      return kind === 'promo' ? 'RealUnit — Promo code' : 'RealUnit — Invitation';
+    }
     if (lang === 'en') {
       return kind === 'promo' ? 'RealUnit — Promo code ' + code : 'RealUnit — Invitation ' + code;
     }
@@ -1054,7 +1063,8 @@
   }
 
   function shareDescription(code, lang) {
-    if (!code) return null;
+    // Kept byte-identical to shareDescription in functions/lib/itunes-banner.js.
+    if (!code) return lang === 'en' ? 'Open the RealUnit app with this code.' : null;
     if (lang === 'en') return 'Open the RealUnit app with code ' + code + '.';
     return 'Öffne die RealUnit-App mit dem Code ' + code + '.';
   }

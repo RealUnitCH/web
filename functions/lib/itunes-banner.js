@@ -468,6 +468,10 @@ export function injectShareTitleHtml(html, kind, code, lang) {
 /** Crawlers snapshot og:image:alt / twitter:image:alt from the HTML bytes. */
 export function injectShareImageAltHtml(html, kind, code, lang) {
   if (typeof html !== 'string') return html;
+  // Alt text describes the image, and without a code the image is the generic
+  // og.png the shell already labels "RealUnit". The codeless English title
+  // from shareTitle is a page title, not a picture caption, so it stops here.
+  if (!code) return html;
   const alt = shareTitle(kind, code, lang);
   if (!alt) return html;
   const safe = htmlEscape(alt);

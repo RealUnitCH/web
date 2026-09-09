@@ -610,6 +610,53 @@ describe('an English locale without a code keeps English copy', () => {
     expect(shareTitle('promo', 'EVT1', 'en')).toBe('RealUnit — Promo code EVT1');
     expect(shareDescription('EVT1', 'en')).toBe('Open the RealUnit app with code EVT1.');
   });
+
+  test('the codeless title does not become the image alt', () => {
+    // og:image:alt describes the picture, and without a code the picture is
+    // the generic og.png the shell already labels "RealUnit".
+    const shell = '<meta property="og:image:alt" content="RealUnit" />';
+    expect(injectShareImageAltHtml(shell, 'invite', null, 'en')).toBe(shell);
+    expect(injectShareImageAltHtml(shell, 'invite', 'AB12CD', 'en')).toContain(
+      'content="RealUnit — Invitation AB12CD"',
+    );
+  });
+});
+
+describe('the browser mirror and the function module say the same thing', () => {
+  // public/js/lib/invite-core.js carries a second copy of shareTitle and
+  // shareDescription. Nothing in production calls its HTML injectors, so a
+  // divergence would not fail any other test — this one pins the pair.
+  const mirror = window.RealUnitInvite;
+  const kinds = ['invite', 'promo', null, undefined, ''];
+  const codes = [null, undefined, '', 'AB12CD', 'EVT1'];
+  const langs = ['en', 'de', null, undefined, 'fr'];
+
+  test('shareTitle agrees across the whole matrix', () => {
+    for (const kind of kinds) {
+      for (const code of codes) {
+        for (const lang of langs) {
+          expect([kind, code, lang, mirror.shareTitle(kind, code, lang)]).toEqual([
+            kind,
+            code,
+            lang,
+            shareTitle(kind, code, lang),
+          ]);
+        }
+      }
+    }
+  });
+
+  test('shareDescription agrees across the whole matrix', () => {
+    for (const code of codes) {
+      for (const lang of langs) {
+        expect([code, lang, mirror.shareDescription(code, lang)]).toEqual([
+          code,
+          lang,
+          shareDescription(code, lang),
+        ]);
+      }
+    }
+  });
 });
 
 describe('paths the 100% gate now covers on the function module', () => {
