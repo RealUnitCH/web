@@ -1,16 +1,18 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { onRequest } from '../functions/_middleware.js';
 
-// The landing shell as Pages hands it to the middleware: the marker the status
-// promotion keys on, plus the tags the rewrite fills in.
-const SHELL =
-  '<html lang="de"><head><title>RealUnit — Einladung</title>' +
-  '<meta property="og:title" content="RealUnit — Einladung" />' +
-  '<meta name="apple-itunes-app" content="app-id=6759720010" />' +
-  '</head><body><section id="state-loading"></section></body></html>';
-
-const NOT_FOUND_PAGE =
-  '<html lang="de"><head><title>Seite nicht gefunden — RealUnit</title></head><body></body></html>';
+// The real files, not a hand-written stand-in. The status promotion keys on a
+// marker that lives in the landing shells and must never appear in the site's
+// 404 page; a synthetic fixture would keep passing after someone moved that
+// marker, and production would answer 404 again with nothing going red.
+// Resolved from the project root: vitest runs from there, and the jsdom
+// environment does not give this module a usable import.meta.url.
+const page = (name) => readFileSync(resolve('public', name), 'utf8');
+const SHELL = page('invite/index.html');
+const PROMO_SHELL = page('promo/index.html');
+const NOT_FOUND_PAGE = page('404.html');
 
 function context({
   url,
@@ -43,7 +45,9 @@ describe('the landing middleware', () => {
   });
 
   test('a promo landing is promoted the same way', async () => {
-    const res = await onRequest(context({ url: 'https://realunit.app/promo/EVT1' }));
+    const res = await onRequest(
+      context({ url: 'https://realunit.app/promo/EVT1', body: PROMO_SHELL }),
+    );
     expect(res.status).toBe(200);
     expect(res.statusText).toBe('');
     expect(await res.text()).toContain('RealUnit — Promo-Code EVT1');
@@ -87,6 +91,14 @@ describe('the landing middleware', () => {
     );
     expect(res.status).toBe(404);
     expect(await res.text()).toBe('{}');
+  });
+
+  test('the marker the promotion keys on lives where it has to', () => {
+    // The contract the two tests above rely on, asserted against the shipped
+    // files rather than assumed.
+    expect(SHELL).toContain('id="state-loading"');
+    expect(PROMO_SHELL).toContain('id="state-loading"');
+    expect(NOT_FOUND_PAGE).not.toContain('id="state-loading"');
   });
 
   test('a response with no content-type is passed through untouched', async () => {
