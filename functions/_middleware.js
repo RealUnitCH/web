@@ -210,8 +210,10 @@ const PARTIAL_OR_CONDITIONAL = [
  * representation exists, which is already known here — so they are dropped for
  * uniformity, not out of necessity.
  *
- * What a client gets either way is the current representation: never wrong,
- * only larger than it had to be.
+ * What a client gets either way is the current representation, so the body is
+ * never stale. The status is what diverges: RFC 9110 puts 304 and 412 at
+ * SHOULD, and this pass answers 200 instead. The cost is a larger answer than
+ * was called for, not a wrong one.
  *
  * Measured on the deploy with a Range GET, reading the body rather than only
  * the headers: Pages answers with the full document today and no 206, so this
