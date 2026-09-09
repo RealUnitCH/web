@@ -144,8 +144,11 @@ describe('the landing middleware', () => {
       const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD', type }));
       return res.status === 200;
     };
-    // Quoted, unusually spelled and differently cased UTF-8 all still count.
+    // Quoted, unusually spelled and differently cased UTF-8 all still count —
+    // the parameter name is case-insensitive too.
     expect(await rewritten('text/html; charset="utf-8"')).toBe(true);
+    expect(await rewritten('Text/HTML;Charset="utf-8"')).toBe(true);
+    expect(await rewritten('text/html; CHARSET=iso-8859-1')).toBe(false);
     expect(await rewritten('text/html; charset=UTF8')).toBe(true);
     expect(await rewritten('text/html;charset=utf-8')).toBe(true);
     // Anything else is handed on rather than decoded as UTF-8 and relabelled.
@@ -622,6 +625,19 @@ describe('the landing middleware', () => {
     expect(await res.text()).toBe('{}');
     expect(res.headers.get('content-encoding')).toBe('gzip');
     expect(res.headers.get('etag')).toBe('W/"the-json"');
+  });
+
+  test('the marker has to be the attribute, not the words', async () => {
+    // A page that merely mentions state-loading is not a landing shell. A
+    // looser match would promote it from 404 to 200 and rewrite its title.
+    const mentionsIt =
+      '<html lang="de"><head><title>Seite nicht gefunden</title></head>' +
+      '<body><p>Der Abschnitt state-loading fehlt.</p></body></html>';
+    const res = await onRequest(
+      context({ url: 'https://realunit.app/invite/AB12CD', body: mentionsIt }),
+    );
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe(mentionsIt);
   });
 
   test('the marker the promotion keys on lives where it has to', () => {
