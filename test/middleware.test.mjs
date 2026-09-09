@@ -25,9 +25,11 @@ const NOT_FOUND_PAGE = page('404.html');
 // carry multi-byte characters.
 const bytes = (text) => new TextEncoder().encode(text).length;
 
-// The platform's own answer on a landing path, which is what this pass exists
-// to replace: `_routes.json` hands the request here first, so the 200-rewrite
-// in `_redirects` never runs and the asset lookup answers with the 404 page.
+// The platform's own answer on a code-bearing landing path, which is what this
+// pass exists to replace: `_routes.json` hands the request here first, so the
+// 200-rewrite in `_redirects` never runs and the asset lookup answers with the
+// 404 page. /invite/ and /promo/ are real files and are answered 200; the
+// cases that need that override this.
 function notFoundAnswer(method) {
   return new Response(method === 'HEAD' ? null : NOT_FOUND_PAGE, {
     status: 404,
@@ -156,6 +158,9 @@ describe('the landing middleware', () => {
     // No body at all, not an empty one: `new Response('')` still carries a
     // stream, and text() cannot tell the two apart.
     expect(head.body).toBeNull();
+    // The value, not only that the two agree: a wrong type on both would
+    // otherwise pass.
+    expect(head.headers.get('content-type')).toBe('text/html; charset=utf-8');
     expect(head.headers.get('content-type')).toBe(get.headers.get('content-type'));
   });
 
@@ -279,6 +284,42 @@ describe('the landing middleware', () => {
     // Rewritten, so the headers that described the bytes before it are gone.
     expect(res.headers.get('etag')).toBeNull();
     expect(res.headers.get('content-length')).toBeNull();
+  });
+
+  test('a HEAD on the codeless landing answers as the GET does', async () => {
+    // A HEAD answer carries no body, so the shell cannot be recognised in it.
+    // Deciding from the empty one handed back the file's own ETag and length
+    // beside a GET that had both stripped — a client could then be answered
+    // 304 against a document it never received.
+    const shellPlatform = (method) =>
+      new Response(method === 'HEAD' ? null : SHELL, {
+        status: 200,
+        headers: new Headers({
+          'content-type': 'text/html; charset=utf-8',
+          'content-length': String(bytes(SHELL)),
+          etag: 'W/"the-shell"',
+          'cache-control': 'public, max-age=60',
+        }),
+      });
+    const head = await onRequest(
+      context({
+        url: 'https://realunit.app/invite/',
+        method: 'HEAD',
+        platformAnswer: shellPlatform,
+      }),
+    );
+    const get = await onRequest(
+      context({ url: 'https://realunit.app/invite/', platformAnswer: shellPlatform }),
+    );
+    expect(head.status).toBe(get.status);
+    expect(head.status).toBe(200);
+    expect(head.body).toBeNull();
+    for (const name of ['etag', 'content-length']) {
+      expect(head.headers.get(name)).toBeNull();
+      expect(get.headers.get(name)).toBeNull();
+    }
+    expect(head.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    expect(head.headers.get('cache-control')).toBe(get.headers.get('cache-control'));
   });
 
   test("the platform's redirect on /invite/index.html is left alone", async () => {

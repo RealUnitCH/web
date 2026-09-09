@@ -45,9 +45,27 @@ export async function onRequest(context) {
   // come back 404, because the 200-rewrite that was meant to resolve them
   // never runs, and those are the ones this pass has to answer itself.
   const platform = await context.next();
-  if (platform.status !== 404) {
-    return await rewritten(platform, context.request, method);
+  if (platform.status !== 200 && platform.status !== 404) {
+    return platform;
   }
+  if (platform.status === 200 && !isHtml(platform.headers.get('content-type'))) {
+    // Some other asset under these paths. Not ours to rewrite.
+    return platform;
+  }
+  if (method === 'GET' && platform.status === 200) {
+    // The file is already the right one; only the metadata has to go in, and
+    // its own status stays.
+    const html = await platform.clone().text();
+    if (!isLandingShell(html)) {
+      return platform;
+    }
+    return answer(html, platform.headers, context.request, method, platform.status);
+  }
+  // What is left is a 404 to replace, or a HEAD. A HEAD answer carries no
+  // body, and the body is what tells the landing shell from any other page —
+  // deciding from an empty one would hand back the file's own validators
+  // beside a GET that had them stripped. Both cases therefore read the shell
+  // from the binding, and both answer as the GET does.
   const assets = context.env && context.env.ASSETS;
   if (!assets) {
     // No binding, no shell to read. The platform's answer stands: it is the
@@ -78,22 +96,14 @@ export async function onRequest(context) {
   return answer(html, shell.headers, context.request, method);
 }
 
-/**
- * The platform's own answer, rewritten in place when it is the landing shell.
- * This is the /invite/ and /promo/ case: the file exists, the status is right,
- * and only the metadata has to be written into it. Anything else — a redirect,
- * a non-HTML asset, a page that is not the shell — is handed back untouched.
- */
-async function rewritten(response, request, method) {
-  const type = response.headers.get('content-type') || '';
-  if (!type.toLowerCase().startsWith('text/html')) {
-    return response;
-  }
-  const html = await response.clone().text();
-  if (!isLandingShell(html)) {
-    return response;
-  }
-  return answer(html, response.headers, request, method, response.status);
+/** Whether the answer is HTML at all, read as a media type and not a substring. */
+function isHtml(contentType) {
+  return (
+    String(contentType || '')
+      .split(';')[0]
+      .trim()
+      .toLowerCase() === 'text/html'
+  );
 }
 
 /**
