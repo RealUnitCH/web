@@ -557,11 +557,19 @@ if (!existsSync(headersPath)) {
     'must be a non-immutable max-age',
   );
   requireHeader(blocks, '/promo', 'cache-control', notImmutable, 'must be a non-immutable max-age');
-  for (const path of ['/invite/', '/invite/index.html', '/promo/', '/promo/index.html']) {
-    if (blocks.has(path)) {
-      fail(
-        `_headers: ${path} is already covered by the wildcard; two matches send the value twice`,
-      );
+  // Any exact path a wildcard already covers, not a list of the ones that
+  // happened to be there: a rule added later would otherwise slip past. The
+  // script keeps its own rule on purpose — it wants a longer cache than the
+  // shells, and a parser takes the first value of the two.
+  const wildcardKeep = new Set(['/invite/invite.js']);
+  for (const path of blocks.keys()) {
+    if (wildcardKeep.has(path) || path.endsWith('*')) continue;
+    for (const prefix of ['/invite/', '/promo/']) {
+      if (path === prefix || path.startsWith(prefix)) {
+        fail(
+          `_headers: ${path} is already covered by ${prefix}*; two matches send the value twice`,
+        );
+      }
     }
   }
   // Two blocks for the same exact path send the value twice as surely as a

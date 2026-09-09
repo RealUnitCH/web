@@ -772,11 +772,14 @@ test.describe('invite and promo landing', () => {
     await page.route(REFERRAL_CODE_ENDPOINT, () => {
       pending += 1; // never fulfilled, never aborted
     });
-    const started = Date.now();
     await page.goto('/invite/AB12CD');
     // The page shows the code straight away and says it is checking it; the
     // spinner section is only the step before that.
     await expect(page.locator('#ok-code-hint')).toHaveText('Code wird geprüft…');
+    // The clock starts here, not at the navigation: a slow page load would
+    // otherwise be counted against the budget and could push the upper bound
+    // over on a busy machine.
+    const started = Date.now();
     await expect(page.locator('#state-unavailable')).toBeVisible({ timeout: 25_000 });
     // Two separate claims, because either alone would let something through.
     // The size is pinned outright: without it, a budget moved to five seconds
