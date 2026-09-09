@@ -107,9 +107,32 @@ export function isLandingShell(html) {
   return typeof html === 'string' && LANDING_MARKS.every((mark) => html.includes(mark));
 }
 
+/**
+ * A suffix that names a file rather than a campaign code.
+ *
+ * One list, used by both questions that ask it. They used to ask it with two
+ * different sets: the gate carried `jpg|jpeg|webp|ico|txt|xml` that the parser
+ * lacked, the parser carried `html` that the gate lacked. So `/invite/AB.HTML`
+ * passed the gate and then lost its code, while `/invite/AB.JSON` never
+ * reached the gate at all.
+ *
+ * The two still ask it of different things, and that is deliberate: the gate
+ * asks it of the whole path, because `/invite/AB12CD/logo.png` is an asset
+ * request whoever owns the first segment, and the parser asks it of the code
+ * segment alone, because that is the part that would become a code. For the
+ * two-segment shape a shared link actually has, the two therefore agree, and a
+ * case in test/itunes-banner-function.test.mjs holds that.
+ *
+ * `html` is deliberately not in the list, for one reason: a code that happens
+ * to end in `.HTML` stays a code. The shell needs no help from the list —
+ * parseLandingFromUrl names `index.html` outright — and the `308` that
+ * canonicalises it comes from the platform and is handed on either way.
+ */
+const ASSET_SUFFIX = /\.(js|css|map|png|svg|json|jpg|jpeg|webp|ico|txt|xml)$/i;
+
 export function shouldRewriteItunesBanner(pathname) {
   const path = String(pathname || '');
-  if (/\.(js|css|map|png|svg|json|jpg|jpeg|webp|ico|txt|xml)$/i.test(path)) {
+  if (ASSET_SUFFIX.test(path)) {
     return false;
   }
   return (
@@ -328,7 +351,7 @@ export function parseLandingFromUrl(urlLike) {
   const kind = (parts[0] || '').toLowerCase();
   if (kind !== 'invite' && kind !== 'promo') return null;
   const segment = parts[1];
-  if (segment && /\.(js|css|map|png|svg|json|html)$/i.test(segment)) {
+  if (segment && ASSET_SUFFIX.test(segment)) {
     return { kind, code: null };
   }
   let code = segment && segment.toLowerCase() !== 'index.html' ? capCode(segment) : null;

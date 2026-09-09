@@ -545,20 +545,38 @@ if (!existsSync(headersPath)) {
     'must be a non-immutable max-age',
   );
   requireHeader(blocks, '/js/*', 'cache-control', notImmutable, 'must be a non-immutable max-age');
+  // The wildcards cover the shells and every code-bearing path under them; the
+  // bare paths need their own rule because a wildcard does not match them. A
+  // rule for /invite/index.html beside the wildcard would match twice and the
+  // answer would carry the value twice, which is what it used to do.
   requireHeader(
     blocks,
-    '/invite/index.html',
+    '/invite',
     'cache-control',
     notImmutable,
     'must be a non-immutable max-age',
   );
-  requireHeader(
-    blocks,
-    '/promo/index.html',
-    'cache-control',
-    notImmutable,
-    'must be a non-immutable max-age',
-  );
+  requireHeader(blocks, '/promo', 'cache-control', notImmutable, 'must be a non-immutable max-age');
+  for (const path of ['/invite/', '/invite/index.html', '/promo/', '/promo/index.html']) {
+    if (blocks.has(path)) {
+      fail(
+        `_headers: ${path} is already covered by the wildcard; two matches send the value twice`,
+      );
+    }
+  }
+  // Two blocks for the same exact path send the value twice as surely as a
+  // path and a wildcard do, and parseCfHeaders merges them into one entry, so
+  // the map cannot show it. Count the block openers instead.
+  const declared = new Set();
+  for (const raw of read(headersPath).split(/\r?\n/)) {
+    const line = raw.trimEnd();
+    if (!line || line.startsWith(' ') || line.startsWith('\t')) continue;
+    if (line.trimStart().startsWith('#')) continue;
+    const path = line.trim();
+    if (declared.has(path))
+      fail(`_headers: ${path} is declared twice; both matches send the value`);
+    declared.add(path);
+  }
   requireHeader(
     blocks,
     '/invite/*',

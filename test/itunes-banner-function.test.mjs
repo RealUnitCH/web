@@ -40,6 +40,79 @@ describe('shouldRewriteItunesBanner', () => {
   });
 });
 
+describe('the asset-suffix rule', () => {
+  test('the two questions about a file-looking segment give the same answer', () => {
+    // They used to be asked with two different sets: the gate carried
+    // jpg|jpeg|webp|ico|txt|xml that the parser lacked, the parser carried html
+    // that the gate lacked. So /invite/AB.HTML passed the gate and then lost
+    // its code, and /invite/AB.JSON never reached the gate. For the two-segment
+    // shape a shared link has, the answer has to be the same on both sides.
+    const suffixes = [
+      'js',
+      'css',
+      'map',
+      'png',
+      'svg',
+      'json',
+      'jpg',
+      'jpeg',
+      'webp',
+      'ico',
+      'txt',
+      'xml',
+    ];
+    // Asked as one question, so a set that grows on one side and not the other
+    // fails here rather than in production. `html` is in the sweep too: the two
+    // have to agree on it as well, and they agree that it is a code.
+    //
+    // Two segments, which is the shape a shared link has. Deeper paths are a
+    // different question by design — the gate reads the whole path, so
+    // /invite/AB12CD/logo.png is an asset request, while the parser reads the
+    // code segment and still finds AB12CD there.
+    const owns = (path) => shouldRewriteItunesBanner(path);
+    const reads = (path) => parseLandingFromUrl(`https://realunit.app${path}`).code !== null;
+    for (const suffix of [...suffixes, 'html', 'pdf', 'HTML', 'JsOn']) {
+      const path = `/invite/AB12CD.${suffix}`;
+      expect([suffix, owns(path)]).toEqual([suffix, reads(path)]);
+    }
+    for (const suffix of suffixes) {
+      const path = `/invite/AB12CD.${suffix.toUpperCase()}`;
+      expect([suffix, shouldRewriteItunesBanner(path)]).toEqual([suffix, false]);
+      expect([suffix, parseLandingFromUrl(`https://realunit.app${path}`)]).toEqual([
+        suffix,
+        { kind: 'invite', code: null },
+      ]);
+    }
+    // And a dot that names no file type is a code like any other, on both
+    // sides — otherwise this case would pass on a list that swallows every dot.
+    expect(shouldRewriteItunesBanner('/invite/AB12CD.PDF')).toBe(true);
+    expect(parseLandingFromUrl('https://realunit.app/invite/AB12CD.PDF')).toEqual({
+      kind: 'invite',
+      code: 'AB12CD.PDF',
+    });
+    // html is not in the list, so a code that happens to end in it stays a
+    // code. The shell needs no help from the list: parseLandingFromUrl names
+    // index.html outright, which is why it still reads as no code at all.
+    expect(shouldRewriteItunesBanner('/invite/index.html')).toBe(true);
+    expect(parseLandingFromUrl('https://realunit.app/invite/index.html')).toEqual({
+      kind: 'invite',
+      code: null,
+    });
+    expect(shouldRewriteItunesBanner('/invite/AB12CD.HTML')).toBe(true);
+    expect(parseLandingFromUrl('https://realunit.app/invite/AB12CD.HTML')).toEqual({
+      kind: 'invite',
+      code: 'AB12CD.HTML',
+    });
+    // And the deeper path the two answer differently, on purpose: an asset
+    // request the pass does not own, whose code segment is still a code.
+    expect(shouldRewriteItunesBanner('/invite/AB12CD/logo.png')).toBe(false);
+    expect(parseLandingFromUrl('https://realunit.app/invite/AB12CD/logo.png')).toEqual({
+      kind: 'invite',
+      code: 'AB12CD',
+    });
+  });
+});
+
 describe('parseLandingFromUrl', () => {
   test('path, query, hash, and nested URL', () => {
     expect(parseLandingFromUrl('https://realunit.app/invite/AB12CD')).toEqual({
