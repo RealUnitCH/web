@@ -14,6 +14,7 @@
  */
 import {
   injectLandingFromRequestUrl,
+  isLandingShell,
   landingStatus,
   shouldRewriteItunesBanner,
 } from './lib/itunes-banner.js';
@@ -39,10 +40,12 @@ export async function onRequest(context) {
   // representation would be injected into a fragment and returned under a
   // Content-Range describing the bytes before the rewrite.
   const response = await context.next(asFullGet(context.request));
-  // A partial answer cannot be rewritten: the body is a fragment and the range
-  // metadata would stop matching it. Range is stripped above, so this only ever
-  // fires for an origin that answers 206 unasked.
-  if (response.status === 206) {
+  // Answers that carry no representation of their own, or only part of one,
+  // are passed on as they are. A 206 body is a fragment the rewrite would
+  // corrupt; a 304 has to keep the ETag it was matched on, which the rewrite
+  // would strip. Range and the conditional headers are removed above, so an
+  // origin only reaches this line unasked.
+  if (PASSED_ON.has(response.status)) {
     return isHead ? bodyless(response, response.status, response.statusText) : response;
   }
   const type = response.headers.get('content-type') || '';
@@ -55,6 +58,18 @@ export async function onRequest(context) {
     return isHead ? bodyless(response, response.status, response.statusText) : response;
   }
   const html = await response.text();
+  if (!isLandingShell(html)) {
+    // Something else is being served here — the site's own 404 page after a
+    // broken deploy is the case this guards. Rewriting its title into an
+    // invitation would misdescribe it, and its status is right as it stands.
+    return isHead
+      ? bodyless(response, response.status, response.statusText)
+      : new Response(html, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: new Headers(response.headers),
+        });
+  }
   const injected = injectLandingFromRequestUrl(html, context.request.url);
   const headers = new Headers(response.headers);
   // The headers that rewriting the representation invalidates or makes
@@ -92,11 +107,15 @@ export async function onRequest(context) {
   const status = landingStatus(response.status, injected);
   // A promoted status must not keep "Not Found" as its reason phrase.
   const statusText = status === response.status ? response.statusText : '';
-  // 204, 205 and 304 must not carry a body. Pairing one with a body throws,
-  // which would turn such an answer into a 500 instead of passing it on.
-  const sendNoBody = isHead || status === 204 || status === 205 || status === 304;
-  return new Response(sendNoBody ? null : injected, { status, statusText, headers });
+  return new Response(isHead ? null : injected, { status, statusText, headers });
 }
+
+/**
+ * Statuses this pass hands on untouched: they carry no representation of their
+ * own, or only part of one, so there is nothing to rewrite and their headers
+ * still describe what the origin meant.
+ */
+const PASSED_ON = new Set([204, 205, 206, 304]);
 
 /**
  * The request headers RFC 9110 defines as able to turn the answer into

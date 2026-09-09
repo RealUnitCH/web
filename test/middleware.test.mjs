@@ -110,8 +110,12 @@ describe('the landing middleware', () => {
       const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD', status }));
       expect(res.status).toBe(status);
       expect(res.statusText).toBe('OK');
-      // The rewrite still runs; what must not change is the status.
+      // The rewrite still runs; what must not change is the status. And since
+      // it runs, the headers it invalidates have to go here as well — a
+      // content-length from before the rewrite would contradict the body.
       expect(await res.text()).toContain('RealUnit — Einladung AB12CD');
+      expect(res.headers.get('content-length')).toBeNull();
+      expect(res.headers.get('content-encoding')).toBeNull();
     }
   });
 
@@ -171,9 +175,24 @@ describe('the landing middleware', () => {
     // Pairing 204, 205 or 304 with a body throws, which would turn such an
     // answer into a 500.
     for (const status of [204, 205, 304]) {
-      const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD', status }));
+      const ctx = context({ url: 'https://realunit.app/invite/AB12CD', status });
+      ctx.next = () =>
+        Promise.resolve(
+          new Response(null, {
+            status,
+            headers: new Headers({
+              'content-type': 'text/html; charset=utf-8',
+              etag: 'W/"the-one-it-was-matched-on"',
+              ...SITE_HEADERS,
+            }),
+          }),
+        );
+      const res = await onRequest(ctx);
       expect(res.status).toBe(status);
       expect(res.body).toBeNull();
+      // A 304 has to keep the validator it was matched on, and none of these
+      // carries a representation this pass could rewrite.
+      expect(res.headers.get('etag')).toBe('W/"the-one-it-was-matched-on"');
     }
   });
 
@@ -258,6 +277,10 @@ describe('the landing middleware', () => {
     expect(res.status).toBe(404);
     // Untouched status keeps its reason phrase.
     expect(res.statusText).toBe('Not Found');
+    // And an untouched page keeps its own copy: rewriting the 404 page's title
+    // into an invitation would misdescribe what the visitor is looking at.
+    expect(await res.text()).toBe(NOT_FOUND_PAGE);
+    expect(res.headers.get('content-length')).toBe(String(NOT_FOUND_PAGE.length));
   });
 
   test('a landing that was already found keeps its status', async () => {
