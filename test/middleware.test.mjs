@@ -80,7 +80,9 @@ function context({
             new Response(shellStatus === 200 ? file : 'no such asset', {
               status: shellStatus,
               headers: new Headers({
-                'content-type': 'text/html; charset=utf-8',
+                // Without the charset, so that the assertion on the answer's
+                // content-type fails if the pass stops setting it.
+                'content-type': 'text/html',
                 'content-length': String(bytes(file)),
                 ...shellHeaders,
               }),
@@ -124,6 +126,27 @@ describe('the landing middleware', () => {
     const res = await onRequest(ctx);
     expect(ctx.assetMethods).toEqual(['GET']);
     expect(res.status).toBe(200);
+  });
+
+  test('a shell whose body cannot be read leaves the platform answer standing', async () => {
+    // The status can be fine and the stream still fail. Reading it outside the
+    // guard would take the Function down, and a Function that throws makes
+    // Pages serve the assets directly — the very answer this replaces.
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD' });
+    ctx.env = {
+      ASSETS: {
+        fetch: () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers(),
+            text: () => Promise.reject(new Error('the stream gave up')),
+          }),
+      },
+    };
+    const res = await onRequest(ctx);
+    expect(res).toBe(ctx.platform());
+    expect(res.status).toBe(404);
   });
 
   test('a binding that rejects leaves the platform answer standing', async () => {

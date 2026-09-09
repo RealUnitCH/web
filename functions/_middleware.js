@@ -80,15 +80,16 @@ export async function onRequest(context) {
   // otherwise take the whole Function down — and a Function that throws makes
   // Pages serve the assets directly, which is the very answer this replaces.
   let shell;
+  let html;
   try {
     shell = await assets.fetch(new Request(new URL(shellPath, url).toString()));
+    if (!shell.ok) {
+      return platform;
+    }
+    html = await shell.text();
   } catch {
     return platform;
   }
-  if (!shell.ok) {
-    return platform;
-  }
-  const html = await shell.text();
   if (!isLandingShell(html)) {
     // The file under that name is not the landing shell any more. Serving it
     // as one would describe something the visitor is not looking at.
