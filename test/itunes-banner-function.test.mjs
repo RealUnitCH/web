@@ -543,6 +543,9 @@ describe('referral code injection hardening', () => {
     for (const existing of [
       '<link rel="alternate" data-android-app href="android-app://old" />',
       '<link data-android-app rel="alternate" href="android-app://old" />',
+      // href before the attribute: the upsert has a separate branch for that
+      // order, and the two fixtures above both leave it unrun.
+      '<link rel="alternate" href="android-app://old" data-android-app />',
     ]) {
       const out = injectLandingFromRequestUrl(
         '<head>' + existing + '</head>',

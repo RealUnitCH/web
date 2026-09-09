@@ -50,7 +50,7 @@ uploaded to Cloudflare Pages.
   Pages resolves `/invite/<code>` to the code-less shell through the
   `_redirects` rewrite but keeps the not-found status of the path that was asked
   for, and a crawler drops a `404` before it reads the tags. The promotion is
-  guarded on a marker the landings carry and the site's 404 page does not, and
+  guarded on two marks the landings carry and the site's 404 page does not, and
   HEAD answers with the same status as GET. Both methods are resolved internally
   as one full GET, without `Range` / `If-Range` and without the conditional
   request headers, because the whole document is rewritten and the status is decided

@@ -31,7 +31,7 @@ export async function onRequest(context) {
   const isHead = method === 'HEAD';
   // Both methods ask for the same thing: the whole document as a GET.
   //
-  // HEAD, because the status has to be decided from the body — the marker in it
+  // HEAD, because the status has to be decided from the body — the marks in it
   // is what tells the landing shell from the site's own 404 page. A HEAD
   // response carries none, and without this the same link would read as found
   // by GET and as dead by the HEAD a link checker sends first.

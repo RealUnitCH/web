@@ -4,7 +4,7 @@ import { describe, expect, test } from 'vitest';
 import { onRequest } from '../functions/_middleware.js';
 
 // The real files, not a hand-written stand-in. The status promotion keys on a
-// marker that lives in the landing shells and must never appear in the site's
+// marks that live in the landing shells and must never appear in the site's
 // 404 page; a synthetic fixture would keep passing after someone moved that
 // marker, and production would answer 404 again with nothing going red.
 // Resolved from the project root: vitest runs from there, and the jsdom
@@ -115,12 +115,12 @@ describe('the landing middleware', () => {
 
   test('a body in another encoding is handed on byte for byte', async () => {
     // Real ISO-8859-1 bytes, not a JS string: 0xE9 is 'é' there and is not
-    // valid UTF-8 at all. The body carries the landing marker, so only the
+    // valid UTF-8 at all. The body carries both landing marks, so only the
     // charset guard stands between it and the rewrite — without it,
     // response.text() would turn that byte into U+FFFD and the answer would go
     // out as different bytes under a UTF-8 label.
     const latin1 = new Uint8Array([
-      ...new TextEncoder().encode('<section id="state-loading">'),
+      ...new TextEncoder().encode('<section id="state-loading" aria-busy="true">'),
       0xe9,
       ...new TextEncoder().encode('</section>'),
     ]);
@@ -675,7 +675,7 @@ describe('the landing middleware', () => {
     expect(res.headers.get('etag')).toBe('W/"the-json"');
   });
 
-  test('the marker has to be the attribute, not the words', async () => {
+  test('the marks have to be the attributes, not the words', async () => {
     // A page that merely mentions state-loading is not a landing shell. A
     // looser match would promote it from 404 to 200 and rewrite its title.
     const mentionsIt =
@@ -701,7 +701,7 @@ describe('the landing middleware', () => {
     expect(await quoted.text()).toBe(quotesIt);
   });
 
-  test('the marker the promotion keys on lives where it has to', () => {
+  test('the marks the promotion keys on live where they have to', () => {
     // The contract the promotion tests rely on, asserted against the shipped
     // files rather than assumed.
     for (const mark of ['id="state-loading"', 'aria-busy="true"']) {
