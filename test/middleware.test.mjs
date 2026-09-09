@@ -21,7 +21,13 @@ function context({
   body = SHELL,
   type = 'text/html; charset=utf-8',
 }) {
-  const headers = new Headers({ 'content-type': type, 'content-length': String(body.length) });
+  const headers = new Headers({
+    'content-type': type,
+    'content-length': String(body.length),
+    // The rule public/_headers sets for /invite/* and /promo/*; it has to
+    // survive the response being rebuilt.
+    'cache-control': 'public, max-age=60',
+  });
   const next = () =>
     Promise.resolve(
       new Response(body, { status, statusText: status === 404 ? 'Not Found' : 'OK', headers }),
@@ -42,6 +48,7 @@ describe('the landing middleware', () => {
     expect(html).toContain('RealUnit — Einladung AB12CD');
     expect(res.headers.get('content-length')).toBeNull();
     expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    expect(res.headers.get('cache-control')).toBe('public, max-age=60');
   });
 
   test('a promo landing is promoted the same way', async () => {
@@ -77,9 +84,32 @@ describe('the landing middleware', () => {
     expect(res.headers.get('content-length')).toBe(String(SHELL.length));
   });
 
-  test('a non-GET request is passed through untouched', async () => {
-    const res = await onRequest(
+  test('HEAD answers with the same status as GET, and with no body', async () => {
+    // A link checker sends HEAD first. Answering 404 there while GET answers
+    // 200 would leave the same link looking dead to exactly the clients this
+    // fix is for.
+    const head = await onRequest(
       context({ url: 'https://realunit.app/invite/AB12CD', method: 'HEAD' }),
+    );
+    const get = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD' }));
+    expect(head.status).toBe(get.status);
+    expect(head.status).toBe(200);
+    expect(head.statusText).toBe('');
+    expect(await head.text()).toBe('');
+  });
+
+  test('a HEAD whose body the platform withheld keeps its status', async () => {
+    // Without a body there is no way to tell the landing shell from the site's
+    // own 404 page, and guessing from the path alone would make a broken
+    // deploy look healthy.
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD', method: 'HEAD', body: '' });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(404);
+  });
+
+  test('a method that is neither GET nor HEAD is passed through untouched', async () => {
+    const res = await onRequest(
+      context({ url: 'https://realunit.app/invite/AB12CD', method: 'POST' }),
     );
     expect(res.status).toBe(404);
     expect(res.headers.get('content-length')).toBe(String(SHELL.length));

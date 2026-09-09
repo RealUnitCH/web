@@ -426,8 +426,11 @@ export function parseLangFromUrl(urlLike) {
 
 /**
  * The landing shell carries this id in both /invite and /promo; the site's
- * 404 page does not. It is the marker for "the bytes we are holding really are
- * a landing page".
+ * 404 page does not. Two other pages carry it as well, which does not matter:
+ * the caller has already established that the path is a landing, so the only
+ * question left is whether the asset server handed back the shell or the 404
+ * page. test/middleware.test.mjs asserts that contract against the shipped
+ * files rather than a copy of them.
  */
 const LANDING_MARKER = 'id="state-loading"';
 

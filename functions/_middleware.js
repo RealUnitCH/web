@@ -24,16 +24,24 @@ export async function onRequest(context) {
     return context.next();
   }
   const response = await context.next();
+  const method = context.request.method;
   const type = response.headers.get('content-type') || '';
-  if (context.request.method !== 'GET' || !type.includes('text/html')) {
+  // HEAD is handled alongside GET: it has to answer with the same status as
+  // GET would, and it is what a link checker sends first. Its response carries
+  // no body, so it never gets one back.
+  if ((method !== 'GET' && method !== 'HEAD') || !type.includes('text/html')) {
     return response;
   }
   const html = await response.text();
   const injected = injectLandingFromRequestUrl(html, context.request.url);
   const headers = new Headers(response.headers);
+  // The original length described the bytes before the rewrite.
   headers.delete('content-length');
+  // A HEAD response whose body the platform withheld cannot be told apart from
+  // the site's own 404 page, so it keeps the status it came with rather than
+  // being promoted on the strength of its path alone.
   const status = landingStatus(response.status, injected);
-  return new Response(injected, {
+  return new Response(method === 'HEAD' ? null : injected, {
     status,
     // A promoted status must not keep "Not Found" as its reason phrase.
     statusText: status === response.status ? response.statusText : '',
