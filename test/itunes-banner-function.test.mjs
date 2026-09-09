@@ -577,6 +577,17 @@ describe('an English locale without a code keeps English copy', () => {
     expect(shareDescription(null, 'de')).toBeNull();
   });
 
+  test('the fallback copy is the same string the page renders', () => {
+    // Both modules claim in a comment to reuse I18N.en. The literals above pin
+    // the wording; this pins the claim, so editing the catalogue alone — which
+    // public/invite/invite.js reads at runtime — turns the suite red instead of
+    // silently splitting the crawler snapshot from the rendered page.
+    const en = window.RealUnitInvite.I18N.en;
+    expect(shareTitle('invite', null, 'en')).toBe(en['doc.title.invite']);
+    expect(shareTitle('promo', null, 'en')).toBe(en['doc.title.promo']);
+    expect(shareDescription(null, 'en')).toBe(en['doc.desc']);
+  });
+
   test('a codeless English landing is rewritten end to end, German is untouched', () => {
     const shell =
       '<html lang="de"><title>RealUnit — Einladung</title>' +
