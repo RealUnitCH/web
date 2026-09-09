@@ -426,7 +426,14 @@ export function parseLangFromUrl(urlLike) {
 
 /** Crawlers snapshot og:title / twitter:title from the HTML bytes. Names wait for lookup JS. */
 export function shareTitle(kind, code, lang) {
-  if (!kind || !code) return null;
+  // Without a code there is nothing code-specific to say, but ?lang=en still
+  // flips html lang and og:locale — leaving the German shell text under an
+  // English locale for crawlers. Fall back to a generic English title.
+  if (!code) {
+    if (lang !== 'en') return null;
+    return kind === 'promo' ? 'RealUnit — Promo code' : 'RealUnit — Invitation';
+  }
+  if (!kind) return null;
   if (lang === 'en') {
     return kind === 'promo' ? 'RealUnit — Promo code ' + code : 'RealUnit — Invitation ' + code;
   }
@@ -477,7 +484,8 @@ export function injectShareImageAltHtml(html, kind, code, lang) {
 
 /** Crawlers snapshot og:description from the HTML bytes. Names wait for lookup JS. */
 export function shareDescription(code, lang) {
-  if (!code) return null;
+  // Same reason as shareTitle: an English locale must not keep German copy.
+  if (!code) return lang === 'en' ? 'Open the RealUnit app with your code.' : null;
   if (lang === 'en') return 'Open the RealUnit app with code ' + code + '.';
   return 'Öffne die RealUnit-App mit dem Code ' + code + '.';
 }

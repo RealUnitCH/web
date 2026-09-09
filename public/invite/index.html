@@ -150,6 +150,22 @@
 </head>
 <body>
   <main class="card">
+    <noscript>
+      <!-- Without JS the loading state would sit there for ever: nothing ever
+           resolves the code. Hide it and say why. style-src allows inline. -->
+      <style>
+        #state-loading {
+          display: none;
+        }
+      </style>
+      <section>
+        <h1>JavaScript ist deaktiviert</h1>
+        <p>
+          Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript.
+          Aktiviere es, oder öffne den Link direkt in der RealUnit-App.
+        </p>
+      </section>
+    </noscript>
     <section id="state-loading" role="status" aria-live="polite" aria-busy="true">
       <h1 id="loading-title">Einladung wird geladen…</h1>
       <p id="loading-body">Einen Moment bitte.</p>

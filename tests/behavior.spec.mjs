@@ -694,6 +694,24 @@ test.describe('account-merge flow', () => {
 
 const REFERRAL_CODE_ENDPOINT = '**/v1/realunit/referral/code/**';
 
+test.describe('invite and promo landing without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('says why nothing resolves instead of spinning for ever', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only check');
+    for (const path of ['/invite/AB12CD', '/promo/EVT1']) {
+      await page.goto(path);
+      // Nothing can resolve the code, so the loading state must not be the
+      // only thing on screen.
+      await expect(page.locator('#state-loading')).toBeHidden();
+      // Assert the served bytes: a no-JS visitor sees whatever the shell
+      // carries, and the hint lives in <noscript>.
+      const html = await page.content();
+      expect(html).toContain('JavaScript ist deaktiviert');
+    }
+  });
+});
+
 test.describe('invite and promo landing', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only invite-flow checks');

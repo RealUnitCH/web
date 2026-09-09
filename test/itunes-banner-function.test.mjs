@@ -560,6 +560,26 @@ describe('referral code injection hardening', () => {
   });
 });
 
+describe('an English locale without a code keeps English copy', () => {
+  test('shareTitle falls back to a generic English title', () => {
+    expect(shareTitle('invite', null, 'en')).toBe('RealUnit — Invitation');
+    expect(shareTitle('promo', null, 'en')).toBe('RealUnit — Promo code');
+    // German is the shell's own language, so there is nothing to replace.
+    expect(shareTitle('invite', null, 'de')).toBeNull();
+    expect(shareTitle('invite', null, null)).toBeNull();
+  });
+
+  test('shareDescription falls back to a generic English description', () => {
+    expect(shareDescription(null, 'en')).toBe('Open the RealUnit app with your code.');
+    expect(shareDescription(null, 'de')).toBeNull();
+  });
+
+  test('a code still wins over the fallback', () => {
+    expect(shareTitle('promo', 'EVT1', 'en')).toBe('RealUnit — Promo code EVT1');
+    expect(shareDescription('EVT1', 'en')).toBe('Open the RealUnit app with code EVT1.');
+  });
+});
+
 describe('paths the 100% gate now covers on the function module', () => {
   test('playStoreUrl without a code returns the bare store link', () => {
     expect(playStoreUrl(null, 'invite')).toBe(playStoreUrl(null, 'promo'));
