@@ -16,12 +16,17 @@ test.describe('visual regression', () => {
 
       const browserName = testInfo.project.use.browserName || 'chromium';
       const browser = await playwright[browserName].launch();
-      const context = await browser.newContext(testInfo.project.use);
+      const context = await browser.newContext({
+        ...testInfo.project.use,
+        // A noJs view is rendered with scripting off, so what the shot captures
+        // is the <noscript> panel rather than a loading state nothing resolves.
+        ...(view.noJs ? { javaScriptEnabled: false } : {}),
+      });
       const page = await context.newPage();
       try {
         await installVisualDeterminism(page, { platform: view.platform });
         await page.goto(view.path, { waitUntil: 'load' });
-        await settle(page);
+        await settle(page, { scripting: !view.noJs });
 
         // Confirm-page views render their end state via the ?mock hook after a short
         // delay; wait for it before the shot. The page has no <video>/<canvas>, so no

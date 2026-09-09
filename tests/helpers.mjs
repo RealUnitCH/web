@@ -45,8 +45,13 @@ export async function installVisualDeterminism(page, { platform } = {}) {
 // Wait until the page has reached a stable visual state: network idle, fonts
 // ready, and a short settle so any state transition (the ?mock hook renders after
 // ~400ms) has landed.
-export async function settle(page) {
+export async function settle(page, { scripting = true } = {}) {
   await page.waitForLoadState('networkidle');
-  await page.evaluate(() => document.fonts && document.fonts.ready);
+  // Font readiness is only observable from inside the page. A view rendered with
+  // scripting disabled has no page context to ask, and its fonts are already in
+  // by the networkidle above, so the question is skipped rather than swallowed.
+  if (scripting) {
+    await page.evaluate(() => document.fonts && document.fonts.ready);
+  }
   await page.waitForTimeout(600);
 }
