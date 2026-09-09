@@ -65,7 +65,7 @@ export async function onRequest(context) {
     // as one would describe something the visitor is not looking at.
     return platform;
   }
-  return answer(html, context.request, method);
+  return answer(html, shell.headers, context.request, method);
 }
 
 /**
@@ -83,21 +83,41 @@ async function rewritten(response, request, method) {
   if (!isLandingShell(html)) {
     return response;
   }
-  return answer(html, request, method, response.status);
+  return answer(html, response.headers, request, method, response.status);
 }
 
 /**
  * The landing, with the campaign written into it.
  */
-function answer(html, request, method, status = 200) {
+function answer(html, sourceHeaders, request, method, status = 200) {
   const injected = injectLandingFromRequestUrl(html, request.url);
-  // Built rather than copied. Every header the source carried either described
-  // the bytes before the rewrite — the length, the content coding, both
-  // validators, the integrity digests of RFC 9530 and its predecessors — or
-  // came from public/_headers, which Pages applies to this answer again. A
-  // stale validator is the one that does damage: a conditional request would
-  // be answered 304 against a document the client never received.
-  const headers = new Headers({ 'content-type': 'text/html; charset=utf-8' });
+  // The source's headers, minus the ones the rewrite invalidates. They have to
+  // be carried: public/_headers is applied to the asset, not to an answer this
+  // Function builds, so starting from an empty set drops the site's
+  // Content-Security-Policy, X-Frame-Options, X-Content-Type-Options,
+  // Referrer-Policy and Cache-Control from every landing. Measured on a
+  // preview deploy, with and without the copy.
+  //
+  // What must not be carried is anything describing the bytes before the
+  // injection: the length, the content coding — text() decoded the body and
+  // what leaves here is plain text — both validators, and the integrity
+  // digests of RFC 9530 and its predecessors. A stale validator is the one
+  // that does damage: a conditional request would be answered 304 against a
+  // document the client never received.
+  const headers = new Headers(sourceHeaders);
+  for (const stale of [
+    'content-length',
+    'content-encoding',
+    'etag',
+    'last-modified',
+    'content-digest',
+    'repr-digest',
+    'digest',
+    'content-md5',
+  ]) {
+    headers.delete(stale);
+  }
+  headers.set('content-type', 'text/html; charset=utf-8');
   // The shell exists, so a code-bearing path is answered 200 — for HEAD as
   // well as for GET. That is the whole point: WhatsApp, iMessage, Slack,
   // Facebook and X drop a 404 before they read the tags just written.

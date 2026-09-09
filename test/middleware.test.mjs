@@ -151,6 +151,7 @@ describe('the landing middleware', () => {
       url: 'https://realunit.app/invite/AB12CD',
       shellHeaders: {
         'cache-control': 'public, max-age=60',
+        'content-security-policy': "default-src 'self'",
         'content-encoding': 'gzip',
         etag: 'W/"the-shell"',
         'last-modified': 'Tue, 09 Sep 2026 00:00:00 GMT',
@@ -174,11 +175,11 @@ describe('the landing middleware', () => {
       expect(res.headers.get(name)).toBeNull();
     }
     expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
-    // Built rather than copied, so nothing the source carried reaches the
-    // answer unexamined. public/_headers is applied by Pages afterwards and is
-    // what puts the site's own headers back.
-    expect(res.headers.get('cache-control')).toBeNull();
-    expect([...res.headers.keys()]).toEqual(['content-type']);
+    // And the ones that still describe the answer are carried: public/_headers
+    // is applied to the asset, not to what this Function builds, so dropping
+    // them would take the site's security headers off every landing.
+    expect(res.headers.get('cache-control')).toBe('public, max-age=60');
+    expect(res.headers.get('content-security-policy')).toBe("default-src 'self'");
   });
 
   test('a path the pass does not own is handed straight on', async () => {
