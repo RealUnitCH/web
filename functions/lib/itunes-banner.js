@@ -426,14 +426,17 @@ export function parseLangFromUrl(urlLike) {
 
 /** Crawlers snapshot og:title / twitter:title from the HTML bytes. Names wait for lookup JS. */
 export function shareTitle(kind, code, lang) {
+  // Keep the kind guard first: this function is exported, and a missing kind
+  // must not silently render as an invitation.
+  if (!kind) return null;
   // Without a code there is nothing code-specific to say, but ?lang=en still
   // flips html lang and og:locale — leaving the German shell text under an
-  // English locale for crawlers. Fall back to a generic English title.
+  // English locale for crawlers. Fall back to a generic English title, using
+  // the same strings as I18N.en in invite-core.js.
   if (!code) {
     if (lang !== 'en') return null;
     return kind === 'promo' ? 'RealUnit — Promo code' : 'RealUnit — Invitation';
   }
-  if (!kind) return null;
   if (lang === 'en') {
     return kind === 'promo' ? 'RealUnit — Promo code ' + code : 'RealUnit — Invitation ' + code;
   }
@@ -485,7 +488,9 @@ export function injectShareImageAltHtml(html, kind, code, lang) {
 /** Crawlers snapshot og:description from the HTML bytes. Names wait for lookup JS. */
 export function shareDescription(code, lang) {
   // Same reason as shareTitle: an English locale must not keep German copy.
-  if (!code) return lang === 'en' ? 'Open the RealUnit app with your code.' : null;
+  // Same string as I18N.en['doc.desc'] in invite-core.js, so the crawler
+  // snapshot and the JS-rendered page do not disagree.
+  if (!code) return lang === 'en' ? 'Open the RealUnit app with this code.' : null;
   if (lang === 'en') return 'Open the RealUnit app with code ' + code + '.';
   return 'Öffne die RealUnit-App mit dem Code ' + code + '.';
 }

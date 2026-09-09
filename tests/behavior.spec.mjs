@@ -704,10 +704,14 @@ test.describe('invite and promo landing without JavaScript', () => {
       // Nothing can resolve the code, so the loading state must not be the
       // only thing on screen.
       await expect(page.locator('#state-loading')).toBeHidden();
-      // Assert the served bytes: a no-JS visitor sees whatever the shell
-      // carries, and the hint lives in <noscript>.
+      // Measured, not assumed: with javaScriptEnabled:false this Playwright
+      // version still does not expose <noscript> children as matchable nodes —
+      // getByText finds nothing. page.content() is what the visitor's browser
+      // parses, so assert there. The toBeHidden() above already fails if the
+      // <noscript> <style> is removed, so this pair is not a shape-only check.
       const html = await page.content();
       expect(html).toContain('JavaScript ist deaktiviert');
+      expect(html).toContain('JavaScript is disabled');
     }
   });
 });

@@ -147,22 +147,30 @@
     html[data-platform="ios"] .only-ios { display: block; }
     [hidden] { display: none !important; }
   </style>
+  <noscript>
+    <!-- Without JS the loading state would sit there for ever: nothing ever
+         resolves the code. style-src allows inline (see _headers). -->
+    <style>
+      #state-loading {
+        display: none;
+      }
+    </style>
+  </noscript>
 </head>
 <body>
   <main class="card">
     <noscript>
-      <!-- Without JS the loading state would sit there for ever: nothing ever
-           resolves the code. Hide it and say why. style-src allows inline. -->
-      <style>
-        #state-loading {
-          display: none;
-        }
-      </style>
       <section>
-        <h1>JavaScript ist deaktiviert</h1>
-        <p>
+        <h1 lang="de">JavaScript ist deaktiviert</h1>
+        <p lang="de">
           Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript.
           Aktiviere es, oder öffne den Link direkt in der RealUnit-App.
+        </p>
+        <!-- Both languages: without JS nothing can read ?lang=en, and the
+             middleware may still have flipped the document to lang="en". -->
+        <p lang="en">
+          This page resolves your code through the RealUnit app and needs JavaScript. Enable it, or
+          open the link directly in the RealUnit app.
         </p>
       </section>
     </noscript>

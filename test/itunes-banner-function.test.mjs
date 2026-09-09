@@ -567,11 +567,43 @@ describe('an English locale without a code keeps English copy', () => {
     // German is the shell's own language, so there is nothing to replace.
     expect(shareTitle('invite', null, 'de')).toBeNull();
     expect(shareTitle('invite', null, null)).toBeNull();
+    // A missing kind stays null even in English: it must not render as an
+    // invitation just because that is the more common case.
+    expect(shareTitle(null, null, 'en')).toBeNull();
   });
 
   test('shareDescription falls back to a generic English description', () => {
-    expect(shareDescription(null, 'en')).toBe('Open the RealUnit app with your code.');
+    expect(shareDescription(null, 'en')).toBe('Open the RealUnit app with this code.');
     expect(shareDescription(null, 'de')).toBeNull();
+  });
+
+  test('a codeless English landing is rewritten end to end, German is untouched', () => {
+    const shell =
+      '<html lang="de"><title>RealUnit — Einladung</title>' +
+      '<meta property="og:title" content="RealUnit — Einladung" />' +
+      '<meta property="og:image:alt" content="RealUnit" />' +
+      '<meta property="og:locale" content="de_CH" />' +
+      '<meta property="og:description" content="Öffne die RealUnit-App mit diesem Code." />';
+
+    // The helpers returning a string is not the point — the point is that the
+    // bytes a crawler snapshots actually change.
+    const en = injectLandingFromRequestUrl(shell, 'https://realunit.app/invite/?lang=en');
+    expect(en).toContain('<html lang="en">');
+    expect(en).toContain('<title>RealUnit — Invitation</title>');
+    expect(en).toContain('property="og:title" content="RealUnit — Invitation"');
+    expect(en).toContain(
+      'property="og:description" content="Open the RealUnit app with this code."',
+    );
+
+    const promo = injectLandingFromRequestUrl(shell, 'https://realunit.app/promo/?lang=en');
+    expect(promo).toContain('<title>RealUnit — Promo code</title>');
+
+    // Without ?lang=en the German shell must be left exactly as it is.
+    const de = injectLandingFromRequestUrl(shell, 'https://realunit.app/invite/');
+    expect(de).toContain('<title>RealUnit — Einladung</title>');
+    expect(de).toContain(
+      'property="og:description" content="Öffne die RealUnit-App mit diesem Code."',
+    );
   });
 
   test('a code still wins over the fallback', () => {
