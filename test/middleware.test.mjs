@@ -100,7 +100,9 @@ describe('the landing middleware', () => {
     expect(ctx.nextCalls).toEqual([undefined]);
     const html = await res.text();
     expect(html).toContain('RealUnit — Einladung AB12CD');
-    expect(html).toContain('og:title');
+    // The tag itself is in both shells already, so the value is what proves
+    // the injection ran.
+    expect(html).toContain('<meta property="og:title" content="RealUnit — Einladung AB12CD"');
     // The shell it was built from, not the 404 page.
     expect(isLandingShell(html)).toBe(true);
   });
@@ -110,7 +112,9 @@ describe('the landing middleware', () => {
     const res = await onRequest(ctx);
     expect(ctx.assetFetches).toEqual(['https://realunit.app/promo/index.html']);
     expect(res.status).toBe(200);
-    expect(await res.text()).toContain('EVT1');
+    // The code alone would also appear on an invitation-shaped injection; the
+    // kind is what this case is about.
+    expect(await res.text()).toContain('RealUnit — Promo-Code EVT1');
   });
 
   test('a HEAD gets the same status and no body', async () => {
@@ -146,6 +150,7 @@ describe('the landing middleware', () => {
     const ctx = context({
       url: 'https://realunit.app/invite/AB12CD',
       shellHeaders: {
+        'cache-control': 'public, max-age=60',
         'content-encoding': 'gzip',
         etag: 'W/"the-shell"',
         'last-modified': 'Tue, 09 Sep 2026 00:00:00 GMT',
@@ -169,6 +174,11 @@ describe('the landing middleware', () => {
       expect(res.headers.get(name)).toBeNull();
     }
     expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    // Built rather than copied, so a header public/_headers sets is not
+    // carried in and then set again by Pages. Measured on the deploy before
+    // this change: /invite/ answered with its Cache-Control twice over.
+    expect(res.headers.get('cache-control')).toBeNull();
+    expect([...res.headers.keys()]).toEqual(['content-type']);
   });
 
   test('a path the pass does not own is handed straight on', async () => {

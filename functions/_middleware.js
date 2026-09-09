@@ -55,7 +55,9 @@ export async function onRequest(context) {
     return platform;
   }
   const shellPath = url.pathname.startsWith('/promo') ? LANDING_SHELL.promo : LANDING_SHELL.invite;
-  const shell = await assets.fetch(new Request(new URL(shellPath, url).toString()));
+  const shell = await assets.fetch(
+    new Request(new URL(shellPath, url).toString(), { redirect: 'manual' }),
+  );
   if (!shell.ok) {
     return platform;
   }
@@ -65,7 +67,7 @@ export async function onRequest(context) {
     // as one would describe something the visitor is not looking at.
     return platform;
   }
-  return answer(html, shell.headers, context.request, method);
+  return answer(html, context.request, method);
 }
 
 /**
@@ -83,33 +85,21 @@ async function rewritten(response, request, method) {
   if (!isLandingShell(html)) {
     return response;
   }
-  return answer(html, response.headers, request, method, response.status);
+  return answer(html, request, method, response.status);
 }
 
 /**
  * The landing, with the campaign written into it.
  */
-function answer(html, sourceHeaders, request, method, status = 200) {
+function answer(html, request, method, status = 200) {
   const injected = injectLandingFromRequestUrl(html, request.url);
-  const headers = new Headers(sourceHeaders);
-  // Everything that described the bytes before the rewrite: the length, the
-  // content coding — the body was decoded by text() and leaves here as plain
-  // text — both validators, and the integrity digests of RFC 9530 and its
-  // predecessors. A stale validator is worse than none: a conditional request
-  // would be answered 304 against a document the client never received.
-  for (const stale of [
-    'content-length',
-    'content-encoding',
-    'etag',
-    'last-modified',
-    'content-digest',
-    'repr-digest',
-    'digest',
-    'content-md5',
-  ]) {
-    headers.delete(stale);
-  }
-  headers.set('content-type', 'text/html; charset=utf-8');
+  // Built rather than copied. Every header the source carried either described
+  // the bytes before the rewrite — the length, the content coding, both
+  // validators, the integrity digests of RFC 9530 and its predecessors — or
+  // came from public/_headers, which Pages applies to this answer again.
+  // Copying the second kind is how /invite/ has been answering with its
+  // Cache-Control twice over, measured on the deploy before this change.
+  const headers = new Headers({ 'content-type': 'text/html; charset=utf-8' });
   // The shell exists, so a code-bearing path is answered 200 — for HEAD as
   // well as for GET. That is the whole point: WhatsApp, iMessage, Slack,
   // Facebook and X drop a 404 before they read the tags just written.
