@@ -42,9 +42,13 @@ export async function onRequest(context) {
   // The platform's own answer first, because most of what it says is right and
   // only one case is not. A real file under these paths comes back 200 — that
   // is /invite/ and /promo/ themselves — and /invite/index.html comes back as
-  // the 308 that canonicalises it. Both stand. Only the code-bearing paths
-  // come back 404, because the 200-rewrite that was meant to resolve them
-  // never runs, and those are the ones this pass has to answer itself.
+  // the 308 that canonicalises it. The redirect stands as it is; the real file
+  // needs only its metadata written in. Only the code-bearing paths come back
+  // 404, because the 200-rewrite that was meant to resolve them never runs.
+  //
+  // A HEAD is the exception to all of it: its answer carries no body, so the
+  // shell cannot be recognised in it, and every HEAD under these paths takes
+  // the same route as that 404.
   const platform = await context.next();
   if (platform.status !== 200 && platform.status !== 404) {
     return platform;
@@ -96,9 +100,10 @@ export async function onRequest(context) {
     return platform;
   }
   // The headers describe the URL that was asked for, so they come from the
-  // platform's answer wherever it had one — public/_headers matches on the
-  // request path, and the shell's own answer was matched on /invite/index.html.
-  // Only when the platform had nothing to say does the shell's set stand in.
+  // platform's answer wherever that answer was the file itself —
+  // public/_headers matches on the request path, and the shell's own answer was
+  // matched on /invite/index.html. Only when the platform answered something
+  // other than 200 does the shell's set stand in.
   const source = platform.status === 200 ? platform.headers : shell.headers;
   return answer(html, source, context.request, method);
 }
@@ -145,8 +150,9 @@ function answer(html, sourceHeaders, request, method, status = 200) {
     headers.delete(stale);
   }
   headers.set('content-type', 'text/html; charset=utf-8');
-  // The shell exists, so a code-bearing path is answered 200 — for HEAD as
-  // well as for GET. That is the whole point: WhatsApp, iMessage, Slack,
-  // Facebook and X drop a 404 before they read the tags just written.
+  // A landing that exists is answered as found. For a code-bearing path that
+  // is the whole point: WhatsApp, iMessage, Slack, Facebook and X drop a 404
+  // before they read the tags just written. A GET on a real file keeps the
+  // status the platform gave it, which is the same 200.
   return new Response(method === 'HEAD' ? null : injected, { status, headers });
 }

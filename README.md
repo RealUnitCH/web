@@ -51,8 +51,10 @@ uploaded to Cloudflare Pages.
   on a code-bearing path, `context.next()` answers with the site's 404 page. The platform is
   asked first and only its `404` is replaced — the shell is read from the asset
   binding by name, checked against the two landing marks, injected and answered
-  `200`. `/invite/` and `/promo/` are real files and are only rewritten in
-  place; `/invite` and `/invite/index.html` keep their `308`. `og:title`, `og:description`,
+  `200`. `/invite/` and `/promo/` are real files, rewritten in place for a
+  `GET`; a `HEAD` reads the shell from the binding like the `404` case, because
+  its answer carries no body to recognise the shell in. `/invite` and
+  `/invite/index.html` keep their `308`. `og:title`, `og:description`,
   and image alt name the campaign code; `?lang=en` sets English copy and `og:locale=en_GB`;
   invitee names wait for lookup JS. `/js/invite-banner.js` in `<head>`
   is the CSP-safe JS fallback — Cloudflare Pages CSP blocks inline `<script>`.

@@ -324,16 +324,14 @@ describe('the landing middleware', () => {
           'cache-control': 'public, max-age=60',
         }),
       });
-    const head = await onRequest(
-      context({
-        url: 'https://realunit.app/invite/',
-        method: 'HEAD',
-        platformAnswer: shellPlatform,
-      }),
-    );
-    const get = await onRequest(
-      context({ url: 'https://realunit.app/invite/', platformAnswer: shellPlatform }),
-    );
+    const headCtx = context({
+      url: 'https://realunit.app/invite/',
+      method: 'HEAD',
+      platformAnswer: shellPlatform,
+    });
+    const head = await onRequest(headCtx);
+    const getCtx = context({ url: 'https://realunit.app/invite/', platformAnswer: shellPlatform });
+    const get = await onRequest(getCtx);
     expect(head.status).toBe(get.status);
     expect(head.status).toBe(200);
     expect(head.body).toBeNull();
@@ -343,6 +341,10 @@ describe('the landing middleware', () => {
     }
     expect(head.headers.get('content-type')).toBe('text/html; charset=utf-8');
     expect(head.headers.get('cache-control')).toBe(get.headers.get('cache-control'));
+    // And the two got there differently, which is the point of the case: the
+    // GET is rewritten in place, the HEAD reads the shell from the binding.
+    expect(headCtx.assetFetches).toEqual(['https://realunit.app/invite/index.html']);
+    expect(getCtx.assetFetches).toEqual([]);
   });
 
   test("the platform's redirect on /invite/index.html is left alone", async () => {
