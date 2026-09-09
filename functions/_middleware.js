@@ -48,11 +48,25 @@ export async function onRequest(context) {
   const html = await response.text();
   const injected = injectLandingFromRequestUrl(html, context.request.url);
   const headers = new Headers(response.headers);
-  // Everything that described the bytes before the rewrite. A stale validator
-  // is worse than none: a conditional request would be answered 304 against a
-  // document the client never received. Measured on the deploy: Pages sets
-  // neither ETag nor Last-Modified on these paths today, so this is a guard.
-  for (const stale of ['content-length', 'etag', 'last-modified', 'content-range']) {
+  // The five headers that describe the bytes rather than the resource, and so
+  // become stale the moment those bytes change: the length, the encoding, the
+  // two validators and the range. A stale validator is worse than none — a
+  // conditional request would be answered 304 against a document the client
+  // never received — and a body labelled gzip that is not gzip does not render
+  // at all. The body handed on from here is always the decoded, rewritten
+  // string.
+  //
+  // Measured on the deploy: Pages sets neither ETag nor Last-Modified on these
+  // paths today but does serve them Content-Encoding: gzip, so that one is not
+  // hypothetical — the edge applies it after this Function, and dropping the
+  // header here costs nothing if it was never on the object.
+  for (const stale of [
+    'content-length',
+    'content-encoding',
+    'etag',
+    'last-modified',
+    'content-range',
+  ]) {
     headers.delete(stale);
   }
   const status = landingStatus(response.status, injected);
@@ -64,7 +78,11 @@ export async function onRequest(context) {
   return new Response(sendNoBody ? null : injected, { status, statusText, headers });
 }
 
-/** Headers that let the answer be something other than the full document. */
+/**
+ * The request headers RFC 9110 defines as able to turn the answer into
+ * something other than the current full representation: 206 for the first two,
+ * 304 or 412 for the rest.
+ */
 const PARTIAL_OR_CONDITIONAL = [
   'range',
   'if-range',
@@ -75,11 +93,12 @@ const PARTIAL_OR_CONDITIONAL = [
 ];
 
 /**
- * The same request as a GET for the whole document. Every header that could
- * make the answer something else is dropped: Range would allow 206, the
- * conditional ones 304 or 412. None of those bodies is the landing shell, and
- * the status here is decided from the body. Everything else the client sent is
- * kept.
+ * The same request as a GET for the whole document. The six request headers
+ * that RFC 9110 defines as able to change the answer into something other than
+ * the current full representation are dropped: Range and If-Range would allow
+ * 206, the four conditional ones 304 or 412. None of those bodies is the
+ * landing shell, and the status here is decided from the body. Everything else
+ * the client sent is kept.
  *
  * Measured on the deploy with a Range GET, reading the body rather than only
  * the headers: Pages answers with the full document today and no 206, so this
