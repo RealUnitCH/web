@@ -741,11 +741,19 @@ describe('the landing middleware', () => {
     // carry the id and no aria-busy; the 404 page carries neither. This goes
     // red the day one of them gains the second mark, which is the day the
     // guard would have to become a real parse.
-    const files = shippedHtml();
-    for (const known of ['invite/index.html', 'promo/index.html', '404.html']) {
-      expect(files).toContain(known);
-    }
-    expect(files.filter((file) => isLandingShell(page(file))).sort()).toEqual([
+    // The inventory first, so that a walker which quietly stopped finding the
+    // other pages could not make the second assertion pass by having nothing
+    // left to disagree with.
+    const files = shippedHtml().sort();
+    expect(files).toEqual([
+      '404.html',
+      'account-merge/index.html',
+      'confirm-aktionariat/index.html',
+      'index.html',
+      'invite/index.html',
+      'promo/index.html',
+    ]);
+    expect(files.filter((file) => isLandingShell(page(file)))).toEqual([
       'invite/index.html',
       'promo/index.html',
     ]);

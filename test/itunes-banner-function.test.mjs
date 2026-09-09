@@ -45,6 +45,10 @@ describe('shouldRewriteItunesBanner', () => {
     expect(shouldRewriteItunesBanner('/invite-old')).toBe(false);
     expect(shouldRewriteItunesBanner('/promotion')).toBe(false);
     expect(shouldRewriteItunesBanner('/promo-old')).toBe(false);
+    // A doubled slash makes the first segment empty, so neither the exact
+    // comparison nor the prefix matches.
+    expect(shouldRewriteItunesBanner('//invite/AB12CD')).toBe(false);
+    expect(shouldRewriteItunesBanner('/invites/AB12CD')).toBe(false);
   });
 });
 

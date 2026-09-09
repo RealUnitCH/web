@@ -441,12 +441,13 @@ const LANDING_MARKERS = ['id="state-loading"', 'aria-busy="true"'];
  * invitation's metadata.
  *
  * This stays a substring test, so it does not require the two marks to sit in
- * the same element, or in an element at all. What it does establish is that no
- * page this repo ships reaches both: the landings carry them together in one
- * tag, the site's 404 page carries neither, and the two other shells that
- * carry the id — account-merge and confirm-aktionariat — carry no aria-busy
- * and are not routed here. test/middleware.test.mjs pins that against the
- * shipped files.
+ * the same element, or in an element at all. What makes two of them enough is
+ * therefore not this function but a property of the site, and that property is
+ * held by a test rather than by a parser: of every page the repo ships, only
+ * the two landings reach both marks. The 404 page carries neither, and the two
+ * other shells that carry the id — account-merge and confirm-aktionariat —
+ * carry no aria-busy. test/middleware.test.mjs walks public/ and pins exactly
+ * that.
  */
 export function isLandingShell(html) {
   return typeof html === 'string' && LANDING_MARKERS.every((mark) => html.includes(mark));

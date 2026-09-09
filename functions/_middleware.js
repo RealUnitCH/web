@@ -21,6 +21,14 @@ import {
 
 export async function onRequest(context) {
   const url = new URL(context.request.url);
+  // The same gate as the meta rewrite, which therefore also decides the
+  // promotion. It excludes twelve asset-like suffixes, so a code whose text
+  // ends in one of them never reaches the rest of this pass. Measured on the
+  // deploy: /invite/AB.JSON and /promo/EVT1.HTML are answered with the site's
+  // own 404 page, not with the landing shell, so the promotion would refuse
+  // them on the marks in any case. What such a code loses is the landing, not
+  // the status — which is the follow-up #30 left open, where this gate and the
+  // suffix list in parseLandingFromUrl have to be reconciled.
   if (!shouldRewriteItunesBanner(url.pathname)) {
     return context.next();
   }
