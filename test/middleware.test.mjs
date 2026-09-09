@@ -24,15 +24,24 @@ function context({
   const headers = new Headers({
     'content-type': type,
     'content-length': String(body.length),
-    // The rule public/_headers sets for /invite/* and /promo/*; it has to
-    // survive the response being rebuilt.
+    // What public/_headers sets for these paths. All of it has to survive the
+    // response being rebuilt — a dropped security header would not show up in
+    // coverage, which measures execution and not values.
     'cache-control': 'public, max-age=60',
+    'content-security-policy': "default-src 'self'",
+    'x-content-type-options': 'nosniff',
+    'x-frame-options': 'SAMEORIGIN',
+    'referrer-policy': 'strict-origin-when-cross-origin',
   });
-  const next = () =>
-    Promise.resolve(
+  const forwarded = [];
+  const next = (request) => {
+    forwarded.push(request ? request.method : method);
+    return Promise.resolve(
       new Response(body, { status, statusText: status === 404 ? 'Not Found' : 'OK', headers }),
     );
-  return { request: { url, method }, next };
+  };
+  // A real Request, because the middleware derives the GET-equivalent from it.
+  return { request: new Request(url, { method }), next, forwarded };
 }
 
 describe('the landing middleware', () => {
@@ -49,6 +58,10 @@ describe('the landing middleware', () => {
     expect(res.headers.get('content-length')).toBeNull();
     expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
     expect(res.headers.get('cache-control')).toBe('public, max-age=60');
+    expect(res.headers.get('content-security-policy')).toBe("default-src 'self'");
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(res.headers.get('x-frame-options')).toBe('SAMEORIGIN');
+    expect(res.headers.get('referrer-policy')).toBe('strict-origin-when-cross-origin');
   });
 
   test('a promo landing is promoted the same way', async () => {
@@ -84,14 +97,15 @@ describe('the landing middleware', () => {
     expect(res.headers.get('content-length')).toBe(String(SHELL.length));
   });
 
-  test('HEAD answers with the same status as GET, and with no body', async () => {
-    // A link checker sends HEAD first. Answering 404 there while GET answers
-    // 200 would leave the same link looking dead to exactly the clients this
-    // fix is for.
-    const head = await onRequest(
-      context({ url: 'https://realunit.app/invite/AB12CD', method: 'HEAD' }),
-    );
+  test('HEAD answers like GET by asking for the GET-equivalent', async () => {
+    // A link checker sends HEAD first. A HEAD response has no body, and the
+    // body is what tells the landing shell from the site's 404 page — so the
+    // status has to come from a GET-equivalent lookup, or the same link would
+    // read as found by GET and as dead by HEAD.
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD', method: 'HEAD' });
+    const head = await onRequest(ctx);
     const get = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD' }));
+    expect(ctx.forwarded).toEqual(['GET']);
     expect(head.status).toBe(get.status);
     expect(head.status).toBe(200);
     expect(head.statusText).toBe('');
@@ -99,20 +113,32 @@ describe('the landing middleware', () => {
     // stream, and text() cannot tell the two apart.
     expect(head.body).toBeNull();
     expect(await head.text()).toBe('');
-    // The same headers GET gets, including the length dropped because it
-    // described the bytes before the rewrite.
+    for (const name of [
+      'content-type',
+      'cache-control',
+      'content-security-policy',
+      'x-content-type-options',
+      'x-frame-options',
+      'referrer-policy',
+    ]) {
+      expect(head.headers.get(name)).toBe(get.headers.get(name));
+    }
     expect(head.headers.get('content-length')).toBeNull();
-    expect(head.headers.get('content-type')).toBe('text/html; charset=utf-8');
-    expect(head.headers.get('cache-control')).toBe('public, max-age=60');
   });
 
-  test('a HEAD whose body the platform withheld keeps its status', async () => {
-    // Without a body there is no way to tell the landing shell from the site's
-    // own 404 page, and guessing from the path alone would make a broken
-    // deploy look healthy.
-    const ctx = context({ url: 'https://realunit.app/invite/AB12CD', method: 'HEAD', body: '' });
-    const res = await onRequest(ctx);
+  test('a HEAD on a response that is not HTML keeps its status and carries no body', async () => {
+    const res = await onRequest(
+      context({
+        url: 'https://realunit.app/invite/AB12CD',
+        method: 'HEAD',
+        type: 'application/json',
+        body: '{}',
+      }),
+    );
     expect(res.status).toBe(404);
+    expect(res.statusText).toBe('Not Found');
+    expect(res.body).toBeNull();
+    expect(res.headers.get('content-length')).toBeNull();
   });
 
   test('a method that is neither GET nor HEAD is passed through untouched', async () => {

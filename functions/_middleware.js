@@ -23,28 +23,39 @@ export async function onRequest(context) {
   if (!shouldRewriteItunesBanner(url.pathname)) {
     return context.next();
   }
-  const response = await context.next();
   const method = context.request.method;
+  if (method !== 'GET' && method !== 'HEAD') {
+    return context.next();
+  }
+  const isHead = method === 'HEAD';
+  // The status has to be decided from the body: the marker in it is what tells
+  // the landing shell from the site's own 404 page. A HEAD response carries no
+  // body, so HEAD asks for the GET-equivalent and answers with that status and
+  // those headers, without the body. Otherwise the same link would read as
+  // found by GET and as dead by the HEAD a link checker sends first.
+  const response = isHead
+    ? await context.next(new Request(context.request, { method: 'GET' }))
+    : await context.next();
   const type = response.headers.get('content-type') || '';
-  // HEAD is handled alongside GET: it has to answer with the same status as
-  // GET would, and it is what a link checker sends first. Its response carries
-  // no body, so it never gets one back.
-  if ((method !== 'GET' && method !== 'HEAD') || !type.includes('text/html')) {
-    return response;
+  if (!type.includes('text/html')) {
+    // Nothing to rewrite. A HEAD still must not carry the body the GET-
+    // equivalent came back with.
+    return isHead ? bodyless(response, response.status, response.statusText) : response;
   }
   const html = await response.text();
   const injected = injectLandingFromRequestUrl(html, context.request.url);
   const headers = new Headers(response.headers);
   // The original length described the bytes before the rewrite.
   headers.delete('content-length');
-  // A HEAD response whose body the platform withheld cannot be told apart from
-  // the site's own 404 page, so it keeps the status it came with rather than
-  // being promoted on the strength of its path alone.
   const status = landingStatus(response.status, injected);
-  return new Response(method === 'HEAD' ? null : injected, {
-    status,
-    // A promoted status must not keep "Not Found" as its reason phrase.
-    statusText: status === response.status ? response.statusText : '',
-    headers,
-  });
+  // A promoted status must not keep "Not Found" as its reason phrase.
+  const statusText = status === response.status ? response.statusText : '';
+  return new Response(isHead ? null : injected, { status, statusText, headers });
+}
+
+/** The same status and headers, with no body and no stale content-length. */
+function bodyless(response, status, statusText) {
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  return new Response(null, { status, statusText, headers });
 }
