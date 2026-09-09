@@ -199,6 +199,15 @@ const PARTIAL_OR_CONDITIONAL = [
  * also drops the body, the headers that described it, and the request metadata
  * that cannot be rebuilt from a URL.
  *
+ * This is a deliberate deviation from RFC 9110 §13.1, stated rather than
+ * hidden: a client sending `If-None-Match: *` is answered 200 with the whole
+ * document where 304 was called for, and `If-Match` never produces 412. These
+ * paths emit no ETag and no Last-Modified, so a client only reaches that case
+ * by sending a precondition it was never given one for. The answer is always
+ * the current representation, which is never wrong, only larger than it had to
+ * be. Evaluating preconditions properly would mean minting a validator for the
+ * rewritten document, which is a bigger change than this one.
+ *
  * Measured on the deploy with a Range GET, reading the body rather than only
  * the headers: Pages answers with the full document today and no 206, so this
  * is a guard rather than a live fix.

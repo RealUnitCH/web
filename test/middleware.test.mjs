@@ -162,6 +162,11 @@ describe('the landing middleware', () => {
     // Two that disagree means hands off rather than picking one, whichever way
     // round they come: neither the first nor the last wins.
     expect(await rewritten('text/html; charset=utf-8; charset=iso-8859-1')).toBe(false);
+    // An unterminated quote is not a quoted value, so the raw text is compared
+    // and does not read as UTF-8. The trailing X makes the case tell the two
+    // apart: stripping quotes without checking for a closing one would leave
+    // exactly `utf-8` behind and wrongly accept it.
+    expect(await rewritten('text/html; charset="utf-8X')).toBe(false);
     expect(await rewritten('text/html; charset=iso-8859-1; charset=utf-8')).toBe(false);
     // A backslash escapes the next character inside a quoted value, so the
     // closing quote here is part of the value and the real charset follows.
@@ -366,6 +371,7 @@ describe('the landing middleware', () => {
       ctx.next = () => {
         partialUpstream = new Response(SHELL, {
           status: 206,
+          statusText: 'Partial Content',
           headers: new Headers({
             'content-type': 'text/html; charset=utf-8',
             // Real byte counts: .length counts UTF-16 units, and a range has
@@ -397,6 +403,7 @@ describe('the landing middleware', () => {
     // only the body.
     const head = await partial('HEAD');
     expect(head.status).toBe(206);
+    expect(head.statusText).toBe('Partial Content');
     expect(head.body).toBeNull();
     expect(head.headers.get('content-length')).toBe(String(SHELL_BYTES));
     expect(head.headers.get('content-range')).toBe(`bytes 0-${SHELL_BYTES - 1}/${SHELL_BYTES}`);
@@ -649,11 +656,24 @@ describe('the landing middleware', () => {
     const mentionsIt =
       '<html lang="de"><head><title>Seite nicht gefunden</title></head>' +
       '<body><p>Der Abschnitt state-loading fehlt.</p></body></html>';
+    // And the exact attribute text, but in a comment rather than an element:
+    // the check is a substring test, so this is the boundary it cannot see.
+    const quotesIt =
+      '<html lang="de"><head><title>Seite nicht gefunden</title></head>' +
+      '<body><!-- kein id="state-loading" hier --></body></html>';
     const res = await onRequest(
       context({ url: 'https://realunit.app/invite/AB12CD', body: mentionsIt }),
     );
     expect(res.status).toBe(404);
     expect(await res.text()).toBe(mentionsIt);
+
+    // Documented boundary, not a claim of correctness: a page that spells the
+    // attribute out in a comment does read as a landing shell. No page under
+    // these paths does, and the contract test above pins that.
+    const quoted = await onRequest(
+      context({ url: 'https://realunit.app/invite/AB12CD', body: quotesIt }),
+    );
+    expect(quoted.status).toBe(200);
   });
 
   test('the marker the promotion keys on lives where it has to', () => {
