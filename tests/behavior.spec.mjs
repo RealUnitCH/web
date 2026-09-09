@@ -777,10 +777,12 @@ test.describe('invite and promo landing', () => {
     // spinner section is only the step before that.
     await expect(page.locator('#ok-code-hint')).toHaveText('Code wird geprüft…');
     await expect(page.locator('#state-unavailable')).toBeVisible({ timeout: 25_000 });
-    // The budget itself, read from the page rather than restated here, and
-    // measured rather than bracketed: a case that only required the state to
-    // arrive within some wide window would stay green on a budget of five
-    // seconds or of twenty.
+    // Two separate claims, because either alone would let something through.
+    // The size is pinned outright: without it, a budget moved to five seconds
+    // or to twenty would still satisfy bounds computed from itself. The
+    // elapsed time is then measured against it, so a page that gave up for
+    // some other reason, or on some other timer, does not pass for the one
+    // this case is named after.
     const budget = await page.evaluate(() => window.RealUnitInvite.LOOKUP_TIMEOUT_MS);
     expect(budget).toBe(15_000);
     const elapsed = Date.now() - started;
