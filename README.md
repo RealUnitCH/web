@@ -50,7 +50,9 @@ uploaded to Cloudflare Pages.
   shell through the `_redirects` rewrite but keeps the not-found status of the
   path that was asked for, and a crawler drops a `404` before it reads the tags.
   The promotion is guarded on a marker the landings carry and the site's 404
-  page does not, and HEAD answers with the same status as GET.
+  page does not, and HEAD answers with the same status as GET. Both methods are
+  resolved internally as one full GET without `Range` / `If-Range`, because the
+  whole document is rewritten and the status is decided from its body.
   `og:title`, `og:description`,
   and image alt name the campaign code; `?lang=en` sets English copy and `og:locale=en_GB`;
   invitee names wait for lookup JS. `/js/invite-banner.js` in `<head>`

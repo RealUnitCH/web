@@ -14,8 +14,11 @@ This repo is the **realunit.app** website — public, static. See the
   code-less shell through the `_redirects` rewrite but keeps the not-found
   status of the path that was asked for, and a crawler drops a `404` before it
   reads the tags. The promotion is guarded on the landing marker, so the site's
-  own 404 page keeps saying 404. Nothing else is transformed, and there is no
-  server-side rendering. The dev dependencies exist **only** for the quality gates below
+  own 404 page keeps saying 404, and HEAD answers with the same status as GET.
+  Both methods are resolved internally as one full GET without `Range` /
+  `If-Range`, because the whole document is rewritten and the status is decided
+  from its body. Nothing else is transformed, and there is no server-side
+  rendering. The dev dependencies exist **only** for the quality gates below
   (formatting, HTML validation, unit tests, screenshots); nothing compiles or
   bundles the site.
 - **Invite/promo HTML rewrite is banner, canonical, and store handoff.** Safari,

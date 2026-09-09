@@ -97,6 +97,39 @@ describe('the landing middleware', () => {
     for (const status of [403, 410]) {
       const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD', status }));
       expect(res.status).toBe(status);
+      expect(res.statusText).toBe('OK');
+      // The rewrite still runs; what must not change is the status.
+      expect(await res.text()).toContain('RealUnit — Einladung AB12CD');
+    }
+  });
+
+  test('headers that described the bytes before the rewrite are dropped', async () => {
+    // A stale validator is worse than none: a conditional request would be
+    // answered 304 against a document the client never received.
+    const ctx = context({ url: 'https://realunit.app/invite/AB12CD' });
+    ctx.next = () => {
+      const res = new Response(SHELL, {
+        status: 404,
+        statusText: 'Not Found',
+        headers: new Headers({
+          'content-type': 'text/html; charset=utf-8',
+          'content-length': String(SHELL.length),
+          etag: 'W/"before-the-rewrite"',
+          'last-modified': 'Tue, 09 Sep 2026 00:00:00 GMT',
+          'content-range': 'bytes 0-99/4162',
+          ...SITE_HEADERS,
+        }),
+      });
+      return Promise.resolve(res);
+    };
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    for (const stale of ['content-length', 'etag', 'last-modified', 'content-range']) {
+      expect(res.headers.get(stale)).toBeNull();
+    }
+    // The ones that describe the resource rather than the bytes stay.
+    for (const [name, value] of Object.entries(SITE_HEADERS)) {
+      expect(res.headers.get(name)).toBe(value);
     }
   });
 

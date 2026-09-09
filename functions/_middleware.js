@@ -48,8 +48,13 @@ export async function onRequest(context) {
   const html = await response.text();
   const injected = injectLandingFromRequestUrl(html, context.request.url);
   const headers = new Headers(response.headers);
-  // The original length described the bytes before the rewrite.
-  headers.delete('content-length');
+  // Everything that described the bytes before the rewrite. A stale validator
+  // is worse than none: a conditional request would be answered 304 against a
+  // document the client never received. Measured on the deploy: Pages sets
+  // neither ETag nor Last-Modified on these paths today, so this is a guard.
+  for (const stale of ['content-length', 'etag', 'last-modified', 'content-range']) {
+    headers.delete(stale);
+  }
   const status = landingStatus(response.status, injected);
   // A promoted status must not keep "Not Found" as its reason phrase.
   const statusText = status === response.status ? response.statusText : '';
@@ -62,8 +67,9 @@ export async function onRequest(context) {
  * neither the landing shell nor what the rewrite would produce. Everything else
  * the client sent is kept.
  *
- * Measured on the deploy: Pages answers a Range request on these paths with the
- * full document today, so this is a guard rather than a live fix.
+ * Measured on the deploy with a Range GET, reading the body rather than only
+ * the headers: Pages answers with the full document today and no 206, so this
+ * is a guard rather than a live fix.
  */
 function asFullGet(request) {
   const headers = new Headers(request.headers);
