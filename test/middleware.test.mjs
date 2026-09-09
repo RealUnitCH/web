@@ -128,6 +128,17 @@ describe('the landing middleware', () => {
     expect(head.headers.get('content-type')).toBe(get.headers.get('content-type'));
   });
 
+  test('the whole request URL reaches the injection, not just its path', async () => {
+    // ?lang=en is what switches the copy and og:locale, and it lives in the
+    // query. Passing the pathname alone would still produce a landing, in the
+    // wrong language, with nothing here to notice.
+    const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD?lang=en' }));
+    const html = await res.text();
+    expect(res.status).toBe(200);
+    expect(html).toContain('RealUnit — Invitation AB12CD');
+    expect(html).toContain('en_GB');
+  });
+
   test('the headers the rewrite invalidates are dropped', async () => {
     // Each of these described the bytes before the injection. A length that no
     // longer matches, a coding the decoded body no longer has, a validator for
