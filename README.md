@@ -45,7 +45,11 @@ uploaded to Cloudflare Pages.
   custom scheme; `twitter:app:country` is CH) are injected
   into the HTML bytes from the request URL (`functions/_middleware.js` on
   Cloudflare Pages, and the local dev-server) so Safari, Play, WhatsApp, X,
-  and share crawlers can snapshot them before JS. `og:title`, `og:description`,
+  and share crawlers can snapshot them before JS. The Function also serves the
+  landing itself: `_routes.json` claims `/invite/*` and `/promo/*`, so the
+  `_redirects` 200-rewrites never run and `context.next()` answers those paths
+  with the site's 404 page. The shell is read from the asset binding by name,
+  checked against the two landing marks, injected, and answered `200`. `og:title`, `og:description`,
   and image alt name the campaign code; `?lang=en` sets English copy and `og:locale=en_GB`;
   invitee names wait for lookup JS. `/js/invite-banner.js` in `<head>`
   is the CSP-safe JS fallback — Cloudflare Pages CSP blocks inline `<script>`.
