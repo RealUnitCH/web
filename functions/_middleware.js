@@ -4,8 +4,9 @@
  * bytes: apple-itunes-app already carries app-argument, og:url / canonical /
  * twitter:url already name the landing URL, og:title / twitter:title /
  * og:description already name the code, ?lang=en already sets html lang and
- * og:locale, and the Facebook App Links are present. Safari and every crawler
- * snapshot those before /js/invite-banner.js and invite.js run.
+ * og:locale, the Facebook App Links are present, and a code-bearing store
+ * hand-off names the code. Safari, Play and share crawlers can snapshot those
+ * before /js/invite-banner.js and invite.js run.
  *
  * public/ stays generic; this is not a site-wide renderer.
  */
@@ -53,8 +54,8 @@ export async function onRequest(context) {
     return platform;
   }
   if (method === 'GET' && platform.status === 200) {
-    // The file is already the right one; only the metadata has to go in, and
-    // its own status stays.
+    // The file is already the right one; the metadata and the code-bearing
+    // store hand-off have to go in, and its own status stays.
     const html = await platform.clone().text();
     if (!isLandingShell(html)) {
       return platform;
