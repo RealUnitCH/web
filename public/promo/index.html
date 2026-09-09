@@ -147,9 +147,36 @@
     html[data-platform="ios"] .only-ios { display: block; }
     [hidden] { display: none !important; }
   </style>
+  <noscript>
+    <!-- Without JS the loading state would sit there for ever: nothing ever
+         resolves the code. style-src allows inline (see _headers). -->
+    <style>
+      #state-loading {
+        display: none;
+      }
+    </style>
+  </noscript>
 </head>
 <body>
   <main class="card">
+    <noscript>
+      <section>
+        <h1 lang="de">JavaScript ist deaktiviert</h1>
+        <p lang="de">
+          Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript.
+          Aktiviere JavaScript und lade die Seite neu. Die App selbst findest du über die Links
+          unten.
+        </p>
+        <!-- Both languages: without JS nothing can read ?lang=en, and the
+             middleware may still have flipped the document to lang="en".
+             Only this block and the store links below are visible without JS,
+             so the copy points at those and promises no other control. -->
+        <p lang="en">
+          This page resolves your code through the RealUnit app and needs JavaScript. Enable
+          JavaScript and reload the page. The app itself is linked below.
+        </p>
+      </section>
+    </noscript>
     <section id="state-loading" role="status" aria-live="polite" aria-busy="true">
       <h1 id="loading-title">Promo-Code wird geladen…</h1>
       <p id="loading-body">Einen Moment bitte.</p>

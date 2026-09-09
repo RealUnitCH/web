@@ -129,7 +129,7 @@ npm run e2e:docker:update   # regenerate baselines after an intentional UI chang
 The visual matrix lives in `tests/pages.mjs` (`VIEWS`), which is the single
 source of truth — do not maintain a second list here. It currently covers six
 families: the invite and promo landings (each in their loading, resolved,
-invalid, missing-code and platform-matched variants), the confirm-page states,
+invalid, missing-code, platform-matched and JS-less variants), the confirm-page states,
 the account-merge pages, the home landing in its equal-badge and
 platform-matched layouts, and the 404 page — across `desktop-chromium`,
 `tablet-chromium` and `mobile-safari`. `check:visual` enforces that every view × applicable viewport
