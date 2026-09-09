@@ -681,8 +681,9 @@ describe('the landing middleware', () => {
     const mentionsIt =
       '<html lang="de"><head><title>Seite nicht gefunden</title></head>' +
       '<body><p>Der Abschnitt state-loading fehlt.</p></body></html>';
-    // And the exact attribute text, but in a comment rather than an element:
-    // the check is a substring test, so this is the boundary it cannot see.
+    // And the exact attribute text, but in a comment rather than an element.
+    // With one mark this was the boundary the check could not see; the second
+    // mark closes it, and the assertion below is what holds that shut.
     const quotesIt =
       '<html lang="de"><head><title>Seite nicht gefunden</title></head>' +
       '<body><!-- kein id="state-loading" hier --></body></html>';
