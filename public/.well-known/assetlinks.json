@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "swiss.realunit.app",
+      "sha256_cert_fingerprints": [
+        "7F:8B:14:54:E2:91:E9:DB:56:21:69:0A:64:23:7C:34:80:78:C6:5B:B4:86:31:CA:02:9D:14:20:E6:3C:7B:40"
+      ]
+    }
+  }
+]
