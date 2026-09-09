@@ -434,6 +434,11 @@ export function parseLangFromUrl(urlLike) {
  */
 const LANDING_MARKER = 'id="state-loading"';
 
+/** Whether these bytes are a landing shell rather than some other page. */
+export function isLandingShell(html) {
+  return typeof html === 'string' && html.includes(LANDING_MARKER);
+}
+
 /**
  * Report a rewritten landing as found.
  *
@@ -449,10 +454,6 @@ const LANDING_MARKER = 'id="state-loading"';
  * ever serves the site's 404 page on these paths, it has to keep saying 404
  * instead of looking healthy.
  */
-export function isLandingShell(html) {
-  return typeof html === 'string' && html.includes(LANDING_MARKER);
-}
-
 export function landingStatus(status, html) {
   if (status !== 404) return status;
   if (!isLandingShell(html)) return status;

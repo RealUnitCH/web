@@ -56,24 +56,22 @@ export async function onRequest(context) {
     // A HEAD still must not carry the body the GET-equivalent came back with.
     return isHead ? bodyless(response, response.status, response.statusText) : response;
   }
-  const html = await response.text();
+  // Read from a clone, so that an answer this pass decides not to touch can be
+  // handed on exactly as it came — body and headers both — instead of being
+  // rebuilt from a decoded string under headers that described the original.
+  const html = await response.clone().text();
   if (!isLandingShell(html)) {
     // Something else is being served here — the site's own 404 page after a
     // broken deploy is the case this guards. Rewriting its title into an
     // invitation would misdescribe it, and its status is right as it stands.
-    return isHead
-      ? bodyless(response, response.status, response.statusText)
-      : new Response(html, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: new Headers(response.headers),
-        });
+    return isHead ? bodyless(response, response.status, response.statusText) : response;
   }
   const injected = injectLandingFromRequestUrl(html, context.request.url);
   const headers = new Headers(response.headers);
   // The headers that rewriting the representation invalidates or makes
   // unreliable: the length, the content coding, both validators, the range
-  // metadata and the integrity digests of RFC 9530 and its predecessors. A
+  // metadata — including the offer to serve ranges of bytes that no longer
+  // exist — and the integrity digests of RFC 9530 and its predecessors. A
   // stale validator is worse than none — a conditional request would be
   // answered 304 against a document the client never received — and a body
   // labelled gzip that is not gzip does not render at all. The body handed on
@@ -93,6 +91,7 @@ export async function onRequest(context) {
     'etag',
     'last-modified',
     'content-range',
+    'accept-ranges',
     'content-digest',
     'repr-digest',
     'digest',

@@ -94,15 +94,18 @@ describe('the landing middleware', () => {
     expect(mixedCase.status).toBe(200);
     expect(await mixedCase.text()).toContain('RealUnit — Einladung AB12CD');
 
+    // The body is the shell, so a substring match would actually rewrite it —
+    // with '{}' the marker guard would hand it on either way and the check
+    // would prove nothing.
     const lookalike = await onRequest(
       context({
         url: 'https://realunit.app/invite/AB12CD',
         type: 'application/json; profile="text/html"',
-        body: '{}',
       }),
     );
     expect(lookalike.status).toBe(404);
-    expect(await lookalike.text()).toBe('{}');
+    expect(await lookalike.text()).toBe(SHELL);
+    expect(lookalike.headers.get('content-type')).toBe('application/json; profile="text/html"');
   });
 
   test('a body in another encoding is handed on rather than mislabelled', async () => {
@@ -117,6 +120,20 @@ describe('the landing middleware', () => {
     expect(res.status).toBe(404);
     expect(res.headers.get('content-type')).toBe('text/html; charset=iso-8859-1');
     expect(await res.text()).toBe(SHELL);
+  });
+
+  test('the charset is read whatever shape it comes in', async () => {
+    const rewritten = async (type) => {
+      const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD', type }));
+      return res.status === 200;
+    };
+    // Quoted, unusually spelled and differently cased UTF-8 all still count.
+    expect(await rewritten('text/html; charset="utf-8"')).toBe(true);
+    expect(await rewritten('text/html; charset=UTF8')).toBe(true);
+    expect(await rewritten('text/html;charset=utf-8')).toBe(true);
+    // Anything else is handed on rather than decoded as UTF-8 and relabelled.
+    expect(await rewritten('text/html; charset=utf-16')).toBe(false);
+    expect(await rewritten('text/html; charset=windows-1252')).toBe(false);
   });
 
   test('a rewritten answer says UTF-8 even when the origin left it out', async () => {
@@ -142,7 +159,23 @@ describe('the landing middleware', () => {
     // Only the 404 Pages produces for these paths is an artefact. A 403 or a
     // 410 means what it says, even when the body happens to be the shell.
     for (const status of [403, 410]) {
-      const res = await onRequest(context({ url: 'https://realunit.app/invite/AB12CD', status }));
+      // The encoding has to be there for its absence afterwards to mean
+      // anything — asserting against a header the fixture never set is no test.
+      const ctx = context({ url: 'https://realunit.app/invite/AB12CD', status });
+      ctx.next = () =>
+        Promise.resolve(
+          new Response(SHELL, {
+            status,
+            statusText: 'OK',
+            headers: new Headers({
+              'content-type': 'text/html; charset=utf-8',
+              'content-length': String(SHELL.length),
+              'content-encoding': 'gzip',
+              ...SITE_HEADERS,
+            }),
+          }),
+        );
+      const res = await onRequest(ctx);
       expect(res.status).toBe(status);
       expect(res.statusText).toBe('OK');
       // The rewrite still runs; what must not change is the status. And since
@@ -245,6 +278,7 @@ describe('the landing middleware', () => {
           etag: 'W/"before-the-rewrite"',
           'last-modified': 'Tue, 09 Sep 2026 00:00:00 GMT',
           'content-range': 'bytes 0-99/4162',
+          'accept-ranges': 'bytes',
           // The body left here decoded, so a carried-over encoding would be
           // wrong whatever the origin declared.
           'content-encoding': 'gzip',
@@ -267,6 +301,7 @@ describe('the landing middleware', () => {
       'etag',
       'last-modified',
       'content-range',
+      'accept-ranges',
       'content-digest',
       'repr-digest',
       'digest',
@@ -481,6 +516,7 @@ describe('the landing middleware', () => {
     );
     expect(res.status).toBe(404);
     expect(res.headers.get('content-length')).toBe(String(SHELL.length));
+    expect(await res.text()).toBe(SHELL);
   });
 
   test('a response that is not HTML is passed through untouched', async () => {
@@ -517,5 +553,6 @@ describe('the landing middleware', () => {
     const res = await onRequest(ctx);
     expect(res.headers.get('content-type')).toBeNull();
     expect(res.status).toBe(404);
+    expect(await res.text()).toBe(SHELL);
   });
 });
