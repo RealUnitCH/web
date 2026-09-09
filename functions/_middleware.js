@@ -59,8 +59,16 @@ export async function onRequest(context) {
   }
   if (method === 'GET' && platform.status === 200) {
     // The file is already the right one; the metadata and the code-bearing
-    // store hand-off have to go in, and its own status stays.
-    const html = await platform.clone().text();
+    // store hand-off have to go in, and its own status stays. Read inside a
+    // guard for the same reason as the shell below: a body stream that fails
+    // would take the Function down, and a Function that throws makes Pages
+    // serve the assets directly.
+    let html;
+    try {
+      html = await platform.clone().text();
+    } catch {
+      return platform;
+    }
     if (!isLandingShell(html)) {
       return platform;
     }

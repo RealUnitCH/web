@@ -309,6 +309,61 @@ describe('the landing middleware', () => {
     expect(res.headers.get('content-length')).toBeNull();
   });
 
+  test('the in-place rewrite drops the same headers the shell route does', async () => {
+    // The stale list has to hold on both routes, not only on the one that
+    // reads the shell from the binding.
+    const ctx = context({
+      url: 'https://realunit.app/invite/',
+      platformAnswer: () =>
+        new Response(SHELL, {
+          status: 200,
+          headers: new Headers({
+            'content-type': 'text/html',
+            'content-length': String(bytes(SHELL)),
+            'content-encoding': 'gzip',
+            etag: 'W/"the-shell"',
+            'last-modified': 'Tue, 09 Sep 2026 00:00:00 GMT',
+            'content-digest': 'sha-256=:abc:',
+            'repr-digest': 'sha-256=:abc:',
+            digest: 'sha-256=abc',
+            'content-md5': 'abc',
+            'content-security-policy': "default-src 'self'",
+          }),
+        }),
+    });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    for (const name of [
+      'content-length',
+      'content-encoding',
+      'etag',
+      'last-modified',
+      'content-digest',
+      'repr-digest',
+      'digest',
+      'content-md5',
+    ]) {
+      expect(res.headers.get(name)).toBeNull();
+    }
+    expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    expect(res.headers.get('content-security-policy')).toBe("default-src 'self'");
+  });
+
+  test('a platform body that cannot be read leaves its answer standing', async () => {
+    const ctx = context({
+      url: 'https://realunit.app/invite/',
+      platformAnswer: () => ({
+        status: 200,
+        headers: new Headers({ 'content-type': 'text/html; charset=utf-8' }),
+        clone: () => ({ text: () => Promise.reject(new Error('the stream gave up')) }),
+      }),
+    });
+    const res = await onRequest(ctx);
+    expect(res).toBe(ctx.platform());
+    expect(res.status).toBe(200);
+    expect(ctx.assetFetches).toEqual([]);
+  });
+
   test('a HEAD on the codeless landing answers as the GET does', async () => {
     // A HEAD answer carries no body, so the shell cannot be recognised in it.
     // Deciding from the empty one handed back the file's own ETag and length
