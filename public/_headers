@@ -26,15 +26,19 @@
 
 # Invite/promo HTML (SPA shells), including /invite/{code}. Short max-age
 # so copy-code / CTA markup rolls out without waiting on the zone Browser
-# Cache TTL. /invite/invite.js is restated after the wildcard so the 1h
-# script cache wins whether first- or last-match applies.
+# Cache TTL.
+#
+# The bare path needs its own rule; the wildcard covers everything under it,
+# /invite/ and /invite/index.html included. Rules for those two used to stand
+# beside the wildcard, and every answer that matched both carried the value
+# twice: measured on the deploy, /invite/ answered
+# `cache-control: public, max-age=60, public, max-age=60`. Pages concatenates
+# what every matching rule says rather than letting one win, and a parser takes
+# the first, so /invite/invite.js keeps its own rule above the wildcard and is
+# not restated below it — the restatement only added a third value nobody
+# reads. On production the zone's Browser Cache TTL replaces the lot with
+# max-age=14400 anyway.
 /invite
-  Cache-Control: public, max-age=60
-
-/invite/
-  Cache-Control: public, max-age=60
-
-/invite/index.html
   Cache-Control: public, max-age=60
 
 /invite/*
@@ -43,17 +47,8 @@
 /promo
   Cache-Control: public, max-age=60
 
-/promo/
-  Cache-Control: public, max-age=60
-
-/promo/index.html
-  Cache-Control: public, max-age=60
-
 /promo/*
   Cache-Control: public, max-age=60
-
-/invite/invite.js
-  Cache-Control: public, max-age=3600
 
 /.well-known/apple-app-site-association
   Content-Type: application/json
