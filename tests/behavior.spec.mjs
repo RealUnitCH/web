@@ -759,6 +759,42 @@ test.describe('invite and promo landing', () => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only invite-flow checks');
   });
 
+  test('a lookup that never answers gives up after the fifteen-second budget', async ({ page }) => {
+    // The unit suite pinned the exported number against a literal and stopped
+    // there; nothing exercised what the number is for. This does: a request
+    // that never answers must not leave the visitor on the loading state for
+    // ever.
+    // Real time, not the fake clock: the budget's timer is armed while the page
+    // loads, and a clock installed before that leaves the page in a state this
+    // case is not about.
+    test.setTimeout(60_000);
+    let pending = 0;
+    await page.route(REFERRAL_CODE_ENDPOINT, () => {
+      pending += 1; // never fulfilled, never aborted
+    });
+    await page.goto('/invite/AB12CD');
+    // The page shows the code straight away and says it is checking it; the
+    // spinner section is only the step before that.
+    await expect(page.locator('#ok-code-hint')).toHaveText('Code wird geprüft…');
+    // The clock starts here, not at the navigation: a slow page load would
+    // otherwise be counted against the budget and could push the upper bound
+    // over on a busy machine.
+    const started = Date.now();
+    await expect(page.locator('#state-unavailable')).toBeVisible({ timeout: 25_000 });
+    // Two separate claims, because either alone would let something through.
+    // The size is pinned outright: without it, a budget moved to five seconds
+    // or to twenty would still satisfy bounds computed from itself. The
+    // elapsed time is then measured against it, so a page that gave up for
+    // some other reason, or on some other timer, does not pass for the one
+    // this case is named after.
+    const budget = await page.evaluate(() => window.RealUnitInvite.LOOKUP_TIMEOUT_MS);
+    expect(budget).toBe(15_000);
+    const elapsed = Date.now() - started;
+    expect(elapsed).toBeGreaterThan(budget - 2_000);
+    expect(elapsed).toBeLessThan(budget + 6_000);
+    expect(pending).toBe(1);
+  });
+
   test('an invite path without a code is invalid and does not call the API', async ({ page }) => {
     const calls = [];
     await page.route(REFERRAL_CODE_ENDPOINT, (route) => {
@@ -1191,10 +1227,18 @@ test.describe('invite and promo landing', () => {
       }),
     );
     await page.goto('/invite/AB12CD');
+    // The stub records what it was handed. Resolving and discarding it would
+    // let this case pass on any string at all, including none.
     await page.evaluate(() => {
+      window.__written = [];
       Object.defineProperty(navigator, 'clipboard', {
         configurable: true,
-        value: { writeText: () => Promise.resolve() },
+        value: {
+          writeText: (text) => {
+            window.__written.push(text);
+            return Promise.resolve();
+          },
+        },
       });
     });
     await expect(page.locator('#ok-copy-link')).toBeVisible();
@@ -1207,6 +1251,14 @@ test.describe('invite and promo landing', () => {
     await expect(page.locator('#ok-copy-link')).not.toHaveAttribute('aria-live');
     await page.locator('#ok-copy-link').click();
     await expect(page.locator('#ok-copy-link')).toHaveText('Kopiert');
+    // The clipboard itself, not the label beside it: the label is written from
+    // the DOM and would read the same whatever was copied. Exactly one write,
+    // and the same href the canonical link names — the host differs between
+    // the deploy and this server, the path with the code does not.
+    await expect.poll(() => page.evaluate(() => window.__written.length)).toBe(1);
+    const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
+    expect(canonical).toMatch(/\/invite\/AB12CD$/);
+    expect(await page.evaluate(() => window.__written[0])).toBe(canonical);
     await expect(page.locator('#ok-copy-link')).toHaveAttribute(
       'aria-label',
       /Kopiert .*\/invite\/AB12CD$/,
