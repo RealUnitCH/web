@@ -716,14 +716,14 @@ test.describe('invite and promo landing without JavaScript', () => {
       // would otherwise stay green.
       // toHaveText matches textContent, which display:none leaves untouched —
       // so the visibility of each paragraph is asserted separately.
-      await expect(page.locator('main noscript p[lang="de"]')).toBeVisible();
-      await expect(page.locator('main noscript p[lang="de"]')).toHaveText(
+      await expect(page.locator('main noscript section p[lang="de"]')).toBeVisible();
+      await expect(page.locator('main noscript section p[lang="de"]')).toHaveText(
         'Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript. ' +
           'Aktiviere JavaScript und lade die Seite neu. Die App selbst findest du über die Links ' +
           'unten.',
       );
-      await expect(page.locator('main noscript p[lang="en"]')).toBeVisible();
-      await expect(page.locator('main noscript p[lang="en"]')).toHaveText(
+      await expect(page.locator('main noscript section p[lang="en"]')).toBeVisible();
+      await expect(page.locator('main noscript section p[lang="en"]')).toHaveText(
         'This page resolves your code through the RealUnit app and needs JavaScript. Enable ' +
           'JavaScript and reload the page. The app itself is linked below.',
       );
@@ -732,6 +732,26 @@ test.describe('invite and promo landing without JavaScript', () => {
       await expect(page.locator('nav.stores a[data-store="apple"]')).toBeVisible();
       await expect(page.locator('nav.stores a[data-store="play"]')).toBeVisible();
     }
+  });
+
+  test('shows the advertising and prospectus note in both languages and omits it on promo', async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only check');
+    const de =
+      'Dieser Inhalt dient Werbezwecken. Die genehmigten Prospekte und weitere Unterlagen zur RealUnit Schweiz AG sind abrufbar unter: https://realunit.ch/ueber-uns/downloads/ (Schweiz) | https://realunit.de/ueber-uns/downloads/ (Deutschland/EU). Vergangene Wertentwicklung ist kein verlässlicher Indikator für zukünftige Ergebnisse.';
+    const en =
+      'This content is for advertising purposes. The approved prospectuses and further documents on RealUnit Schweiz AG are available at: https://realunit.ch/ueber-uns/downloads/ (Switzerland) | https://realunit.de/ueber-uns/downloads/ (Germany/EU). Past performance is not a reliable indicator of future results.';
+    await page.goto('/invite/AB12CD');
+    await expect(page.locator('#legal-note')).toBeVisible();
+    await expect(page.locator('#legal-note')).toHaveAttribute('lang', 'de');
+    await expect(page.locator('#legal-note')).toHaveText(de);
+    await expect(page.locator('#legal-note-en')).toBeVisible();
+    await expect(page.locator('#legal-note-en')).toHaveAttribute('lang', 'en');
+    await expect(page.locator('#legal-note-en')).toHaveText(en);
+    await page.goto('/promo/EVT1');
+    await expect(page.locator('#legal-note')).toHaveCount(0);
+    await expect(page.locator('#legal-note-en')).toHaveCount(0);
   });
 });
 
@@ -744,13 +764,13 @@ test.describe('the no-JavaScript notice stays inside <noscript>', () => {
     // children are parsed as ordinary markup either way.
     // ?mock= keeps this off the network; the notice is a property of the
     // shell, not of the lookup result.
-    for (const path of ['/invite/AB12CD?mock=loading', '/promo/EVT1?mock=loading']) {
-      await page.goto(path);
-      await expect(page.locator('main noscript')).toHaveCount(1);
-      await expect(page.getByRole('heading', { name: 'JavaScript ist deaktiviert' })).toHaveCount(
-        0,
-      );
-    }
+    // The second invite <noscript> is the English prospectus note, not a second JavaScript warning.
+    await page.goto('/invite/AB12CD?mock=loading');
+    await expect(page.locator('main noscript')).toHaveCount(2);
+    await expect(page.getByRole('heading', { name: 'JavaScript ist deaktiviert' })).toHaveCount(0);
+    await page.goto('/promo/EVT1?mock=loading');
+    await expect(page.locator('main noscript')).toHaveCount(1);
+    await expect(page.getByRole('heading', { name: 'JavaScript ist deaktiviert' })).toHaveCount(0);
   });
 });
 
@@ -1668,6 +1688,33 @@ test.describe('invite and promo landing', () => {
       'href',
       'realunit-wallet://invite/AB%2F12',
     );
+  });
+
+  test('the invite landing carries the advertising and prospectus note in every state', async ({
+    page,
+  }) => {
+    const de =
+      'Dieser Inhalt dient Werbezwecken. Die genehmigten Prospekte und weitere Unterlagen zur RealUnit Schweiz AG sind abrufbar unter: https://realunit.ch/ueber-uns/downloads/ (Schweiz) | https://realunit.de/ueber-uns/downloads/ (Deutschland/EU). Vergangene Wertentwicklung ist kein verlässlicher Indikator für zukünftige Ergebnisse.';
+    const en =
+      'This content is for advertising purposes. The approved prospectuses and further documents on RealUnit Schweiz AG are available at: https://realunit.ch/ueber-uns/downloads/ (Switzerland) | https://realunit.de/ueber-uns/downloads/ (Germany/EU). Past performance is not a reliable indicator of future results.';
+    await page.goto('/invite/AB12CD?mock=1&lang=de');
+    await expect(page.locator('#state-ok')).toBeVisible();
+    await expect(page.locator('#legal-note')).toBeVisible();
+    await expect(page.locator('#legal-note')).toHaveText(de);
+    await expect(page.locator('#legal-note')).toHaveAttribute('lang', 'de');
+    await expect(page.locator('#legal-note')).not.toContainText('20 REALU');
+    await page.goto('/invite/AB12CD?mock=1&lang=en');
+    await expect(page.locator('#state-ok')).toBeVisible();
+    await expect(page.locator('#legal-note')).toHaveText(en);
+    await expect(page.locator('#legal-note')).toHaveAttribute('lang', 'en');
+    await page.goto('/invite/AB12CD?mock=invalid&lang=de');
+    await expect(page.locator('#state-invalid')).toBeVisible();
+    await expect(page.locator('#legal-note')).toHaveText(de);
+    await page.goto('/invite?lang=de');
+    await expect(page.locator('#legal-note')).toHaveText(de);
+    await page.goto('/promo/EVT1?mock=1&lang=de');
+    await expect(page.locator('#state-ok')).toBeVisible();
+    await expect(page.locator('#legal-note')).toHaveCount(0);
   });
 
   test('a blank inviter name uses the fallback body', async ({ page }) => {

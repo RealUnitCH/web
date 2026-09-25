@@ -51,6 +51,8 @@
         'Wir konnten den Code gerade nicht prüfen. Bitte versuche es später erneut.',
       'unavailable.cta': 'Erneut versuchen',
       'unavailable.home': 'Zur Startseite',
+      'legal.note':
+        'Dieser Inhalt dient Werbezwecken. Die genehmigten Prospekte und weitere Unterlagen zur RealUnit Schweiz AG sind abrufbar unter: https://realunit.ch/ueber-uns/downloads/ (Schweiz) | https://realunit.de/ueber-uns/downloads/ (Deutschland/EU). Vergangene Wertentwicklung ist kein verlässlicher Indikator für zukünftige Ergebnisse.',
     },
     en: {
       'doc.title.invite': 'RealUnit — Invitation',
@@ -90,6 +92,8 @@
       'unavailable.body': 'We could not look up this code right now. Please try again later.',
       'unavailable.cta': 'Try again',
       'unavailable.home': 'Back to homepage',
+      'legal.note':
+        'This content is for advertising purposes. The approved prospectuses and further documents on RealUnit Schweiz AG are available at: https://realunit.ch/ueber-uns/downloads/ (Switzerland) | https://realunit.de/ueber-uns/downloads/ (Germany/EU). Past performance is not a reliable indicator of future results.',
     },
   };
 
