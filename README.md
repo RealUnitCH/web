@@ -32,6 +32,11 @@ uploaded to Cloudflare Pages.
   so Safari does not turn the campaign code or Aktionstext date into a link.
   `#ok-code` and `#ok-body` also set `x-apple-data-detectors="false"` because
   those strings are written after load.
+  The invite landing carries the RealUnit advertising and prospectus note
+  (`#legal-note`, the app's `legalDisclaimerAdvertising` wording, DE/EN via
+  `legal.note`) under the store badges in every state; without JavaScript the
+  English wording is also in the `<noscript>` paragraph `#legal-note-en` under
+  the same badges; it names no prize for the invited person.
   `www.realunit.app/invite|promo` is HTTP 200 (not a
   301 to the apex) so Universal Links and the Smart App Banner keep the host.
   The Smart App Banner `app-argument`, `og:url`, `rel=canonical`,

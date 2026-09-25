@@ -95,6 +95,13 @@
       -webkit-user-select: all;
     }
     .code-hint { margin: 0 0 12px; font-size: 0.85rem; }
+    .legal {
+      margin: 20px 0 0;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
     .code.code-copy-failed { color: var(--red); }
     .btn {
       display: inline-flex; align-items: center; justify-content: center;
@@ -169,8 +176,10 @@
         </p>
         <!-- Both languages: without JS nothing can read ?lang=en, and the
              middleware may still have flipped the document to lang="en".
-             Only this block and the store links below are visible without JS,
-             so the copy points at those and promises no other control. -->
+             Besides this block and the store links below, the German
+             #legal-note and the English #legal-note-en under the store
+             badges are also visible without JS, so the copy points at those
+             links and promises no other control. -->
         <p lang="en">
           This page resolves your code through the RealUnit app and needs JavaScript. Enable
           JavaScript and reload the page. The app itself is linked below.
@@ -223,6 +232,10 @@
         <img class="store-badge store-badge--play" src="/assets/badge-google-play.png" width="646" height="250" alt="" decoding="async" />
       </a>
     </nav>
+    <p class="legal" id="legal-note" lang="de" x-apple-data-detectors="false">Dieser Inhalt dient Werbezwecken. Die genehmigten Prospekte und weitere Unterlagen zur RealUnit Schweiz AG sind abrufbar unter: https://realunit.ch/ueber-uns/downloads/ (Schweiz) | https://realunit.de/ueber-uns/downloads/ (Deutschland/EU). Vergangene Wertentwicklung ist kein verlässlicher Indikator für zukünftige Ergebnisse.</p>
+    <noscript>
+      <p class="legal" id="legal-note-en" lang="en" x-apple-data-detectors="false">This content is for advertising purposes. The approved prospectuses and further documents on RealUnit Schweiz AG are available at: https://realunit.ch/ueber-uns/downloads/ (Switzerland) | https://realunit.de/ueber-uns/downloads/ (Germany/EU). Past performance is not a reliable indicator of future results.</p>
+    </noscript>
   </main>
   <script src="/invite/invite.js"></script>
 </body>
