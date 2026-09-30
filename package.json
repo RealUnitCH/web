@@ -18,7 +18,9 @@
     "check:visual": "node scripts/check-visual.mjs",
     "e2e:docker": "bash scripts/e2e-docker.sh",
     "e2e:docker:update": "bash scripts/e2e-docker.sh --update-snapshots",
-    "check": "npm run format:check && npm run validate:html && npm run check:site && npm run test:coverage"
+    "check": "npm run format:check && npm run validate:html && npm run check:site && npm run check:privacy && npm run test:coverage",
+    "build:privacy": "node scripts/build-privacy.mjs",
+    "check:privacy": "node scripts/build-privacy.mjs --check"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1",

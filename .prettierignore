@@ -11,3 +11,6 @@ tests/__screenshots__
 *.html
 
 package-lock.json
+
+# Copied unchanged from RealUnitCH/app assets/legal; must stay byte-identical to the app.
+legal/
