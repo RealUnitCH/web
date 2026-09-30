@@ -734,7 +734,7 @@ test.describe('invite and promo landing without JavaScript', () => {
     }
   });
 
-  test('shows the advertising and prospectus note in both languages and omits it on promo', async ({
+  test('shows the advertising and prospectus note in both languages on invite and promo', async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only check');
@@ -750,8 +750,12 @@ test.describe('invite and promo landing without JavaScript', () => {
     await expect(page.locator('#legal-note-en')).toHaveAttribute('lang', 'en');
     await expect(page.locator('#legal-note-en')).toHaveText(en);
     await page.goto('/promo/EVT1');
-    await expect(page.locator('#legal-note')).toHaveCount(0);
-    await expect(page.locator('#legal-note-en')).toHaveCount(0);
+    await expect(page.locator('#legal-note')).toBeVisible();
+    await expect(page.locator('#legal-note')).toHaveAttribute('lang', 'de');
+    await expect(page.locator('#legal-note')).toHaveText(de);
+    await expect(page.locator('#legal-note-en')).toBeVisible();
+    await expect(page.locator('#legal-note-en')).toHaveAttribute('lang', 'en');
+    await expect(page.locator('#legal-note-en')).toHaveText(en);
   });
 });
 
@@ -764,12 +768,12 @@ test.describe('the no-JavaScript notice stays inside <noscript>', () => {
     // children are parsed as ordinary markup either way.
     // ?mock= keeps this off the network; the notice is a property of the
     // shell, not of the lookup result.
-    // The second invite <noscript> is the English prospectus note, not a second JavaScript warning.
+    // The second <noscript> on both landings is the English prospectus note, not a second JavaScript warning.
     await page.goto('/invite/AB12CD?mock=loading');
     await expect(page.locator('main noscript')).toHaveCount(2);
     await expect(page.getByRole('heading', { name: 'JavaScript ist deaktiviert' })).toHaveCount(0);
     await page.goto('/promo/EVT1?mock=loading');
-    await expect(page.locator('main noscript')).toHaveCount(1);
+    await expect(page.locator('main noscript')).toHaveCount(2);
     await expect(page.getByRole('heading', { name: 'JavaScript ist deaktiviert' })).toHaveCount(0);
   });
 });
@@ -1690,7 +1694,7 @@ test.describe('invite and promo landing', () => {
     );
   });
 
-  test('the invite landing carries the advertising and prospectus note in every state', async ({
+  test('the invite and promo landings carry the advertising and prospectus note in every state', async ({
     page,
   }) => {
     const de =
@@ -1714,7 +1718,15 @@ test.describe('invite and promo landing', () => {
     await expect(page.locator('#legal-note')).toHaveText(de);
     await page.goto('/promo/EVT1?mock=1&lang=de');
     await expect(page.locator('#state-ok')).toBeVisible();
-    await expect(page.locator('#legal-note')).toHaveCount(0);
+    await expect(page.locator('#legal-note')).toHaveText(de);
+    await expect(page.locator('#legal-note')).toHaveAttribute('lang', 'de');
+    await page.goto('/promo/EVT1?mock=1&lang=en');
+    await expect(page.locator('#state-ok')).toBeVisible();
+    await expect(page.locator('#legal-note')).toHaveText(en);
+    await expect(page.locator('#legal-note')).toHaveAttribute('lang', 'en');
+    await page.goto('/promo/EVT1?mock=invalid&lang=de');
+    await expect(page.locator('#state-invalid')).toBeVisible();
+    await expect(page.locator('#legal-note')).toHaveText(de);
   });
 
   test('a blank inviter name uses the fallback body', async ({ page }) => {

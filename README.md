@@ -32,7 +32,7 @@ uploaded to Cloudflare Pages.
   so Safari does not turn the campaign code or Aktionstext date into a link.
   `#ok-code` and `#ok-body` also set `x-apple-data-detectors="false"` because
   those strings are written after load.
-  The invite landing carries the RealUnit advertising and prospectus note
+  The invite and promo landings carry the RealUnit advertising and prospectus note
   (`#legal-note`, the app's `legalDisclaimerAdvertising` wording, DE/EN via
   `legal.note`) under the store badges in every state; without JavaScript the
   English wording is also in the `<noscript>` paragraph `#legal-note-en` under
