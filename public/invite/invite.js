@@ -8,7 +8,10 @@
     supported: core.SUPPORTED_LANGS,
     defaultLang: 'de',
   });
-  var copy = core.I18N[lang];
+  // The HTML shell fixes the layout: /promo carries the three-step promo
+  // page in the formal «Sie» form, so its copy is chosen by path.
+  var pathIsPromo = /^\/+promo(\/|$)/i.test(window.location.pathname);
+  var copy = core.landingCopy(lang, pathIsPromo ? 'promo' : 'invite');
   var parsed = core.parseCodeFromLocation(
     window.location.pathname,
     window.location.search,
@@ -103,7 +106,10 @@
             action.focus({ preventScroll: true });
             return;
           }
-          var heading = node.querySelector('h1');
+          // On the promo page the result sits under steps 1 to 3; focus stays
+          // at the top so the steps are read first.
+          if (pathIsPromo && name === 'state-ok') return;
+          var heading = node.querySelector('h1, h2');
           if (heading) heading.focus({ preventScroll: true });
         }
       }
@@ -123,7 +129,6 @@
   }
 
   document.documentElement.lang = lang;
-  var pathIsPromo = /^\/+promo(\/|$)/i.test(window.location.pathname);
   var isPromoPath = parsed ? parsed.kind === 'promo' : pathIsPromo;
   document.title = isPromoPath ? copy['doc.title.promo'] : copy['doc.title.invite'];
   setText('loading-title', isPromoPath ? copy['loading.title.promo'] : copy['loading.title']);
@@ -152,6 +157,15 @@
   setText('ok-copy', copy['code.copy']);
   setText('ok-copy-link', copy['link.copy']);
   setText('legal-note', copy['legal.note']);
+  if (pathIsPromo) {
+    setText('promo-hero-title', copy['promo.hero.title']);
+    setText('promo-hero-tagline', copy['promo.hero.tagline']);
+    setText('promo-step1', copy['promo.step1']);
+    setText('promo-step2', copy['promo.step2']);
+    setText('promo-step3', copy['promo.step3.fallback']);
+    var promoLogo = document.getElementById('promo-logo');
+    if (promoLogo) promoLogo.setAttribute('alt', copy['promo.logo.alt']);
+  }
   var legalNote = document.getElementById('legal-note');
   if (legalNote) legalNote.setAttribute('lang', lang);
   var descEl = document.querySelector('meta[name="description"]');
@@ -400,7 +414,10 @@
   var cta = document.getElementById('ok-cta');
   if (cta) {
     cta.setAttribute('href', appHref);
-    if (document.documentElement.getAttribute('data-platform') === 'ios') {
+    if (
+      document.documentElement.getAttribute('data-platform') === 'ios' &&
+      document.getElementById('ok-retap')
+    ) {
       cta.setAttribute('aria-describedby', 'ok-retap');
     }
   }
@@ -645,6 +662,7 @@
       document.title = copy['doc.title.promo'];
       setText('ok-title', copy['promo.title']);
       setNoTranslate(okTitleEl, false);
+      setText('promo-step3', core.promoStep3(payload, copy));
       var promoText = String(core.promoBody(payload, lang) || '');
       var promoHasText = promoText.trim().length > 0;
       setOkBody(
@@ -697,10 +715,11 @@
           parsed.kind === 'promo'
             ? {
                 kind: 'promo',
+                minBuyRealu: 200,
                 actionText:
-                  'Mit dem Code EVT1 schenken wir dir bei deinem ersten erfolgreich abgewickelten Kauf von mindestens 200 RealUnit-Aktientoken 20 Token dazu. Die 20 Token werden als Zugabe zum Kauf gewährt und mindern damit den effektiven Kaufpreis. Gültig bis 7.9.2026, einmal je Person, begrenzt auf 100 Einlösungen, nicht kumulierbar mit einer Empfehlungsprämie. Die RealUnit Schweiz AG kann die Aktion jederzeit beenden.',
+                  'Mit dem Code EVT1 schenken wir Ihnen bei Ihrem ersten erfolgreich abgewickelten Kauf von mindestens 200 RealUnit-Aktientoken 20 Token dazu. Die 20 Token werden als Zugabe zum Kauf gewährt und mindern damit den effektiven Kaufpreis. Nur für neue Kundinnen und Kunden; der Code ist vor dem ersten Kauf einzugeben. Gültig bis 16.10.2026, einmal je Person, begrenzt auf 100 Einlösungen, nicht kumulierbar mit einer Empfehlungsprämie. Die RealUnit Schweiz AG kann die Aktion jederzeit beenden. Bei Fragen wenden Sie sich bitte an info@realunit.ch.',
                 campaignTextEn:
-                  'With code EVT1 we give you 20 tokens on your first successful purchase of at least 200 RealUnit share tokens. The 20 tokens are granted as a bonus and reduce the effective purchase price. Valid until 7 Sep 2026, once per person, limited to 100 redemptions, not combinable with a referral prize. RealUnit Schweiz AG may end the campaign at any time.',
+                  'With code EVT1 we give you 20 RealUnit share tokens on your first successfully settled purchase of at least 200 RealUnit share tokens. The 20 tokens are granted as a bonus on the purchase and reduce the effective purchase price. New customers only; the code must be entered before the first purchase. Valid until 16.10.2026, once per person, limited to 100 redemptions, not combinable with a referral reward. RealUnit Schweiz AG may end the campaign at any time. If you have any questions, please contact info@realunit.ch.',
               }
             : {
                 kind: 'invite',

@@ -147,10 +147,34 @@ const promoHtml = read(join(PUBLIC, 'promo', 'index.html'));
 if (!promoHtml.includes('Promo-Code wird geladen')) {
   fail('public/promo/index.html: loading title must be promo copy, not invite');
 }
+// promoOnlyChecks: the three-step layout RealUnit asked for on 30.09.2026.
+for (const id of [
+  'promo-logo',
+  'promo-hero-title',
+  'promo-hero-tagline',
+  'promo-step1',
+  'promo-step2',
+  'promo-step3',
+]) {
+  if (!promoHtml.includes(`id="${id}"`)) {
+    fail(`public/promo/index.html: three-step layout must include #${id}`);
+  }
+}
+if ((promoHtml.match(/<h1\b/g) || []).length !== 1) {
+  fail('public/promo/index.html: the hero title must be the only h1');
+}
+if (/\b(dein|deinen|deinem|deiner|dich|du)\b/i.test(promoHtml.replace(/<!--[\s\S]*?-->/g, ''))) {
+  fail('public/promo/index.html: promo copy uses the formal «Sie» form');
+}
 for (const [label, html] of [
   ['public/invite/index.html', read(join(PUBLIC, 'invite', 'index.html'))],
   ['public/promo/index.html', promoHtml],
 ]) {
+  // The promo landing follows RealUnit's three-step layout of 30.09.2026:
+  // step 2 already tells the visitor to enter the code at registration, so it
+  // carries no re-tap hint, no pitch and no copy-link (see promoOnlyChecks),
+  // and its status headings are h2 under the hero h1.
+  const isInvite = label === 'public/invite/index.html';
   if (
     !html.includes('id="ok-code"') ||
     !html.includes('translate="no"') ||
@@ -246,7 +270,7 @@ for (const [label, html] of [
     fail(`${label}: lookup states must be live regions`);
   }
   if (
-    !html.includes('#state-invalid h1') ||
+    !html.includes(isInvite ? '#state-invalid h1' : '#state-invalid h2') ||
     !html.includes('#state-invalid p') ||
     !html.includes('--red:')
   ) {
@@ -258,7 +282,7 @@ for (const [label, html] of [
   if (!html.includes('id="ok-code-hint" role="status" aria-live="polite" tabindex="-1"')) {
     fail(`${label}: checking hint must be a live region and focusable after retry`);
   }
-  if (!html.includes('id="ok-retap"') || !html.includes('role="note"')) {
+  if (isInvite && (!html.includes('id="ok-retap"') || !html.includes('role="note"'))) {
     fail(`${label}: iOS re-tap hint must be a note`);
   }
   if (
@@ -276,7 +300,7 @@ for (const [label, html] of [
   if (!html.includes('id="unavailable-home"')) {
     fail(`${label}: unavailable landing must offer a homepage link beside retry`);
   }
-  if (!html.includes('id="ok-pitch"')) {
+  if (isInvite && !html.includes('id="ok-pitch"')) {
     fail(`${label}: invite/promo must include the pitch in the code box`);
   }
   if (
@@ -297,7 +321,7 @@ for (const [label, html] of [
   if (!html.includes('id="ok-title"') || !html.includes('tabindex="-1"')) {
     fail(`${label}: lookup result heading must be focusable after load`);
   }
-  if (!html.includes('id="ok-copy-link"') || !html.includes('only-desktop')) {
+  if (isInvite && (!html.includes('id="ok-copy-link"') || !html.includes('only-desktop'))) {
     fail(`${label}: desktop landing must offer copy-link`);
   }
   if (!html.includes('id="ok-desktop"')) {

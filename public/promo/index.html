@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RealUnit — Promo-Code</title>
-  <meta name="description" content="Öffne die RealUnit-App mit diesem Code." />
+  <meta name="description" content="Öffnen Sie die RealUnit-App mit diesem Code." />
   <meta name="theme-color" content="#1988C6" />
   <meta name="format-detection" content="telephone=no, date=no" />
   <meta name="robots" content="noindex" />
@@ -12,7 +12,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="RealUnit" />
   <meta property="og:title" content="RealUnit — Promo-Code" />
-  <meta property="og:description" content="Öffne die RealUnit-App mit diesem Code." />
+  <meta property="og:description" content="Öffnen Sie die RealUnit-App mit diesem Code." />
   <meta property="og:image" content="https://realunit.app/assets/og.png" />
   <meta property="og:image:width" content="1024" />
   <meta property="og:image:height" content="500" />
@@ -23,7 +23,7 @@
   <meta property="og:locale:alternate" content="en_GB" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="RealUnit — Promo-Code" />
-  <meta name="twitter:description" content="Öffne die RealUnit-App mit diesem Code." />
+  <meta name="twitter:description" content="Öffnen Sie die RealUnit-App mit diesem Code." />
   <meta name="twitter:image" content="https://realunit.app/assets/og.png" />
   <meta name="twitter:image:alt" content="RealUnit" />
   <meta name="twitter:url" content="https://realunit.app/promo/" />
@@ -42,12 +42,14 @@
       color: var(--ink);
       background: var(--bg);
       display: flex;
-      align-items: center;
       justify-content: center;
       min-height: 100%;
       padding: clamp(16px, 4vw, 48px);
     }
     .card {
+      /* Auto margins centre the card vertically while it fits and let the
+         three-step card grow from the top once it is taller than the screen. */
+      margin: auto 0;
       width: 100%;
       max-width: 460px;
       background: #fff;
@@ -57,7 +59,37 @@
       text-align: center;
     }
     h1 { font-size: 1.4rem; margin: 0 0 10px; }
-    #state-invalid h1,
+    h2 { font-size: 1.15rem; margin: 0 0 10px; }
+    .logo {
+      display: block;
+      height: 40px;
+      width: auto;
+      max-width: 100%;
+      margin: 0 auto 24px;
+    }
+    .hero { margin: 0 0 8px; }
+    .hero-title { font-size: 1.5rem; margin: 0 0 6px; color: var(--ink); }
+    .hero-tagline { margin: 0; color: var(--blue); font-weight: 600; }
+    .step {
+      margin: 28px 0 0;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .step-title {
+      font-size: 1rem;
+      line-height: 1.4;
+      margin: 0;
+      color: var(--ink);
+    }
+    .step-title + .stores { margin-top: 14px; }
+    .step-title + .code-label { margin-top: 14px; }
+    .noscript-note,
+    #state-loading,
+    #state-invalid,
+    #state-unavailable { margin-top: 28px; }
+    #state-ok { margin-top: 28px; text-align: left; }
+    #state-ok h2 { text-align: center; }
+    #state-invalid h2,
     #state-invalid p { color: var(--red); }
     p { color: var(--muted); line-height: 1.55; }
     .hint {
@@ -95,6 +127,7 @@
       -webkit-user-select: all;
     }
     .code-hint { margin: 0 0 12px; font-size: 0.85rem; }
+    .code-hint:empty { margin: 0 0 4px; }
     .legal {
       margin: 20px 0 0;
       font-size: 0.78rem;
@@ -124,6 +157,7 @@
     .code:focus-visible,
     .store-link:focus-visible,
     h1[tabindex="-1"]:focus,
+    h2[tabindex="-1"]:focus,
     .code-hint[tabindex="-1"]:focus,
     #unavailable-cta:focus,
     #invalid-home:focus {
@@ -166,72 +200,79 @@
 </head>
 <body>
   <main class="card">
+    <img class="logo" id="promo-logo" src="/assets/realunit-logo.png" width="900" height="267" alt="RealUnit Schweiz AG" />
+    <header class="hero">
+      <h1 class="hero-title" id="promo-hero-title">Schweizer Vermögensschutz</h1>
+      <p class="hero-tagline" id="promo-hero-tagline">Einfach. Sicher. Bankenunabhängig.</p>
+    </header>
+    <section class="step" aria-labelledby="promo-step1">
+      <h2 class="step-title" id="promo-step1">Schritt 1: App herunterladen</h2>
+      <nav class="stores" aria-label="App herunterladen">
+        <a class="store-link" data-store="apple" href="https://apps.apple.com/ch/app/realunit/id6759720010" target="_blank" rel="noopener" aria-label="RealUnit im App Store laden">
+          <img class="store-badge store-badge--apple" src="/assets/badge-app-store.svg" width="120" height="40" alt="" decoding="async" />
+        </a>
+        <a class="store-link" data-store="play" href="https://play.google.com/store/apps/details?id=swiss.realunit.app" target="_blank" rel="noopener" aria-label="RealUnit jetzt bei Google Play">
+          <img class="store-badge store-badge--play" src="/assets/badge-google-play.png" width="646" height="250" alt="" decoding="async" />
+        </a>
+      </nav>
+    </section>
     <noscript>
-      <section>
-        <h1 lang="de">JavaScript ist deaktiviert</h1>
+      <section class="noscript-note">
+        <h2 lang="de">JavaScript ist deaktiviert</h2>
         <p lang="de">
-          Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript.
-          Aktiviere JavaScript und lade die Seite neu. Die App selbst findest du über die Links
-          unten.
+          Diese Seite löst Ihren Code über die RealUnit-App auf und braucht dafür JavaScript.
+          Aktivieren Sie JavaScript und laden Sie die Seite neu. Die App selbst finden Sie über die
+          Links oben.
         </p>
         <!-- Both languages: without JS nothing can read ?lang=en, and the
              middleware may still have flipped the document to lang="en".
-             Besides this block and the store links below, the German
-             #legal-note and the English #legal-note-en under the store
-             badges are also visible without JS, so the copy points at those
-             links and promises no other control. -->
+             Besides this block and the store links above it, the German
+             #legal-note and the English #legal-note-en at the bottom are
+             also visible without JS, so the copy points at those links and
+             promises no other control. -->
         <p lang="en">
           This page resolves your code through the RealUnit app and needs JavaScript. Enable
-          JavaScript and reload the page. The app itself is linked below.
+          JavaScript and reload the page. The app itself is linked above.
         </p>
       </section>
     </noscript>
+    <section class="step" id="ok-code-box" aria-labelledby="promo-step2" hidden>
+      <h2 class="step-title" id="promo-step2">Schritt 2: App öffnen, neues Wallet erstellen und bei der Registrierung den Code eingeben</h2>
+      <div class="code-box">
+        <p class="code-label" id="ok-code-label">Ihr Code</p>
+        <p class="code notranslate" id="ok-code" translate="no" lang="zxx" x-apple-data-detectors="false" aria-describedby="ok-code-hint"></p>
+        <p class="code-hint" id="ok-code-hint" role="status" aria-live="polite" tabindex="-1"></p>
+        <button type="button" class="btn btn-secondary" id="ok-copy">Code kopieren</button>
+      </div>
+      <p class="only-desktop" id="ok-desktop"></p>
+      <div id="ok-open" hidden>
+        <p class="only-mobile"><a class="btn" id="ok-cta" href="realunit-wallet://open" rel="noopener">In der App öffnen</a></p>
+      </div>
+      <h2 class="step step-title" id="promo-step3">Schritt 3: RealUnit-Aktientoken kaufen</h2>
+    </section>
     <section id="state-loading" role="status" aria-live="polite" aria-busy="true">
-      <h1 id="loading-title">Promo-Code wird geladen…</h1>
+      <h2 id="loading-title">Promo-Code wird geladen…</h2>
       <p id="loading-body">Einen Moment bitte.</p>
     </section>
-    <div class="code-box" id="ok-code-box" hidden>
-      <p class="code-label" id="ok-code-label">Dein Code</p>
-      <p class="code notranslate" id="ok-code" translate="no" lang="zxx" x-apple-data-detectors="false" aria-describedby="ok-code-hint"></p>
-      <p class="code-hint" id="ok-code-hint" role="status" aria-live="polite" tabindex="-1"></p>
-      <button type="button" class="btn btn-secondary" id="ok-copy">Code kopieren</button>
-      <p class="only-desktop" id="ok-desktop"></p>
-      <p class="only-desktop">
-        <button type="button" class="btn btn-secondary" id="ok-copy-link">Link kopieren</button>
-      </p>
-      <p id="ok-pitch"></p>
-      <p class="hint only-ios" id="ok-retap" role="note"></p>
-    </div>
-    <div id="ok-open" hidden>
-      <p class="only-mobile"><a class="btn" id="ok-cta" href="realunit-wallet://open" rel="noopener">In der App öffnen</a></p>
-    </div>
     <section id="state-ok" hidden role="status" aria-live="polite">
-      <h1 id="ok-title" tabindex="-1">Promo-Code</h1>
-      <p id="ok-body" x-apple-data-detectors="false">Die App übernimmt den Code automatisch.</p>
+      <h2 id="ok-title" tabindex="-1">Promo-Code</h2>
+      <p id="ok-body" x-apple-data-detectors="false">Öffnen Sie die App, um den Promo-Code zu übernehmen.</p>
     </section>
     <section id="state-invalid" hidden>
       <div id="invalid-status" role="status" aria-live="assertive">
-        <h1 id="invalid-title" tabindex="-1">Link ungültig oder abgelaufen</h1>
+        <h2 id="invalid-title" tabindex="-1">Link ungültig oder abgelaufen</h2>
         <p id="invalid-body">Dieser Einladungs- oder Promo-Link ist ungültig oder bereits abgelaufen.</p>
       </div>
       <a class="btn" id="invalid-home" href="/">Zur Startseite</a>
     </section>
     <section id="state-unavailable" hidden>
       <div id="unavailable-status" role="status" aria-live="polite">
-        <h1 id="unavailable-title" tabindex="-1">Dienst vorübergehend nicht erreichbar</h1>
-        <p id="unavailable-body">Wir konnten den Code gerade nicht prüfen. Bitte versuche es später erneut.</p>
+        <h2 id="unavailable-title" tabindex="-1">Dienst vorübergehend nicht erreichbar</h2>
+        <p id="unavailable-body">Wir konnten den Code gerade nicht prüfen. Bitte versuchen Sie es später erneut.</p>
       </div>
       <button class="btn" type="button" id="unavailable-cta" aria-describedby="unavailable-body">Erneut versuchen</button>
       <a class="btn btn-secondary" id="unavailable-home" href="/">Zur Startseite</a>
     </section>
-    <nav class="stores" aria-label="App herunterladen">
-      <a class="store-link" data-store="apple" href="https://apps.apple.com/ch/app/realunit/id6759720010" target="_blank" rel="noopener" aria-label="RealUnit im App Store laden">
-        <img class="store-badge store-badge--apple" src="/assets/badge-app-store.svg" width="120" height="40" alt="" decoding="async" />
-      </a>
-      <a class="store-link" data-store="play" href="https://play.google.com/store/apps/details?id=swiss.realunit.app" target="_blank" rel="noopener" aria-label="RealUnit jetzt bei Google Play">
-        <img class="store-badge store-badge--play" src="/assets/badge-google-play.png" width="646" height="250" alt="" decoding="async" />
-      </a>
-    </nav>
     <p class="legal" id="legal-note" lang="de" x-apple-data-detectors="false">Dieser Inhalt dient Werbezwecken. Die genehmigten Prospekte und weitere Unterlagen zur RealUnit Schweiz AG sind abrufbar unter: https://realunit.ch/ueber-uns/downloads/ (Schweiz) | https://realunit.de/ueber-uns/downloads/ (Deutschland/EU). Vergangene Wertentwicklung ist kein verlässlicher Indikator für zukünftige Ergebnisse.</p>
     <noscript>
       <p class="legal" id="legal-note-en" lang="en" x-apple-data-detectors="false">This content is for advertising purposes. The approved prospectuses and further documents on RealUnit Schweiz AG are available at: https://realunit.ch/ueber-uns/downloads/ (Switzerland) | https://realunit.de/ueber-uns/downloads/ (Germany/EU). Past performance is not a reliable indicator of future results.</p>

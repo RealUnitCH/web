@@ -638,9 +638,9 @@ describe('URLs', () => {
         '',
       ),
     ).toBe(
-      '<meta content="Öffne die RealUnit-App mit dem Code EVT1." property="og:description">' +
-        '<meta content="Öffne die RealUnit-App mit dem Code EVT1." name="twitter:description">' +
-        '<meta content="Öffne die RealUnit-App mit dem Code EVT1." name="description">',
+      '<meta content="Öffnen Sie die RealUnit-App mit dem Code EVT1." property="og:description">' +
+        '<meta content="Öffnen Sie die RealUnit-App mit dem Code EVT1." name="twitter:description">' +
+        '<meta content="Öffnen Sie die RealUnit-App mit dem Code EVT1." name="description">',
     );
     expect(injectShareDescriptionHtml(shell, '/invite', '', '')).toBe(shell);
     expect(injectShareDescriptionHtml(null, '/invite/AB12CD', '', '')).toBeNull();
@@ -1812,5 +1812,71 @@ describe('remaining branch coverage', () => {
     }
     expect(mapResult(410, { code: 'spent' })).toEqual({ state: 'invalid', code: 'SPENT' });
     expect(mapResult(410, 'nope')).toEqual({ state: 'invalid' });
+  });
+});
+
+describe('promo landing copy', () => {
+  test('landingCopy overlays the formal promo strings on /promo only', () => {
+    const promo = core.landingCopy('de', 'promo');
+    expect(promo['code.label']).toBe('Ihr Code');
+    expect(promo['code.hint']).toBe('');
+    expect(promo['cta.desktop']).toBe(
+      'Öffnen Sie diesen Link auf Ihrem Smartphone; die App startet und übernimmt den Code.',
+    );
+    expect(promo['promo.hero.title']).toBe('Schweizer Vermögensschutz');
+    expect(promo['promo.hero.tagline']).toBe('Einfach. Sicher. Bankenunabhängig.');
+    expect(promo['promo.step1']).toBe('Schritt 1: App herunterladen');
+    expect(promo['promo.step2']).toBe(
+      'Schritt 2: App öffnen, neues Wallet erstellen und bei der Registrierung den Code eingeben',
+    );
+    expect(promo['legal.note']).toBe(I18N.de['legal.note']);
+    expect(promo['code.copy']).toBe(I18N.de['code.copy']);
+    const invite = core.landingCopy('de', 'invite');
+    expect(invite).toEqual(I18N.de);
+    expect(invite).not.toBe(I18N.de);
+    expect(core.landingCopy('en', 'promo')['promo.step1']).toBe('Step 1: Download the app');
+    expect(core.landingCopy('en', 'promo')['code.label']).toBe('Your code');
+    expect(core.landingCopy('xx', 'promo')['code.label']).toBe('Ihr Code');
+    expect(core.landingCopy('xx', 'invite')).toEqual(I18N.de);
+  });
+
+  test('promo copy has the same keys in both languages', () => {
+    expect(Object.keys(core.PROMO_I18N.en).sort()).toEqual(Object.keys(core.PROMO_I18N.de).sort());
+    for (const key of Object.keys(core.PROMO_I18N.de)) {
+      expect(core.PROMO_I18N.de[key]).not.toMatch(/\b(du|dich|dein|deinem|deinen|deiner)\b/i);
+    }
+  });
+
+  test('promoStep3 names the minimum purchase from the lookup payload', () => {
+    const de = core.landingCopy('de', 'promo');
+    const en = core.landingCopy('en', 'promo');
+    expect(core.promoStep3({ minBuyRealu: 200 }, de)).toBe(
+      'Schritt 3: Mindestens 200 RealUnit-Aktientoken kaufen',
+    );
+    expect(core.promoStep3({ minBuyRealu: '150' }, en)).toBe(
+      'Step 3: Buy at least 150 RealUnit share tokens',
+    );
+    for (const payload of [null, undefined, {}, { minBuyRealu: 0 }, { minBuyRealu: -5 }]) {
+      expect(core.promoStep3(payload, de)).toBe('Schritt 3: RealUnit-Aktientoken kaufen');
+    }
+    expect(core.promoStep3({ minBuyRealu: 7.5 }, de)).toBe(
+      'Schritt 3: RealUnit-Aktientoken kaufen',
+    );
+    expect(core.promoStep3({ minBuyRealu: 'abc' }, de)).toBe(
+      'Schritt 3: RealUnit-Aktientoken kaufen',
+    );
+    expect(core.promoStep3({ minBuyRealu: Infinity }, en)).toBe(
+      'Step 3: Buy RealUnit share tokens',
+    );
+  });
+
+  test('shareDescription uses the formal form for promo links in German', () => {
+    expect(shareDescription('EVT1', 'de', 'promo')).toBe(
+      'Öffnen Sie die RealUnit-App mit dem Code EVT1.',
+    );
+    expect(shareDescription('EVT1', 'de', 'invite')).toBe(
+      'Öffne die RealUnit-App mit dem Code EVT1.',
+    );
+    expect(shareDescription('EVT1', 'en', 'promo')).toBe('Open the RealUnit app with code EVT1.');
   });
 });

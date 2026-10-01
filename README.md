@@ -31,18 +31,25 @@ uploaded to Cloudflare Pages.
   uppercased, stripped of messenger zero-width/fullwidth characters and
   trailing sentence punct (`!`, `?`, `/`, …), and capped at 32 like the
   API lookup — including in the crawler HTML bytes Safari snapshots.
-  The re-tap hint is iOS-only;
+  The re-tap hint is iOS-only and invite-only;
   Android keeps the code via the Play referrer. An App Store / Play / CTA tap
   also copies the code (user gesture) so an iOS badge install can still be
   pasted at registration. iOS `format-detection` is `telephone=no, date=no`
   so Safari does not turn the campaign code or Aktionstext date into a link.
   `#ok-code` and `#ok-body` also set `x-apple-data-detectors="false"` because
   those strings are written after load.
+  The promo landing follows RealUnit's three-step layout of 30.09.2026 in the
+  formal «Sie» form: logo and «Schweizer Vermögensschutz», step 1 with the store
+  badges, step 2 with the code, «Code kopieren» and «In der App öffnen» (phone) or
+  the open-on-smartphone sentence (desktop), step 3 with the code's own minimum
+  purchase (`minBuyRealu` from the lookup), then the campaign text. Its strings
+  are `PROMO_I18N` in `invite-core.js`, laid over the shared copy by `landingCopy`;
+  it has no pitch, re-tap hint or «Link kopieren».
   The invite and promo landings carry the RealUnit advertising and prospectus note
   (`#legal-note`, the app's `legalDisclaimerAdvertising` wording, DE/EN via
-  `legal.note`) under the store badges in every state; without JavaScript the
-  English wording is also in the `<noscript>` paragraph `#legal-note-en` under
-  the same badges; it names no prize for the invited person.
+  `legal.note`) at the bottom in every state; without JavaScript the
+  English wording is also in the `<noscript>` paragraph `#legal-note-en` right
+  after it; it names no prize for the invited person.
   `www.realunit.app/invite|promo` is HTTP 200 (not a
   301 to the apex) so Universal Links and the Smart App Banner keep the host.
   The Smart App Banner `app-argument`, `og:url`, `rel=canonical`,
