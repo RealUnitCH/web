@@ -699,7 +699,29 @@ test.describe('invite and promo landing without JavaScript', () => {
 
   test('says why nothing resolves instead of spinning for ever', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'desktop-only check');
-    for (const path of ['/invite/AB12CD', '/promo/EVT1']) {
+    // The promo page speaks in the formal «Sie» form and shows the store
+    // links above the notice (step 1); the invite page keeps them below.
+    const copyByPath = {
+      '/invite/AB12CD': {
+        de:
+          'Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript. ' +
+          'Aktiviere JavaScript und lade die Seite neu. Die App selbst findest du über die Links ' +
+          'unten.',
+        en:
+          'This page resolves your code through the RealUnit app and needs JavaScript. Enable ' +
+          'JavaScript and reload the page. The app itself is linked below.',
+      },
+      '/promo/EVT1': {
+        de:
+          'Diese Seite löst Ihren Code über die RealUnit-App auf und braucht dafür JavaScript. ' +
+          'Aktivieren Sie JavaScript und laden Sie die Seite neu. Die App selbst finden Sie über ' +
+          'die Links oben.',
+        en:
+          'This page resolves your code through the RealUnit app and needs JavaScript. Enable ' +
+          'JavaScript and reload the page. The app itself is linked above.',
+      },
+    };
+    for (const [path, copy] of Object.entries(copyByPath)) {
       await page.goto(path);
       // Nothing can resolve the code, so the loading state must not be the
       // only thing on screen.
@@ -717,18 +739,11 @@ test.describe('invite and promo landing without JavaScript', () => {
       // toHaveText matches textContent, which display:none leaves untouched —
       // so the visibility of each paragraph is asserted separately.
       await expect(page.locator('main noscript section p[lang="de"]')).toBeVisible();
-      await expect(page.locator('main noscript section p[lang="de"]')).toHaveText(
-        'Diese Seite löst deinen Code über die RealUnit-App auf und braucht dafür JavaScript. ' +
-          'Aktiviere JavaScript und lade die Seite neu. Die App selbst findest du über die Links ' +
-          'unten.',
-      );
+      await expect(page.locator('main noscript section p[lang="de"]')).toHaveText(copy.de);
       await expect(page.locator('main noscript section p[lang="en"]')).toBeVisible();
-      await expect(page.locator('main noscript section p[lang="en"]')).toHaveText(
-        'This page resolves your code through the RealUnit app and needs JavaScript. Enable ' +
-          'JavaScript and reload the page. The app itself is linked below.',
-      );
-      // The copy tells the visitor the app is linked below, so the links have
-      // to be there without JS.
+      await expect(page.locator('main noscript section p[lang="en"]')).toHaveText(copy.en);
+      // The copy points the visitor at the store links, so the links have to
+      // be there without JS.
       await expect(page.locator('nav.stores a[data-store="apple"]')).toBeVisible();
       await expect(page.locator('nav.stores a[data-store="play"]')).toBeVisible();
     }
@@ -1409,7 +1424,7 @@ test.describe('invite and promo landing', () => {
     await forcePlatform(page, 'android');
     await page.goto('/promo/EVT1');
     await expect(page.locator('#state-ok')).toBeVisible();
-    await expect(page.locator('#ok-pitch')).toHaveText(/Promo-Code/);
+    await expect(page.locator('#promo-step3')).toHaveText('Schritt 3: RealUnit-Aktientoken kaufen');
     await expect(page.locator('#ok-retap')).toBeHidden();
     await expect(page.locator('#ok-copy-link')).toBeHidden();
     await expect(page.locator('#ok-cta')).toBeVisible();
@@ -1880,6 +1895,99 @@ test.describe('invite and promo landing', () => {
     await expect(page.locator('#ok-body')).not.toHaveAttribute('lang');
   });
 
+  test('the promo landing shows the three steps in the formal form', async ({ page }) => {
+    await page.route(REFERRAL_CODE_ENDPOINT, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          kind: 'promo',
+          minBuyRealu: 200,
+          campaignText: 'Mit dem Code EVT1 schenken wir Ihnen 20 Token dazu.',
+        }),
+      }),
+    );
+    await page.goto('/promo/EVT1');
+    await expect(page.locator('#state-ok')).toBeVisible();
+    await expect(page.locator('#promo-logo')).toHaveAttribute('alt', 'RealUnit Schweiz AG');
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('h1')).toHaveText('Schweizer Vermögensschutz');
+    await expect(page.locator('#promo-hero-tagline')).toHaveText(
+      'Einfach. Sicher. Bankenunabhängig.',
+    );
+    await expect(page.locator('#promo-step1')).toHaveText('Schritt 1: App herunterladen');
+    await expect(page.locator('#promo-step1 + nav.stores')).toBeVisible();
+    await expect(page.locator('#promo-step2')).toHaveText(
+      'Schritt 2: App öffnen, neues Wallet erstellen und bei der Registrierung den Code eingeben',
+    );
+    await expect(page.locator('#ok-code-label')).toHaveText('Ihr Code');
+    await expect(page.locator('#ok-code')).toHaveText('EVT1');
+    await expect(page.locator('#ok-copy')).toHaveText('Code kopieren');
+    await expect(page.locator('#ok-desktop')).toBeVisible();
+    await expect(page.locator('#ok-desktop')).toHaveText(
+      'Öffnen Sie diesen Link auf Ihrem Smartphone; die App startet und übernimmt den Code.',
+    );
+    await expect(page.locator('#promo-step3')).toHaveText(
+      'Schritt 3: Mindestens 200 RealUnit-Aktientoken kaufen',
+    );
+    await expect(page.locator('#ok-title')).toHaveText('Promo-Code');
+    await expect(page.locator('#ok-body')).toHaveText(
+      'Mit dem Code EVT1 schenken wir Ihnen 20 Token dazu.',
+    );
+    // The steps are read first: the result below them does not take focus.
+    await expect(page.locator('#ok-title')).not.toBeFocused();
+    await expect(page.locator('#ok-pitch')).toHaveCount(0);
+    await expect(page.locator('#ok-copy-link')).toHaveCount(0);
+    await expect(page.locator('#ok-retap')).toHaveCount(0);
+    await expect(page.locator('main')).not.toContainText(/\b(du|dein|deinen|dich)\b/i);
+  });
+
+  test('the promo landing shows the three steps in English', async ({ page }) => {
+    await page.route(REFERRAL_CODE_ENDPOINT, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ kind: 'promo', minBuyRealu: 150, campaignTextEn: 'EN text' }),
+      }),
+    );
+    await page.goto('/promo/EVT1?lang=en');
+    await expect(page.locator('#state-ok')).toBeVisible();
+    await expect(page.locator('h1')).toHaveText('Swiss wealth protection');
+    await expect(page.locator('#promo-hero-tagline')).toHaveText(
+      'Simple. Secure. Independent of banks.',
+    );
+    await expect(page.locator('#promo-step1')).toHaveText('Step 1: Download the app');
+    await expect(page.locator('#promo-step2')).toHaveText(
+      'Step 2: Open the app, create a new wallet and enter the code when you register',
+    );
+    await expect(page.locator('#ok-code-label')).toHaveText('Your code');
+    await expect(page.locator('#ok-desktop')).toHaveText(
+      'Open this link on your smartphone; the app starts and applies the code.',
+    );
+    await expect(page.locator('#promo-step3')).toHaveText(
+      'Step 3: Buy at least 150 RealUnit share tokens',
+    );
+    await expect(page.locator('#ok-title')).toHaveText('Promo code');
+    await expect(page.locator('#ok-body')).toHaveText('EN text');
+  });
+
+  test('the promo landing on a phone offers the app button inside step 2', async ({ page }) => {
+    await page.route(REFERRAL_CODE_ENDPOINT, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ kind: 'promo', minBuyRealu: 200, campaignText: 'Aktion' }),
+      }),
+    );
+    await forcePlatform(page, 'ios');
+    await page.goto('/promo/EVT1');
+    await expect(page.locator('#state-ok')).toBeVisible();
+    await expect(page.locator('#ok-code-box #ok-cta')).toBeVisible();
+    await expect(page.locator('#ok-cta')).toHaveText('In der App öffnen');
+    await expect(page.locator('#ok-cta')).not.toHaveAttribute('aria-describedby');
+    await expect(page.locator('#ok-desktop')).toBeHidden();
+  });
+
   test('a promo payload without action text uses the fallback body', async ({ page }) => {
     await page.route(REFERRAL_CODE_ENDPOINT, (route) =>
       route.fulfill({
@@ -1890,7 +1998,7 @@ test.describe('invite and promo landing', () => {
     );
     await page.goto('/promo/EVT1');
     await expect(page.locator('#ok-body')).toHaveText(
-      'Öffne die App, um den Promo-Code zu übernehmen.',
+      'Öffnen Sie die App, um den Promo-Code zu übernehmen.',
     );
   });
 
@@ -2169,7 +2277,7 @@ test.describe('invite and promo landing', () => {
     await expect(page.locator('#state-ok')).toBeVisible();
     await expect(page.locator('#ok-title')).toHaveText('Promo-Code');
     await expect(page.locator('#ok-body')).toHaveText(
-      'Öffne die App, um den Promo-Code zu übernehmen.',
+      'Öffnen Sie die App, um den Promo-Code zu übernehmen.',
     );
     expect(calls).toEqual([]);
   });

@@ -20,6 +20,8 @@ export const PAGES = [
   '/promo/EVT1?mock=spent',
   '/invite',
   '/promo',
+  '/privacy/',
+  '/privacy/en/',
 ];
 
 // Viewports the visual suite renders: desktop, a real tablet width, and a phone.

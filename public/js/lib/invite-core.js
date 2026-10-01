@@ -97,6 +97,70 @@
     },
   };
 
+  // The promo landing (realunit.app/promo) is the page behind a campaign QR
+  // code or flyer. RealUnit asked (30.09.2026) for a three-step layout in the
+  // formal «Sie» form; these keys override the shared copy on that page only.
+  var PROMO_I18N = {
+    de: {
+      'doc.desc': 'Öffnen Sie die RealUnit-App mit diesem Code.',
+      'code.label': 'Ihr Code',
+      'code.hint': '',
+      'cta.desktop':
+        'Öffnen Sie diesen Link auf Ihrem Smartphone; die App startet und übernimmt den Code.',
+      'promo.body.fallback': 'Öffnen Sie die App, um den Promo-Code zu übernehmen.',
+      'unavailable.body':
+        'Wir konnten den Code gerade nicht prüfen. Bitte versuchen Sie es später erneut.',
+      'promo.logo.alt': 'RealUnit Schweiz AG',
+      'promo.hero.title': 'Schweizer Vermögensschutz',
+      'promo.hero.tagline': 'Einfach. Sicher. Bankenunabhängig.',
+      'promo.step1': 'Schritt 1: App herunterladen',
+      'promo.step2':
+        'Schritt 2: App öffnen, neues Wallet erstellen und bei der Registrierung den Code eingeben',
+      'promo.step3': 'Schritt 3: Mindestens {min} RealUnit-Aktientoken kaufen',
+      'promo.step3.fallback': 'Schritt 3: RealUnit-Aktientoken kaufen',
+    },
+    en: {
+      'doc.desc': 'Open the RealUnit app with this code.',
+      'code.label': 'Your code',
+      'code.hint': '',
+      'cta.desktop': 'Open this link on your smartphone; the app starts and applies the code.',
+      'promo.body.fallback': 'Open the app to apply this promo code.',
+      'unavailable.body': 'We could not look up this code right now. Please try again later.',
+      'promo.logo.alt': 'RealUnit Schweiz AG',
+      'promo.hero.title': 'Swiss wealth protection',
+      'promo.hero.tagline': 'Simple. Secure. Independent of banks.',
+      'promo.step1': 'Step 1: Download the app',
+      'promo.step2':
+        'Step 2: Open the app, create a new wallet and enter the code when you register',
+      'promo.step3': 'Step 3: Buy at least {min} RealUnit share tokens',
+      'promo.step3.fallback': 'Step 3: Buy RealUnit share tokens',
+    },
+  };
+
+  // Copy for one landing shell: the shared strings, with the promo overrides
+  // on /promo. `shell` is the page the visitor opened, not the kind the API
+  // later confirms, because the layout is fixed by the HTML file.
+  function landingCopy(lang, shell) {
+    var base = I18N[lang] || I18N.de;
+    var copy = {};
+    var key;
+    for (key in base) copy[key] = base[key];
+    if (shell !== 'promo') return copy;
+    var promo = PROMO_I18N[lang] || PROMO_I18N.de;
+    for (key in promo) copy[key] = promo[key];
+    return copy;
+  }
+
+  // Step 3 of the promo landing names the code's own minimum purchase from the
+  // lookup payload; without a usable positive whole number it omits the number.
+  function promoStep3(payload, copy) {
+    var min = payload ? Number(payload.minBuyRealu) : NaN;
+    if (isFinite(min) && min > 0 && Math.floor(min) === min) {
+      return interpolate(copy['promo.step3'], { min: String(min) });
+    }
+    return copy['promo.step3.fallback'];
+  }
+
   function normalizeLang(value) {
     if (typeof value !== 'string') return '';
     return value.slice(0, 2).toLowerCase();
@@ -1066,10 +1130,11 @@
     );
   }
 
-  function shareDescription(code, lang) {
+  function shareDescription(code, lang, kind) {
     // Kept byte-identical to shareDescription in functions/lib/itunes-banner.js.
     if (!code) return lang === 'en' ? 'Open the RealUnit app with this code.' : null;
     if (lang === 'en') return 'Open the RealUnit app with code ' + code + '.';
+    if (kind === 'promo') return 'Öffnen Sie die RealUnit-App mit dem Code ' + code + '.';
     return 'Öffne die RealUnit-App mit dem Code ' + code + '.';
   }
 
@@ -1077,7 +1142,7 @@
     if (typeof html !== 'string') return html;
     var parsed = parseCodeFromLocation(pathname, search, hash);
     if (!parsed || !parsed.code) return html;
-    var description = shareDescription(parsed.code, langFromSearch(search));
+    var description = shareDescription(parsed.code, langFromSearch(search), parsed.kind);
     var withOg = replaceTaggedAttr(
       html,
       /(<meta\b[^>]*\bproperty=["']og:description["'][^>]*\bcontent=["'])([^"']*)(["'][^>]*>)/i,
@@ -1434,6 +1499,9 @@
   global.RealUnitInvite = {
     SUPPORTED_LANGS: SUPPORTED_LANGS,
     I18N: I18N,
+    PROMO_I18N: PROMO_I18N,
+    landingCopy: landingCopy,
+    promoStep3: promoStep3,
     LOOKUP_TIMEOUT_MS: LOOKUP_TIMEOUT_MS,
     COPY_TIMEOUT_MS: COPY_TIMEOUT_MS,
     resolveLang: resolveLang,

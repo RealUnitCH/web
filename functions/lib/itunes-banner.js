@@ -539,18 +539,21 @@ export function injectShareImageAltHtml(html, kind, code, lang) {
 }
 
 /** Crawlers snapshot og:description from the HTML bytes. Names wait for lookup JS. */
-export function shareDescription(code, lang) {
+export function shareDescription(code, lang, kind) {
   // Same reason as shareTitle: an English locale must not keep German copy.
   // Same string as I18N.en['doc.desc'] in invite-core.js, so the crawler
   // snapshot and the JS-rendered page do not disagree.
   if (!code) return lang === 'en' ? 'Open the RealUnit app with this code.' : null;
   if (lang === 'en') return 'Open the RealUnit app with code ' + code + '.';
+  // The promo landing speaks in the formal «Sie» form (PROMO_I18N in
+  // invite-core.js); the invite landing stays informal.
+  if (kind === 'promo') return 'Öffnen Sie die RealUnit-App mit dem Code ' + code + '.';
   return 'Öffne die RealUnit-App mit dem Code ' + code + '.';
 }
 
-export function injectShareDescriptionHtml(html, code, lang) {
+export function injectShareDescriptionHtml(html, code, lang, kind) {
   if (typeof html !== 'string') return html;
-  const description = shareDescription(code, lang);
+  const description = shareDescription(code, lang, kind);
   if (!description) return html;
   const safe = htmlEscape(description);
   let out = replaceTaggedAttr(
@@ -710,7 +713,7 @@ export function injectLandingFromRequestUrl(html, urlLike) {
   out = injectLandingCanonicalHtml(out, href);
   out = injectShareTitleHtml(out, parsed && parsed.kind, parsed && parsed.code, lang);
   out = injectShareImageAltHtml(out, parsed && parsed.kind, parsed && parsed.code, lang);
-  out = injectShareDescriptionHtml(out, parsed && parsed.code, lang);
+  out = injectShareDescriptionHtml(out, parsed && parsed.code, lang, parsed && parsed.kind);
   out = injectShareLocaleHtml(out, lang);
   out = injectSiteNameHtml(out);
   out = injectInstallHandoffHtml(out, parsed && parsed.kind, parsed && parsed.code);

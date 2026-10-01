@@ -552,6 +552,13 @@ describe('injectLandingFromRequestUrl', () => {
     expect(shareDescription('EVT1')).toBe('Öffne die RealUnit-App mit dem Code EVT1.');
     expect(shareDescription('EVT1', 'en')).toBe('Open the RealUnit app with code EVT1.');
     expect(shareDescription(null)).toBeNull();
+    expect(shareDescription('EVT1', 'de', 'promo')).toBe(
+      'Öffnen Sie die RealUnit-App mit dem Code EVT1.',
+    );
+    expect(shareDescription('EVT1', 'en', 'promo')).toBe('Open the RealUnit app with code EVT1.');
+    expect(injectShareDescriptionHtml(shell, 'EVT1', 'de', 'promo')).toContain(
+      'content="Öffnen Sie die RealUnit-App mit dem Code EVT1."',
+    );
   });
 
   test('?lang=en sets html lang and og:locale before JS', () => {

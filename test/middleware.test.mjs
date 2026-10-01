@@ -543,6 +543,8 @@ describe('the landing middleware', () => {
       'confirm-aktionariat/index.html',
       'index.html',
       'invite/index.html',
+      'privacy/en/index.html',
+      'privacy/index.html',
       'promo/index.html',
     ]);
     expect(files.filter((file) => isLandingShell(page(file)))).toEqual([
