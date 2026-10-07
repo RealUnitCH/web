@@ -7,18 +7,12 @@
   },
   "workflow_approval": {
     "enabled": true,
-    "workflows": [
-      ".github/workflows/quality.yml",
-      ".github/workflows/visual.yml"
-    ]
+    "workflows": [".github/workflows/quality.yml", ".github/workflows/visual.yml"]
   },
   "lifecycle": {
     "enabled": true,
     "auto_ready": true,
-    "required_workflows": [
-      ".github/workflows/quality.yml",
-      ".github/workflows/visual.yml"
-    ],
+    "required_workflows": [".github/workflows/quality.yml", ".github/workflows/visual.yml"],
     "ignored_workflows": [".github/workflows/a38-guard.yml"],
     "required_checks": {
       ".github/workflows/quality.yml": ["Quality"],
