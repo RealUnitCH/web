@@ -2,6 +2,9 @@ name: Quality
 
 on:
   pull_request:
+    # opened, synchronize, reopened only. ready_for_review is omitted:
+    # leaving draft must not start this job again.
+    types: [opened, synchronize, reopened]
   push:
     branches: [develop, main]
 

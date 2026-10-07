@@ -71,8 +71,9 @@ sanity-check anything touching scripts/images in the dev deployment.
 
 ## Quality gates
 
-Every pull request must pass the gates below; CI runs them as required status
-checks.
+Every pull request must pass the gates below. CI runs Quality and Screenshots
+on every pull request, including drafts. The guard waits for both before it
+marks a pull request ready. Branch rulesets are unchanged.
 
 | Gate              | Command                 | What it enforces                                                                                                                                                                                  |
 | ----------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -93,7 +94,36 @@ container (see below).
 - **Screenshots** (`.github/workflows/visual.yml`) — the visual gate, in the
   pinned Playwright container.
 
-Both run on every pull request and on pushes to `develop`/`main`.
+Both run on every pull request and on pushes to `develop`/`main`. Leaving
+draft does not start them again.
+
+## A38
+
+This repository requires A38 according to the canonical A38 standard in
+[DFXswiss/agent](https://github.com/DFXswiss/agent/blob/d165602daf7b4a0c73aaac3774da9c8a1ff7e852/docs/a38.md)
+at commit `d165602daf7b4a0c73aaac3774da9c8a1ff7e852`. Repo job selection:
+`.github/a38.json`. Target-branch applicability and fork workflow approval:
+`.github/pr-guard.json`. `dfx pr guard` is
+[wired in](https://github.com/DFXswiss/agent/blob/d165602daf7b4a0c73aaac3774da9c8a1ff7e852/docs/a38-guard.md#how-fork-github-actions-are-meant-to-work).
+
+This is a **public** repository. GitHub-hosted runners execute Quality and
+Screenshots. A38 does not replace those GitHub checks. The author report only
+covers the Quality job in `.github/a38.json` (Node 22: `npm ci --no-audit
+--no-fund`, `npm run format:check`, `npm run validate:html`, `npm run
+check:site`, `npm run test:coverage`). Do not run the Playwright screenshot
+suite locally for A38.
+
+Draft pull requests run the GitHub CI jobs. GitHub holds fork runs from
+external contributors as `action_required`. Ready does not start CI. After a
+fresh A38 enforce pass on the current head, `dfx pr guard` approves those
+waiting initial runs, then sets Ready when Quality and Screenshots are green
+and the pull request is mergeable. The merger does not click Approve and run
+workflows. Do not ask a maintainer to approve workflow runs. Post the Quality
+report on the current head. Every new head needs a new report. Authors with
+write access to `RealUnitCH/web` do not need a report.
+
+`develop` is enforced. `main` is excluded, because a release pull request onto
+`main` is out of scope. Any other base defaults to enforce.
 
 ## Browser JS and unit coverage
 
