@@ -1,0 +1,54 @@
+{
+  "schema": "a38/v1",
+  "standard": "A38",
+  "documentation": "docs/a38.md",
+  "mode": "enforce",
+  "jobs": [
+    {
+      "id": "quality",
+      "name": "Quality",
+      "timeout_s": 1800,
+      "workflow": ".github/workflows/quality.yml",
+      "job": "quality",
+      "executor": {
+        "adapter": "commands",
+        "config": {
+          "steps": [
+            ["npm", "ci", "--no-audit", "--no-fund"],
+            ["npm", "run", "format:check"],
+            ["npm", "run", "validate:html"],
+            ["npm", "run", "check:site"],
+            ["npm", "run", "test:coverage"]
+          ]
+        }
+      }
+    }
+  ],
+  "exclusions": [
+    {
+      "workflow": ".github/workflows/visual.yml",
+      "job": "visual",
+      "reason": "Screenshot baselines run in the pinned Playwright container on GitHub-hosted runners. This public repository does not measure that suite as the author report."
+    },
+    {
+      "workflow": ".github/workflows/dev.yaml",
+      "job": "deploy",
+      "reason": "Publishes the site from the develop branch. It is a publication path, not an author-measured test."
+    },
+    {
+      "workflow": ".github/workflows/prd.yaml",
+      "job": "deploy",
+      "reason": "Publishes the site from the main branch. It is a publication path, not an author-measured test."
+    },
+    {
+      "workflow": ".github/workflows/auto-release-pr.yaml",
+      "job": "create-release-pr",
+      "reason": "Housekeeping bot that opens the develop to main release pull request and performs no author-measurable testing."
+    },
+    {
+      "workflow": ".github/workflows/a38-guard.yml",
+      "job": "guard",
+      "reason": "This job is the A38 guard itself, which audits the author report rather than being part of it."
+    }
+  ]
+}
