@@ -100,7 +100,7 @@
     timeoutId = setTimeout(function () {
       if (controller) controller.abort();
     }, 15000);
-    fetch(core.PLACES_URL, { credentials: 'omit', signal: controller.signal })
+    fetch(core.PLACES_URL, core.placesFetchInit(controller.signal))
       .then(function (response) {
         if (!response.ok) throw new Error('status');
         return response.json();

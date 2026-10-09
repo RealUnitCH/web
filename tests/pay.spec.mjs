@@ -70,6 +70,7 @@ test.describe('pay locations', () => {
   test('a live list keeps only an exact Ethereum and ZCHF pin', async ({ page }) => {
     await page.route(PLACES_ROUTE, (route) => {
       expect(route.request().url()).toBe(PLACES);
+      expect(route.request().method()).toBe('GET');
       return route.fulfill({
         status: 200,
         contentType: 'application/json',

@@ -156,6 +156,15 @@
     return framed;
   }
 
+  function placesFetchInit(signal) {
+    var init = {
+      method: 'GET',
+      credentials: 'omit',
+    };
+    if (signal) init.signal = signal;
+    return init;
+  }
+
   function previewPlaces(mock) {
     if (mock !== 'places' && mock !== 'place') return [];
     return [
@@ -175,6 +184,7 @@
     keepPlace: keepPlace,
     keepPlaces: keepPlaces,
     framePlaces: framePlaces,
+    placesFetchInit: placesFetchInit,
     previewPlaces: previewPlaces,
   };
 })(window);

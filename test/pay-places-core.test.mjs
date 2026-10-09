@@ -15,6 +15,7 @@ const {
   keepPlaces,
   framePlaces,
   previewPlaces,
+  placesFetchInit,
 } = core;
 
 function resolve(overrides) {
@@ -37,6 +38,18 @@ function place(overrides) {
     ...overrides,
   };
 }
+
+describe('placesFetchInit', () => {
+  test('is GET with credentials omit, and keeps a signal when one is passed', () => {
+    expect(placesFetchInit()).toEqual({ method: 'GET', credentials: 'omit' });
+    const signal = { aborted: false };
+    expect(placesFetchInit(signal)).toEqual({
+      method: 'GET',
+      credentials: 'omit',
+      signal,
+    });
+  });
+});
 
 describe('resolveLang', () => {
   test('prefers a supported document language over the browser', () => {
