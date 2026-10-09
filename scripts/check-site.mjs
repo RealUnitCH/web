@@ -138,6 +138,7 @@ for (const file of htmlFiles) {
   checkScriptOrder(label, html, '/js/invite-banner.js', '/js/lib/invite-core.js');
   checkScriptOrder(label, html, '/invite/invite.js', '/js/lib/invite-core.js');
   checkScriptOrder(label, html, '/invite/invite.js', '/js/invite-banner.js');
+  checkScriptOrder(label, html, '/pay/pay.js', '/js/lib/pay-places-core.js');
   if (/<script(?![^>]*\bsrc=)[^>]*>/i.test(html)) {
     fail(`${label}: inline <script> is blocked by CSP; load a same-origin file`);
   }

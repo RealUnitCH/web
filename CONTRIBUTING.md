@@ -39,10 +39,11 @@ This repo is the **realunit.app** website — public, static. See the
   `<script>`). Do not add other Pages Functions or server-side rendering.
 - **Keep the page self-contained.** `public/_headers` sets a strict CSP:
   - No inline `<script>` and no third-party resources (scripts, styles, images,
-    fonts). Load JS from **same-origin** files instead. The single permitted
-    network call is the code lookup against the DFX API, which is why
-    `connect-src` names `api.dfx.swiss` and `dev.api.dfx.swiss` explicitly —
-    adding any other host to that allowlist needs a reason in the PR.
+    fonts). Load JS from **same-origin** files instead. `connect-src` names
+    `api.dfx.swiss` and `dev.api.dfx.swiss` for the DFX API, and
+    `api.opencryptopay.io` for the pay-locations page, which reads the published
+    OpenCryptoPay place list and nothing else on that host. Adding any other
+    host to that allowlist needs a reason in the PR.
   - Inline `style="…"` attributes and `<style>` blocks are fine (`style-src`
     allows `'unsafe-inline'`).
 - **Put the reusable, side-effect-free JS in `public/js/lib/`.** That is the only

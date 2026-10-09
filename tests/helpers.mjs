@@ -23,13 +23,15 @@ export async function forcePlatform(page, platform) {
   }, userAgent);
 }
 
-// Fulfil any request to the DFX API with a 503 so a test can never make a live
-// call. The visual views use the ?mock hook and never fetch; this is a safety net
-// so a stray request renders deterministically instead of hitting the network.
+// Fulfil any request to the DFX API or the OpenCryptoPay place list with a 503
+// so a test can never make a live call. The visual views use the ?mock hook and
+// never fetch; this is a safety net so a stray request renders deterministically
+// instead of hitting the network. The pay page treats that 503 as its error state.
 export async function blockDfxApi(page) {
-  await page.route(/(^|\.)dfx\.swiss\//, (route) =>
-    route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }),
-  );
+  const blocked = (route) =>
+    route.fulfill({ status: 503, contentType: 'application/json', body: '{}' });
+  await page.route(/(^|\.)dfx\.swiss\//, blocked);
+  await page.route(/(^|\.)opencryptopay\.io\//, blocked);
 }
 
 // Visual-only setup: pin reduced motion so the spinner/transitions settle, block
