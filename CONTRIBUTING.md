@@ -159,11 +159,12 @@ npm run e2e:docker:update   # regenerate baselines after an intentional UI chang
 ```
 
 The visual matrix lives in `tests/pages.mjs` (`VIEWS`), which is the single
-source of truth — do not maintain a second list here. It currently covers six
+source of truth — do not maintain a second list here. It currently covers seven
 families: the invite and promo landings (each in their loading, resolved,
 invalid, missing-code, platform-matched and JS-less variants), the confirm-page states,
 the account-merge pages, the home landing in its equal-badge and
-platform-matched layouts, and the 404 page — across `desktop-chromium`,
+platform-matched layouts, the pay-locations page (published places, empty,
+error, selected place, and English), and the 404 page — across `desktop-chromium`,
 `tablet-chromium` and `mobile-safari`. `check:visual` enforces that every view × applicable viewport
 has exactly one committed baseline, nothing is orphaned, and the report ran them
 all. When you intentionally change a page's look, run `e2e:docker:update` and
