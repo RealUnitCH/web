@@ -27,7 +27,7 @@
         'Sobald Geschäfte RealUnit als Zahlungsweg veröffentlichen, erscheinen sie hier.',
       'places.title': 'Mit der RealUnit Wallet bezahlen',
       'places.body':
-        'Die Punkte zeigen die veröffentlichten Geschäfte zueinander. Der Name steht beim ausgewählten Punkt.',
+        'Die Punkte zeigen, wie die veröffentlichten Geschäfte zueinander liegen. Der Name erscheint am ausgewählten Punkt.',
       'places.means':
         'Sie bezahlen nicht mit Ihren Aktien. Für jede Zahlung verkaufen Sie REALU. Den Erlös abzüglich der Gebühr erhalten Sie in ZCHF, einem Stablecoin in Schweizer Franken, und mit diesem ZCHF wird bezahlt. Da nur ganze Aktien verkauft werden, wird auf ganze REALU aufgerundet. Der Aufrundungsbetrag wird Ihnen nicht gutgeschrieben und fällt bei kleinen Beträgen stärker ins Gewicht.',
       'map.label': 'Veröffentlichte Zahlungsorte',
@@ -45,7 +45,7 @@
       'empty.body': 'Shops appear here once they publish RealUnit as a way to pay.',
       'places.title': 'Pay with the RealUnit Wallet',
       'places.body':
-        'The points show the published shops relative to each other. The name appears for the selected point.',
+        'The points show how the published shops are placed relative to each other. The name appears on the selected point.',
       'places.means':
         'You do not pay with your shares. For each payment you sell REALU. You receive the proceeds minus the fee in ZCHF, a Swiss-franc stablecoin, and that ZCHF is what pays. Because only whole shares are sold, the sale is rounded up to whole REALU. The round-up amount is not credited to you and weighs more heavily on small amounts.',
       'map.label': 'Published pay locations',

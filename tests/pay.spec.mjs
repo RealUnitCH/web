@@ -32,6 +32,9 @@ test.describe('pay locations', () => {
     await page.goto('/pay/?mock=places');
     await expect(page.locator('#state-places')).toBeVisible();
     await expect(page.locator('#state-places h1')).toHaveText('Mit der RealUnit Wallet bezahlen');
+    await expect(page.locator('[data-i18n="places.body"]')).toHaveText(
+      'Die Punkte zeigen, wie die veröffentlichten Geschäfte zueinander liegen. Der Name erscheint am ausgewählten Punkt.',
+    );
     await expect(page.locator('#pay-map button')).toHaveCount(3);
     await expect(page.locator('#pay-popup')).toBeHidden();
     await expect(page.locator('#pay-means')).toBeVisible();
@@ -73,6 +76,9 @@ test.describe('pay locations', () => {
     await page.goto('/pay/en/?mock=places');
     await expect(page).toHaveTitle('RealUnit — Pay locations');
     await expect(page.locator('#state-places h1')).toHaveText('Pay with the RealUnit Wallet');
+    await expect(page.locator('[data-i18n="places.body"]')).toHaveText(
+      'The points show how the published shops are placed relative to each other. The name appears on the selected point.',
+    );
     await expect(page.locator('#pay-means')).toBeVisible();
     await expect(page.locator('#pay-means')).toContainText('do not pay with your shares');
     await expect(page.locator('#pay-means')).toContainText('ZCHF');
