@@ -97,18 +97,21 @@
     return item.blockchain === BLOCKCHAIN && item.asset === ASSET;
   }
 
-  // A pin is kept only when it names a shop, sits on a real coordinate, and
-  // lists Ethereum + ZCHF exactly. A missing list is not that pair.
+  // A pin needs a shop name and a real coordinate. The published list omits
+  // supports, and those places are kept. A present supports list must include
+  // Ethereum + ZCHF exactly. An empty list is not that pair.
   function keepPlace(place) {
     if (!place || typeof place !== 'object') return null;
     if (!finiteCoord(place.lat, -90, 90) || !finiteCoord(place.lon, -180, 180)) return null;
     var supports = place.supports;
-    if (!Array.isArray(supports)) return null;
-    var matched = false;
-    for (var i = 0; i < supports.length; i += 1) {
-      if (supportMatches(supports[i])) matched = true;
+    if (supports != null) {
+      if (!Array.isArray(supports)) return null;
+      var matched = false;
+      for (var i = 0; i < supports.length; i += 1) {
+        if (supportMatches(supports[i])) matched = true;
+      }
+      if (!matched) return null;
     }
-    if (!matched) return null;
     var name = typeof place.name === 'string' ? place.name.trim() : '';
     if (!name) return null;
     var category = typeof place.category === 'string' ? place.category.trim() : '';

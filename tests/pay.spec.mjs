@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { expect, test } from '@playwright/test';
 
 const PLACES = 'https://api.opencryptopay.io/map/places?blockchain=Ethereum&asset=ZCHF';
@@ -70,6 +72,35 @@ test.describe('pay locations', () => {
     await page.goto('/pay/?mock=loading');
     await expect(page.locator('#state-loading')).toBeVisible();
     expect(calls).toBe(0);
+  });
+
+  test('the published snapshot shows the real shops, not the preview towns', async ({ page }) => {
+    const raw = readFileSync(new URL('./fixtures/published-places.json', import.meta.url), 'utf8');
+    const published = JSON.parse(raw);
+    const shop = published.places[0];
+    await page.route(PLACES_ROUTE, (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: raw }),
+    );
+    await page.goto('/pay/');
+    await expect(page.locator('#pay-map button')).toHaveCount(published.places.length);
+    // The same shops the app baseline lists, present here as pins rather than a list.
+    await expect(
+      page.locator('#pay-map button[aria-label="SPAR Auwiesenstrasse 24, 9030 Abtwil"]'),
+    ).toHaveCount(1);
+    await expect(
+      page.locator('#pay-map button[aria-label="SPAR Schmiedgasse 10, 6460 Altdorf"]'),
+    ).toHaveCount(1);
+    for (const town of ['Zürich', 'Bern', 'Lugano']) {
+      await expect(page.locator(`#pay-map button[aria-label="${town}"]`)).toHaveCount(0);
+    }
+    // Neighbouring shops share a point. A coordinate click lands on whichever
+    // pin was painted last, so activate this shop on the element itself.
+    await page
+      .locator(`#pay-map button[aria-label=${JSON.stringify(shop.name)}]`)
+      .evaluate((el) => el.click());
+    await expect(page.locator('#pay-popup-name')).toHaveText(shop.name);
+    await expect(page.locator('#pay-popup-category')).toHaveText(shop.category);
+    await expect(page.locator('#pay-map')).not.toContainText(shop.name);
   });
 
   test('the English page uses the English copy', async ({ page }) => {

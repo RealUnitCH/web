@@ -531,11 +531,13 @@ export const VIEWS = [
     projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'],
   },
 
-  // Pay locations. The points are a preview fixture (?mock), never the live list.
+  // Pay locations. The populated map is the committed published shop list,
+  // the same snapshot the app baselines use. Empty and error stay local mocks.
   {
     slug: 'pay-places',
-    path: '/pay/?mock=places',
+    path: '/pay/',
     waitFor: 'places',
+    placesFixture: 'tests/fixtures/published-places.json',
     projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'],
   },
   {
@@ -552,14 +554,17 @@ export const VIEWS = [
   },
   {
     slug: 'pay-place',
-    path: '/pay/?mock=place',
+    path: '/pay/',
     waitFor: 'places',
+    placesFixture: 'tests/fixtures/published-places.json',
+    openFirstPin: true,
     projects: ['desktop-chromium'],
   },
   {
     slug: 'pay-places-en',
-    path: '/pay/en/?mock=places',
+    path: '/pay/en/',
     waitFor: 'places',
+    placesFixture: 'tests/fixtures/published-places.json',
     projects: ['desktop-chromium'],
   },
 ];

@@ -158,9 +158,9 @@ describe('keepPlace', () => {
     expect(keepPlace(place({ lat: 47.37, lon: undefined }))).toBeNull();
   });
 
-  test('drops a missing, empty, or non-array support list', () => {
-    expect(keepPlace(place({ supports: undefined }))).toBeNull();
-    expect(keepPlace(place({ supports: null }))).toBeNull();
+  test('keeps a place that omits supports and drops an empty or non-array list', () => {
+    expect(keepPlace(place({ supports: undefined }))?.name).toBe('Zürich');
+    expect(keepPlace(place({ supports: null }))?.name).toBe('Zürich');
     expect(keepPlace(place({ supports: {} }))).toBeNull();
     expect(keepPlace(place({ supports: [] }))).toBeNull();
   });
@@ -198,6 +198,21 @@ describe('keepPlaces', () => {
         places: [null, place({ name: 'Bern' }), place({ supports: [] })],
       }),
     ).toEqual([{ name: 'Bern', category: 'Lebensmittel', lat: 47.37, lon: 8.54 }]);
+  });
+
+  test('keeps the published shop snapshot', () => {
+    const published = JSON.parse(readFileSync('tests/fixtures/published-places.json', 'utf8'));
+    const kept = keepPlaces(published);
+    expect(kept).toHaveLength(published.places.length);
+    expect(kept[0]).toEqual({
+      name: 'SPAR Maschlinastrasse 4, 9495 Triesen',
+      category: 'shopping',
+      lat: 47.116005,
+      lon: 9.524152,
+    });
+    expect(
+      kept.some((pin) => pin.name === 'Zürich' || pin.name === 'Bern' || pin.name === 'Lugano'),
+    ).toBe(false);
   });
 });
 
