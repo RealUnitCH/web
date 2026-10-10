@@ -28,6 +28,8 @@
       'places.title': 'Wo Sie mit RealUnit bezahlen',
       'places.body':
         'Die Punkte zeigen die veröffentlichten Geschäfte zueinander. Der Name steht beim ausgewählten Punkt.',
+      'places.means':
+        'Sie bezahlen nicht mit Ihren Aktien. Für jede Zahlung verkaufen Sie REALU. Den Erlös abzüglich der Gebühr erhalten Sie in ZCHF, einem Stablecoin in Schweizer Franken, und mit diesem ZCHF wird bezahlt. Da nur ganze Aktien verkauft werden können, liegt der Erlös in der Regel etwas über dem Rechnungsbetrag. Der Rest bleibt als ZCHF auf Ihrer Wallet-Adresse und wird bei der nächsten Zahlung zuerst verwendet.',
       'map.label': 'Veröffentlichte Zahlungsorte',
       'popup.close': 'Schliessen',
     },
@@ -44,6 +46,8 @@
       'places.title': 'Where you can pay with RealUnit',
       'places.body':
         'The points show the published shops relative to each other. The name appears for the selected point.',
+      'places.means':
+        'You do not pay with your shares. For each payment you sell REALU. You receive the proceeds minus the fee in ZCHF, a Swiss-franc stablecoin, and that ZCHF is what pays. Because only whole shares can be sold, the proceeds are usually a little above the bill. The remainder stays as ZCHF on your wallet address and is used first on the next payment.',
       'map.label': 'Published pay locations',
       'popup.close': 'Close',
     },

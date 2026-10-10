@@ -33,6 +33,9 @@ test.describe('pay locations', () => {
     await expect(page.locator('#state-places')).toBeVisible();
     await expect(page.locator('#pay-map button')).toHaveCount(3);
     await expect(page.locator('#pay-popup')).toBeHidden();
+    await expect(page.locator('#pay-means')).toBeVisible();
+    await expect(page.locator('#pay-means')).toContainText('nicht mit Ihren Aktien');
+    await expect(page.locator('#pay-means')).toContainText('ZCHF');
     expect(calls).toBe(0);
   });
 
@@ -54,6 +57,7 @@ test.describe('pay locations', () => {
     });
     await page.goto('/pay/?mock=empty');
     await expect(page.locator('#state-empty')).toBeVisible();
+    await expect(page.locator('#pay-means')).toBeHidden();
     await page.goto('/pay/?mock=error');
     await expect(page.locator('#state-error')).toBeVisible();
     await page.goto('/pay/?mock=loading');
@@ -65,6 +69,9 @@ test.describe('pay locations', () => {
     await page.goto('/pay/en/?mock=places');
     await expect(page).toHaveTitle('RealUnit — Pay locations');
     await expect(page.locator('#state-places h1')).toHaveText('Where you can pay with RealUnit');
+    await expect(page.locator('#pay-means')).toBeVisible();
+    await expect(page.locator('#pay-means')).toContainText('do not pay with your shares');
+    await expect(page.locator('#pay-means')).toContainText('ZCHF');
   });
 
   test('a live list keeps only an exact Ethereum and ZCHF pin', async ({ page }) => {

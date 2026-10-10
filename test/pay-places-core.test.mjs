@@ -288,6 +288,17 @@ describe('i18n copy', () => {
     expect(Object.keys(I18N.en).sort()).toEqual(Object.keys(I18N.de).sort());
   });
 
+  test('the note under the map says payment is not with the shares and names ZCHF', () => {
+    expect(I18N.de['places.means']).toContain('nicht mit Ihren Aktien');
+    expect(I18N.de['places.means']).toContain('ZCHF');
+    expect(I18N.de['places.means']).toContain('abzüglich der Gebühr');
+    expect(I18N.en['places.means']).toContain('do not pay with your shares');
+    expect(I18N.en['places.means']).toContain('ZCHF');
+    expect(I18N.en['places.means']).toContain('minus the fee');
+    expect(I18N.de['places.means']).not.toMatch(/1\s*%/);
+    expect(I18N.en['places.means']).not.toMatch(/1\s*%/);
+  });
+
   test('every data-i18n key on both pages exists in both languages', () => {
     const keys = new Set(['doc.title', 'doc.desc']);
     for (const file of ['public/pay/index.html', 'public/pay/en/index.html']) {
