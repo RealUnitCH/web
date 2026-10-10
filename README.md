@@ -5,7 +5,8 @@ The website served at **realunit.app**. Public, static.
 ## v1 (current)
 
 A minimal landing page — one hero image from the RealUnit app plus the store buttons —
-plus invite/promo landings and the Aktionariat confirm / account-merge flows.
+plus invite/promo landings, the Aktionariat confirm / account-merge flows, and a
+pay-locations page. The landing page does not link to the pay-locations page.
 Deliberately **without a build toolchain**: plain HTML + assets in `public/`,
 uploaded to Cloudflare Pages.
 
@@ -17,6 +18,11 @@ uploaded to Cloudflare Pages.
   RealUnitCH/app; after a new app version of the policy, copy both files and run
   `npm run build:privacy`. `npm run check` fails if the pages are out of date, and a unit test
   pins that the visible text is the app text word for word.
+- `public/pay/` and `public/pay/en/` — published OpenCryptoPay places that store
+  Ethereum and ZCHF (DE/EN). A pin is drawn only when that pair is stored on the
+  place. The shop name appears for the selected pin, not as a list of stores.
+  Under the map the page states that each payment sells REALU and pays with ZCHF,
+  not with the shares. The landing page does not link here.
 - `public/invite/` and `public/promo/` — referral and campaign landings; look up
   `GET /v1/realunit/referral/code/:code` (contract:
   [JonnyLuca/dfx-referral-api](https://github.com/JonnyLuca/dfx-referral-api)),
