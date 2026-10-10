@@ -36,6 +36,9 @@ test.describe('pay locations', () => {
     await expect(page.locator('#pay-means')).toBeVisible();
     await expect(page.locator('#pay-means')).toContainText('nicht mit Ihren Aktien');
     await expect(page.locator('#pay-means')).toContainText('ZCHF');
+    await expect(page.locator('#pay-means')).toContainText('nicht gutgeschrieben');
+    await expect(page.locator('#pay-means')).not.toContainText('bleibt als ZCHF');
+    await expect(page.locator('#pay-means')).not.toContainText('zuerst verwendet');
     expect(calls).toBe(0);
   });
 
@@ -72,6 +75,9 @@ test.describe('pay locations', () => {
     await expect(page.locator('#pay-means')).toBeVisible();
     await expect(page.locator('#pay-means')).toContainText('do not pay with your shares');
     await expect(page.locator('#pay-means')).toContainText('ZCHF');
+    await expect(page.locator('#pay-means')).toContainText('not credited to you');
+    await expect(page.locator('#pay-means')).not.toContainText('stays as ZCHF');
+    await expect(page.locator('#pay-means')).not.toContainText('used first');
   });
 
   test('a live list keeps only an exact Ethereum and ZCHF pin', async ({ page }) => {

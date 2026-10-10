@@ -292,9 +292,15 @@ describe('i18n copy', () => {
     expect(I18N.de['places.means']).toContain('nicht mit Ihren Aktien');
     expect(I18N.de['places.means']).toContain('ZCHF');
     expect(I18N.de['places.means']).toContain('abzüglich der Gebühr');
+    expect(I18N.de['places.means']).toContain('nicht gutgeschrieben');
     expect(I18N.en['places.means']).toContain('do not pay with your shares');
     expect(I18N.en['places.means']).toContain('ZCHF');
     expect(I18N.en['places.means']).toContain('minus the fee');
+    expect(I18N.en['places.means']).toContain('not credited to you');
+    expect(I18N.de['places.means']).not.toContain('bleibt als ZCHF');
+    expect(I18N.de['places.means']).not.toContain('bei der nächsten Zahlung zuerst verwendet');
+    expect(I18N.en['places.means']).not.toContain('stays as ZCHF');
+    expect(I18N.en['places.means']).not.toContain('used first on the next payment');
     expect(I18N.de['places.means']).not.toMatch(/1\s*%/);
     expect(I18N.en['places.means']).not.toMatch(/1\s*%/);
   });
