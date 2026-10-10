@@ -29,7 +29,7 @@
       'places.body':
         'Die Karte zeigt, wo die veröffentlichten Geschäfte liegen. Der Name erscheint am ausgewählten Punkt.',
       'places.means':
-        'Sie bezahlen nicht mit Ihren Aktien. Für jede Zahlung verkaufen Sie REALU. Den Erlös abzüglich der Gebühr erhalten Sie in ZCHF, einem Stablecoin in Schweizer Franken, und mit diesem ZCHF wird bezahlt. Da nur ganze Aktien verkauft werden, wird auf ganze REALU aufgerundet. Der Aufrundungsbetrag wird Ihnen nicht gutgeschrieben und fällt bei kleinen Beträgen stärker ins Gewicht.',
+        'Sie bezahlen nicht direkt mit Ihren Aktien. Für jede Zahlung verkaufen Sie REALU. Den Erlös abzüglich der Gebühr erhalten Sie in ZCHF, einem Stablecoin in Schweizer Franken, und mit diesem ZCHF wird bezahlt. Da nur ganze Aktien verkauft werden, wird auf ganze REALU aufgerundet. Der Aufrundungsbetrag wird Ihnen nicht gutgeschrieben und fällt bei kleinen Beträgen stärker ins Gewicht.',
       'map.label': 'Veröffentlichte Zahlungsorte',
       'popup.close': 'Schliessen',
     },

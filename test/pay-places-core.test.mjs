@@ -310,7 +310,7 @@ describe('i18n copy', () => {
   });
 
   test('the note under the map says payment is not with the shares and names ZCHF', () => {
-    expect(I18N.de['places.means']).toContain('nicht mit Ihren Aktien');
+    expect(I18N.de['places.means']).toContain('nicht direkt mit Ihren Aktien');
     expect(I18N.de['places.means']).toContain('ZCHF');
     expect(I18N.de['places.means']).toContain('abzüglich der Gebühr');
     expect(I18N.de['places.means']).toContain('nicht gutgeschrieben');

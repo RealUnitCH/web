@@ -40,7 +40,7 @@ test.describe('pay locations', () => {
     await expect(page.locator('#pay-map button')).toHaveCount(3);
     await expect(page.locator('#pay-popup')).toBeHidden();
     await expect(page.locator('#pay-means')).toBeVisible();
-    await expect(page.locator('#pay-means')).toContainText('nicht mit Ihren Aktien');
+    await expect(page.locator('#pay-means')).toContainText('nicht direkt mit Ihren Aktien');
     await expect(page.locator('#pay-means')).toContainText('ZCHF');
     await expect(page.locator('#pay-means')).toContainText('nicht gutgeschrieben');
     await expect(page.locator('#pay-means')).not.toContainText('bleibt als ZCHF');
