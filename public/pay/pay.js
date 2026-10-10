@@ -48,28 +48,76 @@
     popup.hidden = false;
   }
 
+  var drawnPlaces = null;
+
+  function mapShape(fit, rings, fill, stroke, strokeWidth) {
+    var ns = 'http://www.w3.org/2000/svg';
+    var path = document.createElementNS(ns, 'path');
+    var commands = '';
+    for (var r = 0; r < rings.length; r += 1) {
+      var ring = rings[r];
+      for (var i = 0; i < ring.length; i += 1) {
+        var point = core.projectPoint(ring[i][0], ring[i][1], fit);
+        commands +=
+          (i === 0 ? 'M' : 'L') +
+          (point.x * fit.width).toFixed(2) +
+          ' ' +
+          (point.y * fit.height).toFixed(2);
+      }
+      commands += 'Z';
+    }
+    path.setAttribute('d', commands);
+    path.setAttribute('fill', fill);
+    path.setAttribute('stroke', stroke);
+    path.setAttribute('stroke-width', strokeWidth);
+    path.setAttribute('stroke-linejoin', 'round');
+    return path;
+  }
+
+  function drawBaseMap(map, fit) {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    var geometry = window.RealUnitPayMap;
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    svg.setAttribute('viewBox', '0 0 ' + fit.width + ' ' + fit.height);
+    if (!geometry) return svg;
+    svg.appendChild(mapShape(fit, geometry.country, '#ffffff', '#475569', '1.2'));
+    svg.appendChild(mapShape(fit, geometry.lakes, '#D1E6F5', '#1988C6', '0.8'));
+    return svg;
+  }
+
   function render(places, openFirst) {
-    var framed = core.framePlaces(places);
+    drawnPlaces = places;
     var map = document.getElementById('pay-map');
-    document.getElementById('pay-popup').hidden = true;
-    map.replaceChildren();
-    if (!framed.length) {
+    if (!places || !places.length) {
+      drawnPlaces = null;
+      map.replaceChildren();
       show('empty');
       return;
     }
     show('places');
-    framed.forEach(function (item, index) {
+    var selected = map.querySelector('.pin.is-selected');
+    var selectedName = selected ? selected.getAttribute('aria-label') : '';
+    var fit = core.mapFit(map.clientWidth, map.clientHeight);
+    var framed = core.framePlaces(places, fit.width, fit.height);
+    map.replaceChildren(drawBaseMap(map, fit));
+    framed.forEach(function (item) {
       var button = document.createElement('button');
       button.type = 'button';
       button.className = 'pin';
-      button.style.left = item.x * 100 + '%';
-      button.style.top = item.y * 100 + '%';
+      button.style.left = (item.x * 100).toFixed(4) + '%';
+      button.style.top = (item.y * 100).toFixed(4) + '%';
       button.setAttribute('aria-label', item.place.name);
+      if (item.place.name === selectedName) button.classList.add('is-selected');
       button.addEventListener('click', function () {
+        var pins = map.querySelectorAll('.pin');
+        for (var i = 0; i < pins.length; i += 1) pins[i].classList.remove('is-selected');
+        button.classList.add('is-selected');
         openPopup(item.place);
       });
       map.appendChild(button);
-      if (openFirst && index === 0) openPopup(item.place);
+      if (openFirst && item.place === places[0]) button.click();
     });
   }
 
@@ -121,6 +169,11 @@
 
   document.getElementById('pay-popup-close').addEventListener('click', function () {
     document.getElementById('pay-popup').hidden = true;
+    var pins = document.querySelectorAll('#pay-map .pin');
+    for (var i = 0; i < pins.length; i += 1) pins[i].classList.remove('is-selected');
+  });
+  window.addEventListener('resize', function () {
+    if (drawnPlaces && drawnPlaces.length) render(drawnPlaces, false);
   });
   document.getElementById('pay-retry').addEventListener('click', load);
   load();

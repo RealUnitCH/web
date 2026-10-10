@@ -21,6 +21,7 @@ uploaded to Cloudflare Pages.
 - `public/pay/` and `public/pay/en/` — published OpenCryptoPay places for
   Ethereum and ZCHF (DE/EN). The published list omits supports, and those places
   stay on the map. A present supports list must contain Ethereum and ZCHF exactly.
+  The map draws the same country and lake outlines as the wallet and places each shop on that map.
   The shop name appears for the selected pin, not as a list of stores.
   Under the map the page states that each payment sells REALU and pays with ZCHF,
   not with the shares. The landing page does not link here.

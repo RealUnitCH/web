@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 
+import '../public/js/lib/pay-map-geometry.js';
 import '../public/js/lib/pay-places-core.js';
 
 const core = window.RealUnitPlaces;
@@ -218,59 +219,64 @@ describe('keepPlaces', () => {
 
 describe('framePlaces', () => {
   test('an empty or missing list has no frame', () => {
-    expect(framePlaces(null)).toEqual([]);
-    expect(framePlaces([])).toEqual([]);
+    expect(framePlaces(null, 640, 320)).toEqual([]);
+    expect(framePlaces([], 640, 320)).toEqual([]);
   });
 
-  test('one pin sits in the middle', () => {
-    const only = { name: 'Bern', category: '', lat: 46.9, lon: 7.4 };
-    expect(framePlaces([only])).toEqual([{ place: only, x: 0.5, y: 0.5 }]);
+  test('the geometry uses the same country bounds as the projection', () => {
+    const geometry = window.RealUnitPayMap;
+    expect(geometry.south).toBe(core.MAP_SOUTH);
+    expect(geometry.north).toBe(core.MAP_NORTH);
+    expect(geometry.west).toBe(core.MAP_WEST);
+    expect(geometry.east).toBe(core.MAP_EAST);
+    expect(geometry.country).toHaveLength(2);
+    expect(geometry.lakes.length).toBeGreaterThan(0);
   });
 
-  test('several pins keep north up and stay inside the padding', () => {
-    const framed = framePlaces([
-      { name: 'A', lat: 47, lon: 8 },
-      { name: 'B', lat: 46, lon: 7 },
-      { name: 'C', lat: 48, lon: 9 },
-    ]);
-    expect(framed.map((item) => item.place.name)).toEqual(['A', 'B', 'C']);
-    expect(framed[0].x).toBeCloseTo(0.5);
-    expect(framed[0].y).toBeCloseTo(0.5);
-    expect(framed[1].x).toBeCloseTo(0.12);
-    expect(framed[1].y).toBeCloseTo(0.88);
-    expect(framed[2].x).toBeCloseTo(0.88);
-    expect(framed[2].y).toBeCloseTo(0.12);
+  test('shops keep their place on the country, north up', () => {
+    const framed = framePlaces(
+      [
+        { name: 'Zürich', lat: 47.3769, lon: 8.5417 },
+        { name: 'Lugano', lat: 46.0037, lon: 8.9511 },
+        { name: 'Genf', lat: 46.2044, lon: 6.1432 },
+      ],
+      640,
+      320,
+    );
+    const byName = Object.fromEntries(framed.map((item) => [item.place.name, item]));
+    expect(byName.Zürich.y).toBeLessThan(byName.Lugano.y);
+    expect(byName.Genf.x).toBeLessThan(byName.Lugano.x);
+    for (const item of framed) {
+      expect(item.x).toBeGreaterThan(0);
+      expect(item.x).toBeLessThan(1);
+      expect(item.y).toBeGreaterThan(0);
+      expect(item.y).toBeLessThan(1);
+    }
   });
 
-  test('a shared longitude does not divide by zero', () => {
-    const framed = framePlaces([
-      { name: 'N', lat: 47, lon: 8 },
-      { name: 'S', lat: 46, lon: 8 },
-    ]);
-    expect(framed[0].x).toBeCloseTo(0.12);
-    expect(framed[1].x).toBeCloseTo(0.12);
-    expect(framed[0].y).toBeCloseTo(0.12);
-    expect(framed[1].y).toBeCloseTo(0.88);
+  test('one shop stays on the country instead of jumping to the middle', () => {
+    const framed = framePlaces([{ name: 'Lugano', lat: 46.0037, lon: 8.9511 }], 640, 320);
+    expect(framed[0].y).toBeGreaterThan(0.6);
+    expect(framed[0].x).not.toBeCloseTo(0.5);
   });
 
-  test('a shared latitude does not divide by zero', () => {
-    const framed = framePlaces([
-      { name: 'W', lat: 47, lon: 7 },
-      { name: 'E', lat: 47, lon: 9 },
-    ]);
-    expect(framed[0].y).toBeCloseTo(0.12);
-    expect(framed[1].y).toBeCloseTo(0.12);
-    expect(framed[0].x).toBeCloseTo(0.12);
-    expect(framed[1].x).toBeCloseTo(0.88);
+  test('a missing frame size still places the shop', () => {
+    const framed = framePlaces([{ name: 'Zürich', lat: 47.3769, lon: 8.5417 }], 0, 0);
+    expect(framed[0].x).toBeGreaterThan(0);
+    expect(framed[0].x).toBeLessThan(1);
+    expect(framed[0].y).toBeGreaterThan(0);
+    expect(framed[0].y).toBeLessThan(1);
   });
 
   test('identical pins share one point', () => {
-    const framed = framePlaces([
-      { name: 'A', lat: 47, lon: 8 },
-      { name: 'B', lat: 47, lon: 8 },
-    ]);
-    expect(framed[0].x).toBeCloseTo(0.12);
-    expect(framed[0].y).toBeCloseTo(0.12);
+    const framed = framePlaces(
+      [
+        { name: 'A', lat: 47.3769, lon: 8.5417 },
+        { name: 'B', lat: 47.3769, lon: 8.5417 },
+      ],
+      400,
+      320,
+    );
     expect(framed[1]).toMatchObject({ x: framed[0].x, y: framed[0].y });
   });
 });

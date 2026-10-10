@@ -27,7 +27,7 @@
         'Sobald Geschäfte RealUnit als Zahlungsweg veröffentlichen, erscheinen sie hier.',
       'places.title': 'Mit der RealUnit Wallet bezahlen',
       'places.body':
-        'Die Punkte zeigen, wie die veröffentlichten Geschäfte zueinander liegen. Der Name erscheint am ausgewählten Punkt.',
+        'Die Karte zeigt, wo die veröffentlichten Geschäfte liegen. Der Name erscheint am ausgewählten Punkt.',
       'places.means':
         'Sie bezahlen nicht mit Ihren Aktien. Für jede Zahlung verkaufen Sie REALU. Den Erlös abzüglich der Gebühr erhalten Sie in ZCHF, einem Stablecoin in Schweizer Franken, und mit diesem ZCHF wird bezahlt. Da nur ganze Aktien verkauft werden, wird auf ganze REALU aufgerundet. Der Aufrundungsbetrag wird Ihnen nicht gutgeschrieben und fällt bei kleinen Beträgen stärker ins Gewicht.',
       'map.label': 'Veröffentlichte Zahlungsorte',
@@ -45,7 +45,7 @@
       'empty.body': 'Shops appear here once they publish RealUnit as a way to pay.',
       'places.title': 'Pay with the RealUnit Wallet',
       'places.body':
-        'The points show how the published shops are placed relative to each other. The name appears on the selected point.',
+        'The map shows where the published shops are. The name appears on the selected point.',
       'places.means':
         'You do not pay with your shares. For each payment you sell REALU. You receive the proceeds minus the fee in ZCHF, a Swiss-franc stablecoin, and that ZCHF is what pays. Because only whole shares are sold, the sale is rounded up to whole REALU. The round-up amount is not credited to you and weighs more heavily on small amounts.',
       'map.label': 'Published pay locations',
@@ -130,35 +130,64 @@
     return kept;
   }
 
-  // Positions are fractions of the frame, north up. One pin sits in the
-  // middle. Several pins keep their relative spread, with padding so a pin
-  // is not clipped by the frame. A zero span does not divide by zero.
-  function framePlaces(places) {
+  // Same country fit as the wallet map: web mercator, north up, 28px padding.
+  // A missing size uses the desktop frame so a caller cannot divide by zero.
+  var MAP_SOUTH = 45.83003;
+  var MAP_NORTH = 47.77564;
+  var MAP_WEST = 5.97002;
+  var MAP_EAST = 10.45459;
+  var MAP_PAD = 28;
+
+  function mercatorX(lon) {
+    return (lon * Math.PI) / 180;
+  }
+
+  function mercatorY(lat) {
+    var radians = (lat * Math.PI) / 180;
+    return Math.log(Math.tan(Math.PI / 4 + radians / 2));
+  }
+
+  function mapFit(width, height) {
+    var frameWidth = width > 0 ? width : 640;
+    var frameHeight = height > 0 ? height : 320;
+    var x0 = mercatorX(MAP_WEST);
+    var x1 = mercatorX(MAP_EAST);
+    var ySouth = mercatorY(MAP_SOUTH);
+    var yNorth = mercatorY(MAP_NORTH);
+    var boundsWidth = x1 - x0;
+    var boundsHeight = yNorth - ySouth;
+    var innerWidth = Math.max(frameWidth - MAP_PAD * 2, 1);
+    var innerHeight = Math.max(frameHeight - MAP_PAD * 2, 1);
+    var scale = Math.min(innerWidth / boundsWidth, innerHeight / boundsHeight);
+    var usedWidth = boundsWidth * scale;
+    var usedHeight = boundsHeight * scale;
+    return {
+      width: frameWidth,
+      height: frameHeight,
+      x0: x0,
+      yNorth: yNorth,
+      scale: scale,
+      originX: (frameWidth - usedWidth) / 2,
+      originY: (frameHeight - usedHeight) / 2,
+    };
+  }
+
+  function projectPoint(lat, lon, fit) {
+    return {
+      x: (fit.originX + (mercatorX(lon) - fit.x0) * fit.scale) / fit.width,
+      y: (fit.originY + (fit.yNorth - mercatorY(lat)) * fit.scale) / fit.height,
+    };
+  }
+
+  // Fractions of the map frame. Every shop uses the country fit, so one shop
+  // stays where it is on the map instead of jumping to the middle.
+  function framePlaces(places, width, height) {
     if (!places || places.length === 0) return [];
-    if (places.length === 1) return [{ place: places[0], x: 0.5, y: 0.5 }];
-    var minLon = places[0].lon;
-    var maxLon = places[0].lon;
-    var minLat = places[0].lat;
-    var maxLat = places[0].lat;
-    for (var i = 1; i < places.length; i += 1) {
-      if (places[i].lon < minLon) minLon = places[i].lon;
-      if (places[i].lon > maxLon) maxLon = places[i].lon;
-      if (places[i].lat < minLat) minLat = places[i].lat;
-      if (places[i].lat > maxLat) maxLat = places[i].lat;
-    }
-    var lonSpan = maxLon - minLon;
-    var latSpan = maxLat - minLat;
-    if (lonSpan === 0) lonSpan = 1;
-    if (latSpan === 0) latSpan = 1;
-    var pad = 0.12;
-    var scale = 0.76;
+    var fit = mapFit(width, height);
     var framed = [];
-    for (var j = 0; j < places.length; j += 1) {
-      framed.push({
-        place: places[j],
-        x: pad + ((places[j].lon - minLon) / lonSpan) * scale,
-        y: pad + ((maxLat - places[j].lat) / latSpan) * scale,
-      });
+    for (var i = 0; i < places.length; i += 1) {
+      var point = projectPoint(places[i].lat, places[i].lon, fit);
+      framed.push({ place: places[i], x: point.x, y: point.y });
     }
     return framed;
   }
@@ -190,6 +219,13 @@
     previewMock: previewMock,
     keepPlace: keepPlace,
     keepPlaces: keepPlaces,
+    MAP_SOUTH: MAP_SOUTH,
+    MAP_NORTH: MAP_NORTH,
+    MAP_WEST: MAP_WEST,
+    MAP_EAST: MAP_EAST,
+    MAP_PAD: MAP_PAD,
+    mapFit: mapFit,
+    projectPoint: projectPoint,
     framePlaces: framePlaces,
     placesFetchInit: placesFetchInit,
     previewPlaces: previewPlaces,
