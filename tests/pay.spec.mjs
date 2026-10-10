@@ -31,6 +31,7 @@ test.describe('pay locations', () => {
     });
     await page.goto('/pay/?mock=places');
     await expect(page.locator('#state-places')).toBeVisible();
+    await expect(page.locator('#state-places h1')).toHaveText('Mit der RealUnit Wallet bezahlen');
     await expect(page.locator('#pay-map button')).toHaveCount(3);
     await expect(page.locator('#pay-popup')).toBeHidden();
     await expect(page.locator('#pay-means')).toBeVisible();
@@ -71,7 +72,7 @@ test.describe('pay locations', () => {
   test('the English page uses the English copy', async ({ page }) => {
     await page.goto('/pay/en/?mock=places');
     await expect(page).toHaveTitle('RealUnit — Pay locations');
-    await expect(page.locator('#state-places h1')).toHaveText('Where you can pay with RealUnit');
+    await expect(page.locator('#state-places h1')).toHaveText('Pay with the RealUnit Wallet');
     await expect(page.locator('#pay-means')).toBeVisible();
     await expect(page.locator('#pay-means')).toContainText('do not pay with your shares');
     await expect(page.locator('#pay-means')).toContainText('ZCHF');

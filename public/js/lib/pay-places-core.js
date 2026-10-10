@@ -16,7 +16,7 @@
   var I18N = {
     de: {
       'doc.title': 'RealUnit — Zahlungsorte',
-      'doc.desc': 'Geschäfte, in denen Sie mit RealUnit bezahlen können.',
+      'doc.desc': 'Geschäfte, in denen Sie mit der RealUnit Wallet bezahlen können.',
       'loading.title': 'Zahlungsorte werden geladen…',
       'loading.body': 'Einen Moment, wir laden die veröffentlichten Geschäfte.',
       'error.title': 'Zahlungsorte gerade nicht erreichbar',
@@ -25,7 +25,7 @@
       'empty.title': 'Noch keine Zahlungsorte veröffentlicht',
       'empty.body':
         'Sobald Geschäfte RealUnit als Zahlungsweg veröffentlichen, erscheinen sie hier.',
-      'places.title': 'Wo Sie mit RealUnit bezahlen',
+      'places.title': 'Mit der RealUnit Wallet bezahlen',
       'places.body':
         'Die Punkte zeigen die veröffentlichten Geschäfte zueinander. Der Name steht beim ausgewählten Punkt.',
       'places.means':
@@ -35,7 +35,7 @@
     },
     en: {
       'doc.title': 'RealUnit — Pay locations',
-      'doc.desc': 'Shops where you can pay with RealUnit.',
+      'doc.desc': 'Shops where you can pay with the RealUnit Wallet.',
       'loading.title': 'Loading pay locations…',
       'loading.body': 'One moment — we’re loading the published shops.',
       'error.title': 'Pay locations are unavailable',
@@ -43,7 +43,7 @@
       'error.cta': 'Try again',
       'empty.title': 'No pay locations published yet',
       'empty.body': 'Shops appear here once they publish RealUnit as a way to pay.',
-      'places.title': 'Where you can pay with RealUnit',
+      'places.title': 'Pay with the RealUnit Wallet',
       'places.body':
         'The points show the published shops relative to each other. The name appears for the selected point.',
       'places.means':
