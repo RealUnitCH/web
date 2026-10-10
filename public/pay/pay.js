@@ -1,5 +1,7 @@
 /* DOM and network glue for the pay-locations page. Language, the keep rules,
-   and the copy live in js/lib/pay-places-core.js, loaded before this file. */
+   and the copy live in js/lib/pay-places-core.js, loaded before this file.
+   The map is the same OpenFreeMap Liberty style the OpenCryptoPay place map
+   uses: same-origin MapLibre, tiles from tiles.openfreemap.org. */
 (function () {
   'use strict';
 
@@ -49,76 +51,98 @@
   }
 
   var drawnPlaces = null;
+  var mapView = null;
+  var markers = [];
+  var frameToken = 0;
 
-  function mapShape(fit, rings, fill, stroke, strokeWidth) {
-    var ns = 'http://www.w3.org/2000/svg';
-    var path = document.createElementNS(ns, 'path');
-    var commands = '';
-    for (var r = 0; r < rings.length; r += 1) {
-      var ring = rings[r];
-      for (var i = 0; i < ring.length; i += 1) {
-        var point = core.projectPoint(ring[i][0], ring[i][1], fit);
-        commands +=
-          (i === 0 ? 'M' : 'L') +
-          (point.x * fit.width).toFixed(2) +
-          ' ' +
-          (point.y * fit.height).toFixed(2);
-      }
-      commands += 'Z';
-    }
-    path.setAttribute('d', commands);
-    path.setAttribute('fill', fill);
-    path.setAttribute('stroke', stroke);
-    path.setAttribute('stroke-width', strokeWidth);
-    path.setAttribute('stroke-linejoin', 'round');
-    return path;
+  function clearMarkers() {
+    for (var i = 0; i < markers.length; i += 1) markers[i].remove();
+    markers = [];
   }
 
-  function drawBaseMap(map, fit) {
-    var ns = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(ns, 'svg');
-    var geometry = window.RealUnitPayMap;
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('focusable', 'false');
-    svg.setAttribute('viewBox', '0 0 ' + fit.width + ' ' + fit.height);
-    if (!geometry) return svg;
-    svg.appendChild(mapShape(fit, geometry.country, '#ffffff', '#475569', '1.2'));
-    svg.appendChild(mapShape(fit, geometry.lakes, '#D1E6F5', '#1988C6', '0.8'));
-    return svg;
+  function frameMap(places) {
+    if (places.length === 1) {
+      mapView.jumpTo({ center: [places[0].lon, places[0].lat], zoom: 12 });
+      return;
+    }
+    var bounds = new maplibregl.LngLatBounds();
+    for (var i = 0; i < places.length; i += 1) {
+      bounds.extend([places[i].lon, places[i].lat]);
+    }
+    mapView.fitBounds(bounds, { padding: 48, maxZoom: 12, animate: false });
+  }
+
+  function ensureMap(container) {
+    if (mapView) return mapView;
+    mapView = new maplibregl.Map({
+      container: container,
+      style: 'https://tiles.openfreemap.org/styles/liberty',
+      center: [8.23, 46.8],
+      zoom: 7,
+      fadeDuration: 0,
+      canvasContextAttributes: { preserveDrawingBuffer: true },
+    });
+    mapView.addControl(new maplibregl.NavigationControl(), 'top-right');
+    return mapView;
+  }
+
+  function addPin(place, selected, open) {
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'pay-pin';
+    if (selected) button.classList.add('is-selected');
+    button.setAttribute('aria-label', place.name);
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      var pins = document.querySelectorAll('#pay-map .pay-pin');
+      for (var i = 0; i < pins.length; i += 1) pins[i].classList.remove('is-selected');
+      button.classList.add('is-selected');
+      openPopup(place);
+    });
+    markers.push(
+      new maplibregl.Marker({ element: button, anchor: 'center' })
+        .setLngLat([place.lon, place.lat])
+        .addTo(mapView),
+    );
+    if (open) button.click();
   }
 
   function render(places, openFirst) {
-    drawnPlaces = places;
-    var map = document.getElementById('pay-map');
+    var container = document.getElementById('pay-map');
     if (!places || !places.length) {
       drawnPlaces = null;
-      map.replaceChildren();
+      frameToken += 1;
+      clearMarkers();
+      container.removeAttribute('data-map-ready');
       show('empty');
       return;
     }
+    drawnPlaces = places;
     show('places');
-    var selected = map.querySelector('.pin.is-selected');
+    var map = ensureMap(container);
+    var token = (frameToken += 1);
+    var selected = container.querySelector('.pay-pin.is-selected');
     var selectedName = selected ? selected.getAttribute('aria-label') : '';
-    var fit = core.mapFit(map.clientWidth, map.clientHeight);
-    var framed = core.framePlaces(places, fit.width, fit.height);
-    map.replaceChildren(drawBaseMap(map, fit));
-    framed.forEach(function (item) {
-      var button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'pin';
-      button.style.left = (item.x * 100).toFixed(4) + '%';
-      button.style.top = (item.y * 100).toFixed(4) + '%';
-      button.setAttribute('aria-label', item.place.name);
-      if (item.place.name === selectedName) button.classList.add('is-selected');
-      button.addEventListener('click', function () {
-        var pins = map.querySelectorAll('.pin');
-        for (var i = 0; i < pins.length; i += 1) pins[i].classList.remove('is-selected');
-        button.classList.add('is-selected');
-        openPopup(item.place);
+    container.removeAttribute('data-map-ready');
+
+    function draw() {
+      if (token !== frameToken) return;
+      clearMarkers();
+      map.resize();
+      for (var i = 0; i < places.length; i += 1) {
+        addPin(places[i], places[i].name === selectedName, openFirst && places[i] === places[0]);
+      }
+      frameMap(places);
+      map.once('idle', function () {
+        if (token !== frameToken) return;
+        container.setAttribute('data-map-ready', 'true');
       });
-      map.appendChild(button);
-      if (openFirst && item.place === places[0]) button.click();
-    });
+      map.triggerRepaint();
+    }
+
+    if (map.isStyleLoaded()) draw();
+    else map.once('load', draw);
   }
 
   var attempt = 0;
@@ -169,11 +193,13 @@
 
   document.getElementById('pay-popup-close').addEventListener('click', function () {
     document.getElementById('pay-popup').hidden = true;
-    var pins = document.querySelectorAll('#pay-map .pin');
+    var pins = document.querySelectorAll('#pay-map .pay-pin');
     for (var i = 0; i < pins.length; i += 1) pins[i].classList.remove('is-selected');
   });
   window.addEventListener('resize', function () {
-    if (drawnPlaces && drawnPlaces.length) render(drawnPlaces, false);
+    if (!mapView || !drawnPlaces || !drawnPlaces.length) return;
+    mapView.resize();
+    frameMap(drawnPlaces);
   });
   document.getElementById('pay-retry').addEventListener('click', load);
   load();

@@ -37,7 +37,7 @@ test.describe('pay locations', () => {
     await expect(page.locator('[data-i18n="places.body"]')).toHaveText(
       'Die Karte zeigt, wo die veröffentlichten Geschäfte liegen. Der Name erscheint am ausgewählten Punkt.',
     );
-    await expect(page.locator('#pay-map button')).toHaveCount(3);
+    await expect(page.locator('#pay-map .pay-pin')).toHaveCount(3, { timeout: 20_000 });
     await expect(page.locator('#pay-popup')).toBeHidden();
     await expect(page.locator('#pay-means')).toBeVisible();
     await expect(page.locator('#pay-means')).toContainText('nicht direkt mit Ihren Aktien');
@@ -82,21 +82,23 @@ test.describe('pay locations', () => {
       route.fulfill({ status: 200, contentType: 'application/json', body: raw }),
     );
     await page.goto('/pay/');
-    await expect(page.locator('#pay-map button')).toHaveCount(published.places.length);
+    await expect(page.locator('#pay-map .pay-pin')).toHaveCount(published.places.length, {
+      timeout: 20_000,
+    });
     // The same shops the app baseline lists, present here as pins rather than a list.
     await expect(
-      page.locator('#pay-map button[aria-label="SPAR Auwiesenstrasse 24, 9030 Abtwil"]'),
+      page.locator('#pay-map .pay-pin[aria-label="SPAR Auwiesenstrasse 24, 9030 Abtwil"]'),
     ).toHaveCount(1);
     await expect(
-      page.locator('#pay-map button[aria-label="SPAR Schmiedgasse 10, 6460 Altdorf"]'),
+      page.locator('#pay-map .pay-pin[aria-label="SPAR Schmiedgasse 10, 6460 Altdorf"]'),
     ).toHaveCount(1);
     for (const town of ['Zürich', 'Bern', 'Lugano']) {
-      await expect(page.locator(`#pay-map button[aria-label="${town}"]`)).toHaveCount(0);
+      await expect(page.locator(`#pay-map .pay-pin[aria-label="${town}"]`)).toHaveCount(0);
     }
     // Neighbouring shops share a point. A coordinate click lands on whichever
     // pin was painted last, so activate this shop on the element itself.
     await page
-      .locator(`#pay-map button[aria-label=${JSON.stringify(shop.name)}]`)
+      .locator(`#pay-map .pay-pin[aria-label=${JSON.stringify(shop.name)}]`)
       .evaluate((el) => el.click());
     await expect(page.locator('#pay-popup-name')).toHaveText(shop.name);
     await expect(page.locator('#pay-popup-category')).toHaveText(shop.category);
@@ -129,9 +131,9 @@ test.describe('pay locations', () => {
       });
     });
     await page.goto('/pay/');
-    await expect(page.locator('#pay-map button')).toHaveCount(1);
-    await expect(page.locator('#pay-map button')).toHaveAttribute('aria-label', 'Bern');
-    await page.locator('#pay-map button').click();
+    await expect(page.locator('#pay-map .pay-pin')).toHaveCount(1, { timeout: 20_000 });
+    await expect(page.locator('#pay-map .pay-pin')).toHaveAttribute('aria-label', 'Bern');
+    await page.locator('#pay-map .pay-pin').click();
     await expect(page.locator('#pay-popup-name')).toHaveText('Bern');
     await expect(page.locator('#pay-popup-category')).toHaveText('Café');
   });

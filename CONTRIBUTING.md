@@ -42,8 +42,14 @@ This repo is the **realunit.app** website — public, static. See the
     fonts). Load JS from **same-origin** files instead. `connect-src` names
     `api.dfx.swiss` and `dev.api.dfx.swiss` for the DFX API, and
     `api.opencryptopay.io` for the pay-locations page, which reads the published
-    OpenCryptoPay place list and nothing else on that host. Adding any other
-    host to that allowlist needs a reason in the PR.
+    OpenCryptoPay place list and nothing else on that host. That page also loads
+    the OpenFreeMap Liberty style, tiles, sprites, and glyphs from
+    `https://tiles.openfreemap.org` (`connect-src` and `img-src`). The MapLibre
+    script is vendored at `public/js/vendor/maplibre-gl.js` (5.6.1, BSD-3-Clause);
+    it starts its worker from a blob URL, so `worker-src` allows `'self' blob:`.
+    The zoom and compass icons are inline SVG `data:` URLs in the vendored
+    stylesheet, so `img-src` allows `data:`. Adding any other host to that
+    allowlist needs a reason in the PR.
   - Inline `style="…"` attributes and `<style>` blocks are fine (`style-src`
     allows `'unsafe-inline'`).
 - **Put the reusable, side-effect-free JS in `public/js/lib/`.** That is the only

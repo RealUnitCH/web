@@ -130,68 +130,6 @@
     return kept;
   }
 
-  // Same country fit as the wallet map: web mercator, north up, 28px padding.
-  // A missing size uses the desktop frame so a caller cannot divide by zero.
-  var MAP_SOUTH = 45.83003;
-  var MAP_NORTH = 47.77564;
-  var MAP_WEST = 5.97002;
-  var MAP_EAST = 10.45459;
-  var MAP_PAD = 28;
-
-  function mercatorX(lon) {
-    return (lon * Math.PI) / 180;
-  }
-
-  function mercatorY(lat) {
-    var radians = (lat * Math.PI) / 180;
-    return Math.log(Math.tan(Math.PI / 4 + radians / 2));
-  }
-
-  function mapFit(width, height) {
-    var frameWidth = width > 0 ? width : 640;
-    var frameHeight = height > 0 ? height : 320;
-    var x0 = mercatorX(MAP_WEST);
-    var x1 = mercatorX(MAP_EAST);
-    var ySouth = mercatorY(MAP_SOUTH);
-    var yNorth = mercatorY(MAP_NORTH);
-    var boundsWidth = x1 - x0;
-    var boundsHeight = yNorth - ySouth;
-    var innerWidth = Math.max(frameWidth - MAP_PAD * 2, 1);
-    var innerHeight = Math.max(frameHeight - MAP_PAD * 2, 1);
-    var scale = Math.min(innerWidth / boundsWidth, innerHeight / boundsHeight);
-    var usedWidth = boundsWidth * scale;
-    var usedHeight = boundsHeight * scale;
-    return {
-      width: frameWidth,
-      height: frameHeight,
-      x0: x0,
-      yNorth: yNorth,
-      scale: scale,
-      originX: (frameWidth - usedWidth) / 2,
-      originY: (frameHeight - usedHeight) / 2,
-    };
-  }
-
-  function projectPoint(lat, lon, fit) {
-    return {
-      x: (fit.originX + (mercatorX(lon) - fit.x0) * fit.scale) / fit.width,
-      y: (fit.originY + (fit.yNorth - mercatorY(lat)) * fit.scale) / fit.height,
-    };
-  }
-
-  // Fractions of the map frame. Every shop uses the country fit, so one shop
-  // stays where it is on the map instead of jumping to the middle.
-  function framePlaces(places, width, height) {
-    if (!places || places.length === 0) return [];
-    var fit = mapFit(width, height);
-    var framed = [];
-    for (var i = 0; i < places.length; i += 1) {
-      var point = projectPoint(places[i].lat, places[i].lon, fit);
-      framed.push({ place: places[i], x: point.x, y: point.y });
-    }
-    return framed;
-  }
-
   function placesFetchInit(signal) {
     var init = {
       method: 'GET',
@@ -219,14 +157,6 @@
     previewMock: previewMock,
     keepPlace: keepPlace,
     keepPlaces: keepPlaces,
-    MAP_SOUTH: MAP_SOUTH,
-    MAP_NORTH: MAP_NORTH,
-    MAP_WEST: MAP_WEST,
-    MAP_EAST: MAP_EAST,
-    MAP_PAD: MAP_PAD,
-    mapFit: mapFit,
-    projectPoint: projectPoint,
-    framePlaces: framePlaces,
     placesFetchInit: placesFetchInit,
     previewPlaces: previewPlaces,
   };

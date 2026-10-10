@@ -7,6 +7,7 @@
   <meta name="description" content="Shops where you can pay with the RealUnit Wallet." />
   <meta name="theme-color" content="#1988C6" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/js/vendor/maplibre-gl.css" />
   <link rel="canonical" href="https://realunit.app/pay/en/" />
   <link rel="alternate" hreflang="en" href="/pay/en/" />
   <link rel="alternate" hreflang="de" href="/pay/" />
@@ -47,21 +48,21 @@
       height: 320px;
       border-radius: 16px;
       border: 1px solid #d3e0ea;
-      background: #D1E6F5;
+      background: #f8f4f0;
       overflow: hidden;
     }
-    #pay-map svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
     #pay-means { margin-top: 16px; }
-    .pin {
-      position: absolute;
-      width: 18px; height: 18px; margin: 0; padding: 0;
-      border: 2px solid #fff; border-radius: 50%; background: var(--accent);
-      transform: translate(-50%, -50%); z-index: 1;
-      box-shadow: 0 1px 4px rgba(3, 76, 129, 0.35);
+    .pay-pin {
+      display: block;
+      box-sizing: content-box;
+      width: 14px; height: 14px; margin: 0; padding: 0;
+      border: 2px solid #fff; border-radius: 50%; background: #d23b3b;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+      appearance: none; -webkit-appearance: none;
       cursor: pointer;
     }
-    .pin.is-selected { background: #E02523; }
-    .pin:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .pay-pin.is-selected { box-shadow: 0 0 0 2px #1988C6, 0 0 0 4px #fff; }
+    .pay-pin:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
     #pay-popup {
       margin-top: 14px;
       padding: 14px 16px;
@@ -125,8 +126,8 @@
       <p>Pay locations need JavaScript.</p>
     </noscript>
   </main>
+  <script src="/js/vendor/maplibre-gl.js"></script>
   <script src="/js/lib/pay-places-core.js"></script>
-  <script src="/js/lib/pay-map-geometry.js"></script>
   <script src="/pay/pay.js"></script>
 </body>
 </html>

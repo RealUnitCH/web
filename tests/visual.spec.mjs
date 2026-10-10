@@ -47,12 +47,15 @@ test.describe('visual regression', () => {
             state: 'visible',
           });
         }
+        if (view.waitFor === 'places') {
+          await page.waitForSelector('#pay-map[data-map-ready="true"]', { timeout: 20000 });
+        }
         if (view.openFirstPin) {
           const shop = JSON.parse(fixtureBody.toString()).places[0];
           // Neighbouring shops share a point. A coordinate click lands on
           // whichever pin was painted last, so activate this shop on the element.
           await page
-            .locator(`#pay-map button[aria-label=${JSON.stringify(shop.name)}]`)
+            .locator(`#pay-map .pay-pin[aria-label=${JSON.stringify(shop.name)}]`)
             .evaluate((el) => el.click());
           await expect(page.locator('#pay-popup-name')).toHaveText(shop.name);
         }
