@@ -85,6 +85,14 @@
     #pay-popup-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
     [hidden] { display: none !important; }
   </style>
+  <noscript>
+    <!-- Without JS the loading state would stay forever. style-src allows inline. -->
+    <style>
+      #state-loading {
+        display: none;
+      }
+    </style>
+  </noscript>
 </head>
 <body>
   <main class="card">

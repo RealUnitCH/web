@@ -278,6 +278,16 @@ describe('i18n copy', () => {
     });
   });
 
+  test('without JavaScript the loading state is hidden on both pages', () => {
+    for (const file of ['public/pay/index.html', 'public/pay/en/index.html']) {
+      const html = readFileSync(file, 'utf8');
+      const head = html.slice(0, html.indexOf('</head>'));
+      const style = head.slice(head.indexOf('<noscript>'), head.indexOf('</noscript>'));
+      expect(style, file).toMatch(/#state-loading\s*\{[^}]*display:\s*none/);
+      expect(html, file).toMatch(/<noscript>[\s\S]*JavaScript/);
+    }
+  });
+
   test('every data-i18n key on both pages exists in both languages', () => {
     const keys = new Set(['doc.title', 'doc.desc']);
     for (const file of ['public/pay/index.html', 'public/pay/en/index.html']) {
