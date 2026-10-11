@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RealUnit — Zahlungsorte</title>
+  <meta name="description" content="Geschäfte, in denen Sie mit der RealUnit Wallet bezahlen können." />
+  <meta name="theme-color" content="#1988C6" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/js/vendor/maplibre-gl.css" />
+  <link rel="canonical" href="https://realunit.app/pay/" />
+  <link rel="alternate" hreflang="de" href="/pay/" />
+  <link rel="alternate" hreflang="en" href="/pay/en/" />
+  <style>
+    :root { --bg: #f2f6fa; --accent: #1988C6; --ink: #1a2733; --muted: #5b6b7a; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.5;
+      padding: clamp(16px, 4vw, 48px);
+    }
+    .card {
+      max-width: 640px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: clamp(24px, 5vw, 40px);
+    }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+    .logo { display: block; height: 40px; width: auto; }
+    .lang-switch { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .lang-switch:hover, .lang-switch:focus-visible { text-decoration: underline; }
+    h1 { font-size: clamp(1.35rem, 4vw, 1.7rem); line-height: 1.25; margin: 0 0 8px; }
+    p { margin: 0 0 16px; color: var(--muted); }
+    .spinner {
+      width: 28px; height: 28px; margin: 8px 0 16px;
+      border: 3px solid rgba(25, 136, 198, 0.25); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+    #pay-map {
+      position: relative;
+      height: 320px;
+      border-radius: 16px;
+      border: 1px solid #d3e0ea;
+      background: #f8f4f0;
+      overflow: hidden;
+    }
+    #pay-means { margin-top: 16px; }
+    .pay-pin {
+      display: block;
+      box-sizing: content-box;
+      width: 14px; height: 14px; margin: 0; padding: 0;
+      border: 2px solid #fff; border-radius: 50%; background: #d23b3b;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+      appearance: none; -webkit-appearance: none;
+      cursor: pointer;
+    }
+    .pay-pin.is-selected { box-shadow: 0 0 0 2px #1988C6, 0 0 0 4px #fff; }
+    .pay-pin:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    #pay-popup {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fbfd;
+    }
+    #pay-popup-name { display: block; font-size: 1.05rem; }
+    #pay-popup-category { color: var(--muted); margin-top: 4px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-top: 8px; padding: 12px 18px; border: 0; border-radius: 12px;
+      background: var(--accent); color: #fff; font: inherit; font-weight: 600;
+      cursor: pointer;
+    }
+    #pay-popup-close {
+      margin-top: 10px; padding: 0; border: 0; background: transparent;
+      color: var(--accent); font: inherit; font-weight: 600; cursor: pointer;
+    }
+    #pay-popup-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <header>
+      <a href="/"><img class="logo" src="/assets/realunit-logo.png" width="900" height="267" alt="RealUnit Schweiz AG" /></a>
+      <a class="lang-switch" href="/pay/en/" hreflang="en" lang="en">English</a>
+    </header>
+
+    <div id="state-loading">
+      <div class="spinner"></div>
+      <h1 data-i18n="loading.title">Zahlungsorte werden geladen…</h1>
+      <p data-i18n="loading.body">Einen Moment, wir laden die veröffentlichten Geschäfte.</p>
+    </div>
+
+    <div id="state-error" hidden>
+      <h1 data-i18n="error.title">Zahlungsorte gerade nicht erreichbar</h1>
+      <p data-i18n="error.body">Die Liste konnte nicht geladen werden. Bitte versuchen Sie es später erneut.</p>
+      <button type="button" class="btn" id="pay-retry" data-i18n="error.cta">Erneut versuchen</button>
+    </div>
+
+    <div id="state-empty" hidden>
+      <h1 data-i18n="empty.title">Noch keine Zahlungsorte veröffentlicht</h1>
+      <p data-i18n="empty.body">Sobald Geschäfte RealUnit als Zahlungsweg veröffentlichen, erscheinen sie hier.</p>
+    </div>
+
+    <div id="state-places" hidden>
+      <h1 data-i18n="places.title">Mit der RealUnit Wallet bezahlen</h1>
+      <p data-i18n="places.body">Die Karte zeigt, wo die veröffentlichten Geschäfte liegen. Der Name erscheint am ausgewählten Punkt.</p>
+      <div id="pay-map" role="group" data-i18n-aria="map.label" aria-label="Veröffentlichte Zahlungsorte"></div>
+      <p id="pay-means" data-i18n="places.means">Sie bezahlen nicht direkt mit Ihren Aktien. Für jede Zahlung verkaufen Sie REALU. Den Erlös abzüglich der Gebühr erhalten Sie in ZCHF, einem Stablecoin in Schweizer Franken, und mit diesem ZCHF wird bezahlt. Da nur ganze Aktien verkauft werden, wird auf ganze REALU aufgerundet. Der Aufrundungsbetrag wird Ihnen nicht gutgeschrieben und fällt bei kleinen Beträgen stärker ins Gewicht.</p>
+      <div id="pay-popup" hidden>
+        <strong id="pay-popup-name"></strong>
+        <div id="pay-popup-category" hidden></div>
+        <button type="button" id="pay-popup-close" data-i18n="popup.close">Schliessen</button>
+      </div>
+    </div>
+
+    <noscript>
+      <p>Die Zahlungsorte brauchen JavaScript.</p>
+    </noscript>
+  </main>
+  <script src="/js/vendor/maplibre-gl.js"></script>
+  <script src="/js/lib/pay-places-core.js"></script>
+  <script src="/pay/pay.js"></script>
+</body>
+</html>
