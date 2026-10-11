@@ -81,6 +81,7 @@
       zoom: 7,
       fadeDuration: 0,
       canvasContextAttributes: { preserveDrawingBuffer: true },
+      locale: core.mapControlLocale(t),
     });
     mapView.addControl(new maplibregl.NavigationControl(), 'top-right');
     return mapView;

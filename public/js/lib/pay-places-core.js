@@ -31,6 +31,11 @@
       'places.means':
         'Sie bezahlen nicht direkt mit Ihren Aktien. Für jede Zahlung verkaufen Sie REALU. Den Erlös abzüglich der Gebühr erhalten Sie in ZCHF, einem Stablecoin in Schweizer Franken, und mit diesem ZCHF wird bezahlt. Da nur ganze Aktien verkauft werden, wird auf ganze REALU aufgerundet. Der Aufrundungsbetrag wird Ihnen nicht gutgeschrieben und fällt bei kleinen Beträgen stärker ins Gewicht.',
       'map.label': 'Veröffentlichte Zahlungsorte',
+      'map.control.map': 'Karte',
+      'map.control.zoomIn': 'Vergrössern',
+      'map.control.zoomOut': 'Verkleinern',
+      'map.control.north': 'Norden ausrichten',
+      'map.control.attribution': 'Quellen einblenden',
       'popup.close': 'Schliessen',
     },
     en: {
@@ -49,6 +54,11 @@
       'places.means':
         'You do not pay with your shares. For each payment you sell REALU. You receive the proceeds minus the fee in ZCHF, a Swiss-franc stablecoin, and that ZCHF is what pays. Because only whole shares are sold, the sale is rounded up to whole REALU. The round-up amount is not credited to you and weighs more heavily on small amounts.',
       'map.label': 'Published pay locations',
+      'map.control.map': 'Map',
+      'map.control.zoomIn': 'Zoom in',
+      'map.control.zoomOut': 'Zoom out',
+      'map.control.north': 'Reset bearing to north',
+      'map.control.attribution': 'Toggle attribution',
       'popup.close': 'Close',
     },
   };
@@ -148,11 +158,24 @@
     ];
   }
 
+  // Partial MapLibre locale. The library merges it over its English
+  // defaults, so only the controls this page shows are named here.
+  function mapControlLocale(copy) {
+    return {
+      'Map.Title': copy['map.control.map'],
+      'NavigationControl.ZoomIn': copy['map.control.zoomIn'],
+      'NavigationControl.ZoomOut': copy['map.control.zoomOut'],
+      'NavigationControl.ResetBearing': copy['map.control.north'],
+      'AttributionControl.ToggleAttribution': copy['map.control.attribution'],
+    };
+  }
+
   global.RealUnitPlaces = {
     SUPPORTED_LANGS: SUPPORTED_LANGS,
     I18N: I18N,
     PLACES_URL: PLACES_URL,
     resolveLang: resolveLang,
+    mapControlLocale: mapControlLocale,
     isRealUnitHost: isRealUnitHost,
     previewMock: previewMock,
     keepPlace: keepPlace,

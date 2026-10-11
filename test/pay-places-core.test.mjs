@@ -15,6 +15,7 @@ const {
   keepPlaces,
   previewPlaces,
   placesFetchInit,
+  mapControlLocale,
 } = core;
 
 function resolve(overrides) {
@@ -258,6 +259,23 @@ describe('i18n copy', () => {
     expect(I18N.en['places.means']).not.toContain('used first on the next payment');
     expect(I18N.de['places.means']).not.toMatch(/1\s*%/);
     expect(I18N.en['places.means']).not.toMatch(/1\s*%/);
+  });
+
+  test('map controls follow the page language', () => {
+    expect(mapControlLocale(I18N.de)).toEqual({
+      'Map.Title': 'Karte',
+      'NavigationControl.ZoomIn': 'Vergrössern',
+      'NavigationControl.ZoomOut': 'Verkleinern',
+      'NavigationControl.ResetBearing': 'Norden ausrichten',
+      'AttributionControl.ToggleAttribution': 'Quellen einblenden',
+    });
+    expect(mapControlLocale(I18N.en)).toEqual({
+      'Map.Title': 'Map',
+      'NavigationControl.ZoomIn': 'Zoom in',
+      'NavigationControl.ZoomOut': 'Zoom out',
+      'NavigationControl.ResetBearing': 'Reset bearing to north',
+      'AttributionControl.ToggleAttribution': 'Toggle attribution',
+    });
   });
 
   test('every data-i18n key on both pages exists in both languages', () => {

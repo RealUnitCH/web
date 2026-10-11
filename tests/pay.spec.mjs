@@ -38,6 +38,23 @@ test.describe('pay locations', () => {
       'Die Karte zeigt, wo die veröffentlichten Geschäfte liegen. Der Name erscheint am ausgewählten Punkt.',
     );
     await expect(page.locator('#pay-map .pay-pin')).toHaveCount(3, { timeout: 20_000 });
+    await expect(page.locator('#pay-map canvas')).toHaveAttribute('aria-label', 'Karte');
+    await expect(page.locator('#pay-map .maplibregl-ctrl-zoom-in')).toHaveAttribute(
+      'aria-label',
+      'Vergrössern',
+    );
+    await expect(page.locator('#pay-map .maplibregl-ctrl-zoom-out')).toHaveAttribute(
+      'aria-label',
+      'Verkleinern',
+    );
+    await expect(page.locator('#pay-map .maplibregl-ctrl-compass')).toHaveAttribute(
+      'aria-label',
+      'Norden ausrichten',
+    );
+    await expect(page.locator('#pay-map .maplibregl-ctrl-attrib-button')).toHaveAttribute(
+      'aria-label',
+      'Quellen einblenden',
+    );
     await expect(page.locator('#pay-popup')).toBeHidden();
     await expect(page.locator('#pay-means')).toBeVisible();
     await expect(page.locator('#pay-means')).toContainText('nicht direkt mit Ihren Aktien');
@@ -118,6 +135,25 @@ test.describe('pay locations', () => {
     await expect(page.locator('#pay-means')).toContainText('not credited to you');
     await expect(page.locator('#pay-means')).not.toContainText('stays as ZCHF');
     await expect(page.locator('#pay-means')).not.toContainText('used first');
+    await expect(page.locator('#pay-map canvas')).toHaveAttribute('aria-label', 'Map', {
+      timeout: 20_000,
+    });
+    await expect(page.locator('#pay-map .maplibregl-ctrl-zoom-in')).toHaveAttribute(
+      'aria-label',
+      'Zoom in',
+    );
+    await expect(page.locator('#pay-map .maplibregl-ctrl-zoom-out')).toHaveAttribute(
+      'aria-label',
+      'Zoom out',
+    );
+    await expect(page.locator('#pay-map .maplibregl-ctrl-compass')).toHaveAttribute(
+      'aria-label',
+      'Reset bearing to north',
+    );
+    await expect(page.locator('#pay-map .maplibregl-ctrl-attrib-button')).toHaveAttribute(
+      'aria-label',
+      'Toggle attribution',
+    );
   });
 
   test('a live list keeps only an exact Ethereum and ZCHF pin', async ({ page }) => {
