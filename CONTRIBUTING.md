@@ -39,10 +39,17 @@ This repo is the **realunit.app** website — public, static. See the
   `<script>`). Do not add other Pages Functions or server-side rendering.
 - **Keep the page self-contained.** `public/_headers` sets a strict CSP:
   - No inline `<script>` and no third-party resources (scripts, styles, images,
-    fonts). Load JS from **same-origin** files instead. The single permitted
-    network call is the code lookup against the DFX API, which is why
-    `connect-src` names `api.dfx.swiss` and `dev.api.dfx.swiss` explicitly —
-    adding any other host to that allowlist needs a reason in the PR.
+    fonts). Load JS from **same-origin** files instead. `connect-src` names
+    `api.dfx.swiss` and `dev.api.dfx.swiss` for the DFX API, and
+    `api.opencryptopay.io` for the pay-locations page, which reads the published
+    OpenCryptoPay place list and nothing else on that host. That page also loads
+    the OpenFreeMap Liberty style, tiles, sprites, and glyphs from
+    `https://tiles.openfreemap.org` (`connect-src` and `img-src`). The MapLibre
+    script is vendored at `public/js/vendor/maplibre-gl.js` (5.6.1, BSD-3-Clause);
+    it starts its worker from a blob URL, so `worker-src` allows `'self' blob:`.
+    The zoom and compass icons are inline SVG `data:` URLs in the vendored
+    stylesheet, so `img-src` allows `data:`. Adding any other host to that
+    allowlist needs a reason in the PR.
   - Inline `style="…"` attributes and `<style>` blocks are fine (`style-src`
     allows `'unsafe-inline'`).
 - **Put the reusable, side-effect-free JS in `public/js/lib/`.** That is the only
@@ -158,11 +165,12 @@ npm run e2e:docker:update   # regenerate baselines after an intentional UI chang
 ```
 
 The visual matrix lives in `tests/pages.mjs` (`VIEWS`), which is the single
-source of truth — do not maintain a second list here. It currently covers six
+source of truth — do not maintain a second list here. It currently covers seven
 families: the invite and promo landings (each in their loading, resolved,
 invalid, missing-code, platform-matched and JS-less variants), the confirm-page states,
 the account-merge pages, the home landing in its equal-badge and
-platform-matched layouts, and the 404 page — across `desktop-chromium`,
+platform-matched layouts, the pay-locations page (published places, empty,
+error, selected place, and English), and the 404 page — across `desktop-chromium`,
 `tablet-chromium` and `mobile-safari`. `check:visual` enforces that every view × applicable viewport
 has exactly one committed baseline, nothing is orphaned, and the report ran them
 all. When you intentionally change a page's look, run `e2e:docker:update` and
