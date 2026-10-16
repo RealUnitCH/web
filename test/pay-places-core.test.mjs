@@ -159,11 +159,11 @@ describe('keepPlace', () => {
     expect(keepPlace(place({ lat: 47.37, lon: undefined }))).toBeNull();
   });
 
-  test('keeps a place that omits supports and drops an empty or non-array list', () => {
+  test('keeps a place that omits supports or has an empty list and drops a non-array', () => {
     expect(keepPlace(place({ supports: undefined }))?.name).toBe('Zürich');
     expect(keepPlace(place({ supports: null }))?.name).toBe('Zürich');
+    expect(keepPlace(place({ supports: [] }))?.name).toBe('Zürich');
     expect(keepPlace(place({ supports: {} }))).toBeNull();
-    expect(keepPlace(place({ supports: [] }))).toBeNull();
   });
 
   test('drops the wrong chain, the wrong asset, and the wrong case', () => {
@@ -195,7 +195,9 @@ describe('keepPlace', () => {
     expect(keepPlace(place({ street: 'Dorfstrasse', houseNumber: '4' })).address).toBe(
       'Dorfstrasse 4',
     );
-    expect(keepPlace(place({ postalCode: '9658', city: 'Wildhaus' })).address).toBe('9658 Wildhaus');
+    expect(keepPlace(place({ postalCode: '9658', city: 'Wildhaus' })).address).toBe(
+      '9658 Wildhaus',
+    );
     expect(keepPlace(place({ street: 'Dorfstrasse' })).address).toBe('Dorfstrasse');
     expect(keepPlace(place({ houseNumber: '4' })).address).toBe('4');
     expect(keepPlace(place({ postalCode: '9495' })).address).toBe('9495');
@@ -224,7 +226,11 @@ describe('keepPlaces', () => {
     expect(keepPlaces({ places: [] })).toEqual([]);
     expect(
       keepPlaces({
-        places: [null, place({ name: 'Bern' }), place({ supports: [] })],
+        places: [
+          null,
+          place({ name: 'Bern' }),
+          place({ supports: [{ blockchain: 'Lightning', asset: 'BTC' }] }),
+        ],
       }),
     ).toEqual([{ name: 'Bern', category: 'Lebensmittel', address: '', lat: 47.37, lon: 8.54 }]);
   });

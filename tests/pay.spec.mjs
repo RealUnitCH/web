@@ -119,7 +119,10 @@ test.describe('pay locations', () => {
     }
     // Neighbouring shops share a point. A coordinate click lands on whichever
     // pin was painted last, so activate this shop on the element itself.
-    await page.locator('#pay-map .pay-pin').nth(0).evaluate((el) => el.click());
+    await page
+      .locator('#pay-map .pay-pin')
+      .nth(0)
+      .evaluate((el) => el.click());
     await expect(page.locator('#pay-popup-name')).toHaveText(shop.name);
     await expect(page.locator('#pay-popup-category')).toHaveText(shop.category);
     await expect(page.locator('#pay-popup-address')).toHaveText(
