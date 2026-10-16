@@ -39,6 +39,7 @@
   function openPopup(place) {
     var popup = document.getElementById('pay-popup');
     var category = document.getElementById('pay-popup-category');
+    var address = document.getElementById('pay-popup-address');
     document.getElementById('pay-popup-name').textContent = place.name;
     if (place.category) {
       category.hidden = false;
@@ -46,6 +47,13 @@
     } else {
       category.hidden = true;
       category.textContent = '';
+    }
+    if (place.address) {
+      address.hidden = false;
+      address.textContent = place.address;
+    } else {
+      address.hidden = true;
+      address.textContent = '';
     }
     popup.hidden = false;
   }
@@ -87,12 +95,18 @@
     return mapView;
   }
 
+  function pinLabel(place) {
+    return place.address ? place.name + ', ' + place.address : place.name;
+  }
+
   function addPin(place, selected, open) {
     var button = document.createElement('button');
     button.type = 'button';
     button.className = 'pay-pin';
     if (selected) button.classList.add('is-selected');
-    button.setAttribute('aria-label', place.name);
+    button.setAttribute('aria-label', pinLabel(place));
+    button.setAttribute('data-lat', String(place.lat));
+    button.setAttribute('data-lon', String(place.lon));
     button.addEventListener('click', function (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -124,7 +138,9 @@
     var map = ensureMap(container);
     var token = (frameToken += 1);
     var selected = container.querySelector('.pay-pin.is-selected');
-    var selectedName = selected ? selected.getAttribute('aria-label') : '';
+    var selectedLabel = selected ? selected.getAttribute('aria-label') : '';
+    var selectedLat = selected ? selected.getAttribute('data-lat') : '';
+    var selectedLon = selected ? selected.getAttribute('data-lon') : '';
     container.removeAttribute('data-map-ready');
 
     function draw() {
@@ -132,7 +148,11 @@
       clearMarkers();
       map.resize();
       for (var i = 0; i < places.length; i += 1) {
-        addPin(places[i], places[i].name === selectedName, openFirst && places[i] === places[0]);
+        var samePin =
+          pinLabel(places[i]) === selectedLabel &&
+          String(places[i].lat) === selectedLat &&
+          String(places[i].lon) === selectedLon;
+        addPin(places[i], samePin, openFirst && places[i] === places[0]);
       }
       frameMap(places);
       map.once('idle', function () {

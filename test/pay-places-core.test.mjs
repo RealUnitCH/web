@@ -120,6 +120,7 @@ describe('keepPlace', () => {
     expect(keepPlace(place({ name: '  Zürich  ', category: '  Café  ' }))).toEqual({
       name: 'Zürich',
       category: 'Café',
+      address: '',
       lat: 47.37,
       lon: 8.54,
     });
@@ -179,6 +180,34 @@ describe('keepPlace', () => {
     expect(keepPlace(place({ category: '   ' }))?.category).toBe('');
     expect(keepPlace(place({ category: null }))?.category).toBe('');
   });
+
+  test('builds an address from street, house number, postal code and city', () => {
+    expect(
+      keepPlace(
+        place({
+          street: '  Maschlinastrasse  ',
+          houseNumber: ' 4 ',
+          postalCode: ' 9495 ',
+          city: ' Triesen ',
+        }),
+      ).address,
+    ).toBe('Maschlinastrasse 4, 9495 Triesen');
+    expect(keepPlace(place({ street: 'Dorfstrasse', houseNumber: '4' })).address).toBe(
+      'Dorfstrasse 4',
+    );
+    expect(keepPlace(place({ postalCode: '9658', city: 'Wildhaus' })).address).toBe('9658 Wildhaus');
+    expect(keepPlace(place({ street: 'Dorfstrasse' })).address).toBe('Dorfstrasse');
+    expect(keepPlace(place({ houseNumber: '4' })).address).toBe('4');
+    expect(keepPlace(place({ postalCode: '9495' })).address).toBe('9495');
+    expect(keepPlace(place({ city: 'Triesen' })).address).toBe('Triesen');
+    expect(keepPlace(place({ street: 'Dorfstrasse', city: 'Triesen' })).address).toBe(
+      'Dorfstrasse, Triesen',
+    );
+    expect(
+      keepPlace(place({ street: '   ', houseNumber: null, postalCode: 9495, city: undefined }))
+        .address,
+    ).toBe('');
+  });
 });
 
 describe('keepPlaces', () => {
@@ -197,7 +226,7 @@ describe('keepPlaces', () => {
       keepPlaces({
         places: [null, place({ name: 'Bern' }), place({ supports: [] })],
       }),
-    ).toEqual([{ name: 'Bern', category: 'Lebensmittel', lat: 47.37, lon: 8.54 }]);
+    ).toEqual([{ name: 'Bern', category: 'Lebensmittel', address: '', lat: 47.37, lon: 8.54 }]);
   });
 
   test('keeps the published shop snapshot', () => {
@@ -205,8 +234,9 @@ describe('keepPlaces', () => {
     const kept = keepPlaces(published);
     expect(kept).toHaveLength(published.places.length);
     expect(kept[0]).toEqual({
-      name: 'SPAR Maschlinastrasse 4, 9495 Triesen',
+      name: 'SPAR Triesen',
       category: 'shopping',
+      address: 'Maschlinastrasse 4, 9495 Triesen',
       lat: 47.116005,
       lon: 9.524152,
     });
