@@ -107,25 +107,52 @@
     return item.blockchain === BLOCKCHAIN && item.asset === ASSET;
   }
 
-  // A pin needs a shop name and a real coordinate. The published list omits
-  // supports, and those places are kept. A present supports list must include
-  // Ethereum + ZCHF exactly. An empty list is not that pair.
+  function trimmedText(value) {
+    return typeof value === 'string' ? value.trim() : '';
+  }
+
+  function joinPair(left, right, sep) {
+    if (!left) return right;
+    if (!right) return left;
+    return left + sep + right;
+  }
+
+  // "street houseNumber, postalCode city". Empty parts drop out; nothing set is "".
+  function placeAddress(place) {
+    return joinPair(
+      joinPair(trimmedText(place.street), trimmedText(place.houseNumber), ' '),
+      joinPair(trimmedText(place.postalCode), trimmedText(place.city), ' '),
+      ', ',
+    );
+  }
+
+  // A pin needs a shop name and a real coordinate. Missing or empty supports
+  // means the pair is not stated and the place is kept. A non-empty list must
+  // include Ethereum + ZCHF exactly. A non-array value is dropped.
   function keepPlace(place) {
     if (!place || typeof place !== 'object') return null;
     if (!finiteCoord(place.lat, -90, 90) || !finiteCoord(place.lon, -180, 180)) return null;
     var supports = place.supports;
     if (supports != null) {
       if (!Array.isArray(supports)) return null;
-      var matched = false;
-      for (var i = 0; i < supports.length; i += 1) {
-        if (supportMatches(supports[i])) matched = true;
+      if (supports.length > 0) {
+        var matched = false;
+        for (var i = 0; i < supports.length; i += 1) {
+          if (supportMatches(supports[i])) matched = true;
+        }
+        if (!matched) return null;
       }
-      if (!matched) return null;
     }
     var name = typeof place.name === 'string' ? place.name.trim() : '';
     if (!name) return null;
     var category = typeof place.category === 'string' ? place.category.trim() : '';
-    return { name: name, category: category, lat: place.lat, lon: place.lon };
+    return {
+      name: name,
+      category: category,
+      address: placeAddress(place),
+      lat: place.lat,
+      lon: place.lon,
+    };
   }
 
   // null means the body is not a place list. An empty array means the list
