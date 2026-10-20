@@ -181,7 +181,8 @@ screenshots of the whole page, including the live map. Do not mask that map.
 The suite compares every other baseline with `maxDiffPixelRatio: 0`. Those
 three views allow up to 8000 differing pixels, because the tile raster is not
 byte-stable (CI has failed on a 2-pixel difference and on a 573-pixel
-difference, both inside the map). A layout change is larger than that budget.
+difference, both inside the map). The map rectangle is much larger than that
+budget, so a restyle of the tiles still fails.
 
 ## Branch & PR flow
 

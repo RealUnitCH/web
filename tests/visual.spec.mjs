@@ -44,8 +44,9 @@ test.describe('visual regression', () => {
         // screenshots, including the live OpenFreeMap tiles, and are not masked.
         // The suite ratio is zero, so a two-pixel tile difference fails the build.
         // The same map has also differed by 573 pixels, all of them city labels.
-        // These shots allow 8000 pixels, which covers that label raster and still
-        // rejects a layout change. Every other shot stays exact.
+        // These shots allow 8000 pixels, which covers that label raster. The map
+        // rectangle is much larger, so a restyle of the tiles still fails.
+        // Every other shot stays exact.
         if (view.waitFor) {
           await page.waitForSelector(`#state-${view.waitFor}:not([hidden])`, {
             state: 'visible',
