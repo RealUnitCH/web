@@ -42,13 +42,9 @@ test.describe('visual regression', () => {
         // Confirm-page views render their end state via the ?mock hook after a short
         // delay; wait for it before the shot. The pay map paints live OpenFreeMap
         // tiles. The label raster is not byte-stable: the same page has failed
-        // CI by 2 pixels and by 573, both inside the map. Mask #pay-map and
-        // allow exactly its border box, measured on the committed baselines
-        // (558x320 on desktop and tablet, 311x320 on mobile). The mask paints
-        // that rectangle on the actual shot, so the diff is the map. The suite
-        // ratio is zero, so these shots also lift the ratio; the pixel budget
-        // is what binds, and a pixel outside the map still fails. Every other
-        // shot stays exact.
+        // CI by 2 pixels and by 573, both inside the map. Mask #pay-map. The
+        // committed baselines show that flat rectangle, and the rest of the
+        // page, including the place popup, stays exact.
         if (view.waitFor) {
           await page.waitForSelector(`#state-${view.waitFor}:not([hidden])`, {
             state: 'visible',
@@ -69,18 +65,7 @@ test.describe('visual regression', () => {
 
         const screenshot = { fullPage: true };
         if (view.waitFor === 'places') {
-          // Border box of #pay-map in tests/__screenshots__, CSS pixels.
-          const mapPixels = {
-            'desktop-chromium': 558 * 320,
-            'tablet-chromium': 558 * 320,
-            'mobile-safari': 311 * 320,
-          }[testInfo.project.name];
-          if (mapPixels === undefined) {
-            throw new Error(`no pay-map pixel budget for ${testInfo.project.name}`);
-          }
           screenshot.mask = [page.locator('#pay-map')];
-          screenshot.maxDiffPixels = mapPixels;
-          screenshot.maxDiffPixelRatio = 1;
         }
         await expect(page).toHaveScreenshot(`${view.slug}.png`, screenshot);
       } finally {
