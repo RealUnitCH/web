@@ -107,11 +107,11 @@ draft does not start them again.
 ## A38
 
 This repository requires A38 according to the canonical A38 standard in
-[DFXswiss/agent](https://github.com/DFXswiss/agent/blob/d165602daf7b4a0c73aaac3774da9c8a1ff7e852/docs/a38.md)
-at commit `d165602daf7b4a0c73aaac3774da9c8a1ff7e852`. Repo job selection:
+[DFXswiss/agent](https://github.com/DFXswiss/agent/blob/1b153cdf7a1ac3687ba98cad7d323743050fb54b/docs/a38.md)
+at commit `1b153cdf7a1ac3687ba98cad7d323743050fb54b`. Repo job selection:
 `.github/a38.json`. Target-branch applicability and fork workflow approval:
 `.github/pr-guard.json`. `dfx pr guard` is
-[wired in](https://github.com/DFXswiss/agent/blob/d165602daf7b4a0c73aaac3774da9c8a1ff7e852/docs/a38-guard.md#how-fork-github-actions-are-meant-to-work).
+[wired in](https://github.com/DFXswiss/agent/blob/1b153cdf7a1ac3687ba98cad7d323743050fb54b/docs/a38-guard.md#how-fork-github-actions-are-meant-to-work).
 
 This is a **public** repository. GitHub-hosted runners execute Quality and
 Screenshots. A38 does not replace those GitHub checks. The author report only
@@ -124,9 +124,12 @@ Draft pull requests run the GitHub CI jobs. GitHub holds fork runs from
 external contributors as `action_required`. Ready does not start CI. After a
 fresh A38 enforce pass on the current head, `dfx pr guard` approves those
 waiting initial runs, then sets Ready when Quality and Screenshots are green
-and the pull request is mergeable. The merger does not click Approve and run
-workflows. Do not ask a maintainer to approve workflow runs. Post the Quality
-report on the current head. Every new head needs a new report. Authors with
+and the pull request is mergeable. The newest well-formed second review comment
+that covers the current head returns a Ready pull request to draft when its
+`blocks_merge` is true and it counts at least one defect; a newer well-formed
+second review with `blocks_merge` false clears that. The merger does not click
+Approve and run workflows. Do not ask a maintainer to approve workflow runs.
+Post the Quality report on the current head. Every new head needs a new report. Authors with
 write access to `RealUnitCH/web` do not need a report.
 
 `develop` is enforced. `main` is excluded, because a release pull request onto
