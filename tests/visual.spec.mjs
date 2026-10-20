@@ -40,8 +40,10 @@ test.describe('visual regression', () => {
         await settle(page, { scripting: !view.noJs });
 
         // Confirm-page views render their end state via the ?mock hook after a short
-        // delay; wait for it before the shot. The page has no <video>/<canvas>, so no
-        // masking is needed and the whole page is byte-compared.
+        // delay; wait for it before the shot. The pay map's canvas paints live
+        // OpenFreeMap tiles and is not byte-stable in WebKit, so that canvas is
+        // masked. The mask covers the map surface, including pins drawn on it.
+        // The popup and the rest of the page stay byte-compared.
         if (view.waitFor) {
           await page.waitForSelector(`#state-${view.waitFor}:not([hidden])`, {
             state: 'visible',
@@ -60,7 +62,11 @@ test.describe('visual regression', () => {
           await expect(page.locator('#pay-popup-name')).toHaveText(shop.name);
         }
 
-        await expect(page).toHaveScreenshot(`${view.slug}.png`, { fullPage: true });
+        const screenshot = { fullPage: true };
+        if (view.waitFor === 'places') {
+          screenshot.mask = [page.locator('#pay-map canvas')];
+        }
+        await expect(page).toHaveScreenshot(`${view.slug}.png`, screenshot);
       } finally {
         await context.close();
         await browser.close();
