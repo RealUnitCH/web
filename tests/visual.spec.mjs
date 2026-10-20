@@ -40,8 +40,13 @@ test.describe('visual regression', () => {
         await settle(page, { scripting: !view.noJs });
 
         // Confirm-page views render their end state via the ?mock hook after a short
-        // delay; wait for it before the shot. The page has no <video>/<canvas>, so no
-        // masking is needed and the whole page is byte-compared.
+        // delay; wait for it before the shot. Pay-map baselines stay full-page
+        // screenshots, including the live OpenFreeMap tiles, and are not masked.
+        // The suite ratio is zero, so a two-pixel tile difference fails the build.
+        // The same map has also differed by 573 pixels, all of them city labels.
+        // These shots allow 8000 pixels, which covers that label raster. The map
+        // rectangle is much larger, so a restyle of the tiles still fails.
+        // Every other shot stays exact.
         if (view.waitFor) {
           await page.waitForSelector(`#state-${view.waitFor}:not([hidden])`, {
             state: 'visible',
@@ -60,7 +65,14 @@ test.describe('visual regression', () => {
           await expect(page.locator('#pay-popup-name')).toHaveText(shop.name);
         }
 
-        await expect(page).toHaveScreenshot(`${view.slug}.png`, { fullPage: true });
+        const screenshot = { fullPage: true };
+        if (view.waitFor === 'places') {
+          screenshot.maxDiffPixels = 8000;
+          // The suite sets maxDiffPixelRatio to 0, and that limit is applied
+          // together with the pixel cap. Lifting it here makes the cap the rule.
+          screenshot.maxDiffPixelRatio = 1;
+        }
+        await expect(page).toHaveScreenshot(`${view.slug}.png`, screenshot);
       } finally {
         await context.close();
         await browser.close();
