@@ -40,10 +40,10 @@ test.describe('visual regression', () => {
         await settle(page, { scripting: !view.noJs });
 
         // Confirm-page views render their end state via the ?mock hook after a short
-        // delay; wait for it before the shot. The pay map's canvas paints live
-        // OpenFreeMap tiles and is not byte-stable in WebKit, so that canvas is
-        // masked. The mask covers the map surface, including pins drawn on it.
-        // The popup and the rest of the page stay byte-compared.
+        // delay; wait for it before the shot. The pay map paints live OpenFreeMap
+        // tiles. WebKit's raster is not byte-stable and CI reports a couple of
+        // pixels, so those shots allow a few differing pixels. A text or layout
+        // change is far larger. Every other shot stays byte-compared.
         if (view.waitFor) {
           await page.waitForSelector(`#state-${view.waitFor}:not([hidden])`, {
             state: 'visible',
@@ -64,7 +64,7 @@ test.describe('visual regression', () => {
 
         const screenshot = { fullPage: true };
         if (view.waitFor === 'places') {
-          screenshot.mask = [page.locator('#pay-map canvas')];
+          screenshot.maxDiffPixels = 20;
         }
         await expect(page).toHaveScreenshot(`${view.slug}.png`, screenshot);
       } finally {
