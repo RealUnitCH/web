@@ -42,8 +42,9 @@ test.describe('visual regression', () => {
         // Confirm-page views render their end state via the ?mock hook after a short
         // delay; wait for it before the shot. The pay map paints live OpenFreeMap
         // tiles. WebKit's raster is not byte-stable and CI reports a couple of
-        // pixels, so those shots allow a few differing pixels. A text or layout
-        // change is far larger. Every other shot stays byte-compared.
+        // pixels. The suite ratio is zero, so a pixel cap alone still fails;
+        // these shots lift that ratio and cap the difference at 20 pixels.
+        // A text or layout change is far larger. Every other shot stays exact.
         if (view.waitFor) {
           await page.waitForSelector(`#state-${view.waitFor}:not([hidden])`, {
             state: 'visible',
@@ -65,6 +66,7 @@ test.describe('visual regression', () => {
         const screenshot = { fullPage: true };
         if (view.waitFor === 'places') {
           screenshot.maxDiffPixels = 20;
+          screenshot.maxDiffPixelRatio = 1;
         }
         await expect(page).toHaveScreenshot(`${view.slug}.png`, screenshot);
       } finally {
