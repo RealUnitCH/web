@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { expect, test } from '@playwright/test';
 import { VIEWS, projectsForView } from './pages.mjs';
 import { installVisualDeterminism, settle } from './helpers.mjs';
@@ -25,19 +27,52 @@ test.describe('visual regression', () => {
       const page = await context.newPage();
       try {
         await installVisualDeterminism(page, { platform: view.platform });
+        // Registered after the 503 safety net so this snapshot wins. The body is
+        // the published shop list, not the invented preview towns.
+        let fixtureBody = null;
+        if (view.placesFixture) {
+          fixtureBody = readFileSync(new URL(`../${view.placesFixture}`, import.meta.url));
+          await page.route(/opencryptopay\.io\/map\/places/, (route) =>
+            route.fulfill({ status: 200, contentType: 'application/json', body: fixtureBody }),
+          );
+        }
         await page.goto(view.path, { waitUntil: 'load' });
         await settle(page, { scripting: !view.noJs });
 
         // Confirm-page views render their end state via the ?mock hook after a short
-        // delay; wait for it before the shot. The page has no <video>/<canvas>, so no
-        // masking is needed and the whole page is byte-compared.
+        // delay; wait for it before the shot. Pay-map baselines stay full-page
+        // screenshots, including the live OpenFreeMap tiles, and are not masked.
+        // The suite ratio is zero, so a two-pixel tile difference fails the build.
+        // The same map has also differed by 573 pixels, all of them city labels.
+        // These shots allow 8000 pixels, which covers that label raster. The map
+        // rectangle is much larger, so a restyle of the tiles still fails.
+        // Every other shot stays exact.
         if (view.waitFor) {
           await page.waitForSelector(`#state-${view.waitFor}:not([hidden])`, {
             state: 'visible',
           });
         }
+        if (view.waitFor === 'places') {
+          await page.waitForSelector('#pay-map[data-map-ready="true"]', { timeout: 20000 });
+        }
+        if (view.openFirstPin) {
+          const shop = JSON.parse(fixtureBody.toString()).places[0];
+          // Neighbouring shops share a point. A coordinate click lands on
+          // whichever pin was painted last, so activate this shop on the element.
+          await page
+            .locator(`#pay-map .pay-pin[aria-label=${JSON.stringify(shop.name)}]`)
+            .evaluate((el) => el.click());
+          await expect(page.locator('#pay-popup-name')).toHaveText(shop.name);
+        }
 
-        await expect(page).toHaveScreenshot(`${view.slug}.png`, { fullPage: true });
+        const screenshot = { fullPage: true };
+        if (view.waitFor === 'places') {
+          screenshot.maxDiffPixels = 8000;
+          // The suite sets maxDiffPixelRatio to 0, and that limit is applied
+          // together with the pixel cap. Lifting it here makes the cap the rule.
+          screenshot.maxDiffPixelRatio = 1;
+        }
+        await expect(page).toHaveScreenshot(`${view.slug}.png`, screenshot);
       } finally {
         await context.close();
         await browser.close();

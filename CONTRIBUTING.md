@@ -39,10 +39,17 @@ This repo is the **realunit.app** website — public, static. See the
   `<script>`). Do not add other Pages Functions or server-side rendering.
 - **Keep the page self-contained.** `public/_headers` sets a strict CSP:
   - No inline `<script>` and no third-party resources (scripts, styles, images,
-    fonts). Load JS from **same-origin** files instead. The single permitted
-    network call is the code lookup against the DFX API, which is why
-    `connect-src` names `api.dfx.swiss` and `dev.api.dfx.swiss` explicitly —
-    adding any other host to that allowlist needs a reason in the PR.
+    fonts). Load JS from **same-origin** files instead. `connect-src` names
+    `api.dfx.swiss` and `dev.api.dfx.swiss` for the DFX API, and
+    `api.opencryptopay.io` for the pay-locations page, which reads the published
+    OpenCryptoPay place list and nothing else on that host. That page also loads
+    the OpenFreeMap Liberty style, tiles, sprites, and glyphs from
+    `https://tiles.openfreemap.org` (`connect-src` and `img-src`). The MapLibre
+    script is vendored at `public/js/vendor/maplibre-gl.js` (5.6.1, BSD-3-Clause);
+    it starts its worker from a blob URL, so `worker-src` allows `'self' blob:`.
+    The zoom and compass icons are inline SVG `data:` URLs in the vendored
+    stylesheet, so `img-src` allows `data:`. Adding any other host to that
+    allowlist needs a reason in the PR.
   - Inline `style="…"` attributes and `<style>` blocks are fine (`style-src`
     allows `'unsafe-inline'`).
 - **Put the reusable, side-effect-free JS in `public/js/lib/`.** That is the only
@@ -100,11 +107,11 @@ draft does not start them again.
 ## A38
 
 This repository requires A38 according to the canonical A38 standard in
-[DFXswiss/agent](https://github.com/DFXswiss/agent/blob/d165602daf7b4a0c73aaac3774da9c8a1ff7e852/docs/a38.md)
-at commit `d165602daf7b4a0c73aaac3774da9c8a1ff7e852`. Repo job selection:
+[DFXswiss/agent](https://github.com/DFXswiss/agent/blob/1b153cdf7a1ac3687ba98cad7d323743050fb54b/docs/a38.md)
+at commit `1b153cdf7a1ac3687ba98cad7d323743050fb54b`. Repo job selection:
 `.github/a38.json`. Target-branch applicability and fork workflow approval:
 `.github/pr-guard.json`. `dfx pr guard` is
-[wired in](https://github.com/DFXswiss/agent/blob/d165602daf7b4a0c73aaac3774da9c8a1ff7e852/docs/a38-guard.md#how-fork-github-actions-are-meant-to-work).
+[wired in](https://github.com/DFXswiss/agent/blob/1b153cdf7a1ac3687ba98cad7d323743050fb54b/docs/a38-guard.md#how-fork-github-actions-are-meant-to-work).
 
 This is a **public** repository. GitHub-hosted runners execute Quality and
 Screenshots. A38 does not replace those GitHub checks. The author report only
@@ -117,9 +124,12 @@ Draft pull requests run the GitHub CI jobs. GitHub holds fork runs from
 external contributors as `action_required`. Ready does not start CI. After a
 fresh A38 enforce pass on the current head, `dfx pr guard` approves those
 waiting initial runs, then sets Ready when Quality and Screenshots are green
-and the pull request is mergeable. The merger does not click Approve and run
-workflows. Do not ask a maintainer to approve workflow runs. Post the Quality
-report on the current head. Every new head needs a new report. Authors with
+and the pull request is mergeable. The newest well-formed second review comment
+that covers the current head returns a Ready pull request to draft when its
+`blocks_merge` is true and it counts at least one defect; a newer well-formed
+second review with `blocks_merge` false clears that. The merger does not click
+Approve and run workflows. Do not ask a maintainer to approve workflow runs.
+Post the Quality report on the current head. Every new head needs a new report. Authors with
 write access to `RealUnitCH/web` do not need a report.
 
 `develop` is enforced. `main` is excluded, because a release pull request onto
@@ -158,15 +168,24 @@ npm run e2e:docker:update   # regenerate baselines after an intentional UI chang
 ```
 
 The visual matrix lives in `tests/pages.mjs` (`VIEWS`), which is the single
-source of truth — do not maintain a second list here. It currently covers six
+source of truth — do not maintain a second list here. It currently covers seven
 families: the invite and promo landings (each in their loading, resolved,
 invalid, missing-code, platform-matched and JS-less variants), the confirm-page states,
 the account-merge pages, the home landing in its equal-badge and
-platform-matched layouts, and the 404 page — across `desktop-chromium`,
+platform-matched layouts, the pay-locations page (published places, empty,
+error, selected place, and English), and the 404 page — across `desktop-chromium`,
 `tablet-chromium` and `mobile-safari`. `check:visual` enforces that every view × applicable viewport
 has exactly one committed baseline, nothing is orphaned, and the report ran them
 all. When you intentionally change a page's look, run `e2e:docker:update` and
 commit the updated PNGs under `tests/__screenshots__/`.
+
+Pay-map baselines (`pay-places`, `pay-place`, `pay-places-en`) are committed
+screenshots of the whole page, including the live map. Do not mask that map.
+The suite compares every other baseline with `maxDiffPixelRatio: 0`. Those
+three views allow up to 8000 differing pixels, because the tile raster is not
+byte-stable (CI has failed on a 2-pixel difference and on a 573-pixel
+difference, both inside the map). The map rectangle is much larger than that
+budget, so a restyle of the tiles still fails.
 
 ## Branch & PR flow
 

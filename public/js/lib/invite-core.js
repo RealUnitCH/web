@@ -52,7 +52,7 @@
       'unavailable.cta': 'Erneut versuchen',
       'unavailable.home': 'Zur Startseite',
       'legal.note':
-        'Dieser Inhalt dient Werbezwecken. Die genehmigten Prospekte und weitere Unterlagen zur RealUnit Schweiz AG sind abrufbar unter: https://realunit.ch/ueber-uns/downloads/ (Schweiz) | https://realunit.de/ueber-uns/downloads/ (Deutschland/EU). Vergangene Wertentwicklung ist kein verlässlicher Indikator für zukünftige Ergebnisse.',
+        'Dieser Inhalt ist Werbung. Die genehmigten Prospekte zur RealUnit Schweiz AG sind abrufbar unter: https://realunit.ch/ueber-uns/downloads/ (Schweiz) | https://realunit.de/ueber-uns/downloads/ (Deutschland/EU). Ihre Genehmigung ist keine Befürwortung der Wertpapiere. Anlegern wird empfohlen, vor einer Anlageentscheidung den Prospekt zu lesen, um Risiken und Chancen zu verstehen. Frühere Wertentwicklung ist kein zuverlässiger Indikator für die künftige Wertentwicklung.',
     },
     en: {
       'doc.title.invite': 'RealUnit — Invitation',
@@ -93,7 +93,7 @@
       'unavailable.cta': 'Try again',
       'unavailable.home': 'Back to homepage',
       'legal.note':
-        'This content is for advertising purposes. The approved prospectuses and further documents on RealUnit Schweiz AG are available at: https://realunit.ch/ueber-uns/downloads/ (Switzerland) | https://realunit.de/ueber-uns/downloads/ (Germany/EU). Past performance is not a reliable indicator of future results.',
+        'This is an advertisement. The approved prospectuses of RealUnit Schweiz AG are available at: https://realunit.ch/downloads/ (Switzerland) | https://realunit.de/downloads/ (Germany/EU). Their approval is not an endorsement of the securities. Investors are recommended to read the prospectus before making an investment decision in order to understand the risks and rewards. Past performance is not a reliable indicator of future performance.',
     },
   };
 
