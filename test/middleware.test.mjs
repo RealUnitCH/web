@@ -543,6 +543,8 @@ describe('the landing middleware', () => {
       'confirm-aktionariat/index.html',
       'index.html',
       'invite/index.html',
+      'pay/en/index.html',
+      'pay/index.html',
       'privacy/en/index.html',
       'privacy/index.html',
       'promo/index.html',

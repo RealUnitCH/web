@@ -3,7 +3,7 @@
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self' https://api.dfx.swiss https://dev.api.dfx.swiss; object-src 'none'; base-uri 'none'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tiles.openfreemap.org; connect-src 'self' https://api.dfx.swiss https://dev.api.dfx.swiss https://api.opencryptopay.io https://tiles.openfreemap.org; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'self'
 
 # Image assets have stable names → cache aggressively
 /assets/*
@@ -22,6 +22,11 @@
   Cache-Control: public, max-age=3600
 
 /invite/invite.js
+  Cache-Control: public, max-age=3600
+
+# Pay-locations glue. Same reason as the other page scripts: not immutable,
+# so a correction can roll out. The core lives under /js/* above.
+/pay/pay.js
   Cache-Control: public, max-age=3600
 
 # Invite/promo HTML (SPA shells), including /invite/{code}. Short max-age
