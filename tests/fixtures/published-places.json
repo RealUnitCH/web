@@ -1,0 +1,1534 @@
+{
+  "places": [
+    {
+      "id": "4b42348f-8a02-4fbb-8ab7-252b1182c25c",
+      "origin": "spar",
+      "name": "SPAR Maschlinastrasse 4, 9495 Triesen",
+      "lat": 47.116005,
+      "lon": 9.524152,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "23aaaa7d-6054-417d-a597-f6707e181e1f",
+      "origin": "spar",
+      "name": "SPAR Dorf 3, 9658 Wildhaus",
+      "lat": 47.203552,
+      "lon": 9.350306,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "7644470e-a0ca-45ca-bfdc-f6fd790d6a71",
+      "origin": "spar",
+      "name": "SPAR Dorfstrasse 4, 9656 Alt St. Johann",
+      "lat": 47.193554,
+      "lon": 9.284135,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "1c9be09e-ea66-4af6-bbf1-0a4612fdb195",
+      "origin": "spar",
+      "name": "SPAR Ebnaterstrasse 42, 9642 Ebnat-Kappel",
+      "lat": 47.260326,
+      "lon": 9.125765,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "8942c991-e91e-4ba5-afd8-8e9f292e5a98",
+      "origin": "spar",
+      "name": "SPAR Kirchgasse 5, 9606 Bütschwil",
+      "lat": 47.359184,
+      "lon": 9.072249,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "9dd5f234-ee4d-4985-a131-ca2523150c22",
+      "origin": "spar",
+      "name": "SPAR Dorfstrasse 1A, 9552 Lenggenwil",
+      "lat": 47.475357,
+      "lon": 9.149096,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "c7e0593d-8a24-4a4e-b1ed-9cdf0b00c6e4",
+      "origin": "spar",
+      "name": "SPAR Jonschwilerstrasse 12, 9536 Schwarzenbach",
+      "lat": 47.441021,
+      "lon": 9.075756,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "0222a7a1-0dce-4838-897a-43a4aebb52a7",
+      "origin": "spar",
+      "name": "SPAR Dorf 2, 9527 Niederhelfenschwil",
+      "lat": 47.475784,
+      "lon": 9.186507,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "982351b0-62dd-4209-8441-8b0d4beb5ebd",
+      "origin": "spar",
+      "name": "SPAR Konstanzerstrasse 11, 9512 Rossrüti",
+      "lat": 47.473045,
+      "lon": 9.059793,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "9155becd-5a8e-44ac-bc7a-945f73d54315",
+      "origin": "spar",
+      "name": "SPAR Landstrasse 6, 9494 Schaan",
+      "lat": 47.166714,
+      "lon": 9.509458,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "af777355-a091-4688-b59a-5ed71ca4fbb3",
+      "origin": "spar",
+      "name": "SPAR St. Martins Ring 3, 9492 Eschen",
+      "lat": 47.212414,
+      "lon": 9.523106,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "4674505f-ade7-459c-b6ab-aa0cfd26cb4c",
+      "origin": "spar",
+      "name": "SPAR Churer Strasse 32, 9485 Nendeln",
+      "lat": 47.198521,
+      "lon": 9.542824,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "ede35e6b-1f43-488c-a70b-049ae031b77b",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 48a, 9450 Altstätten",
+      "lat": 47.375549,
+      "lon": 9.553053,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "70a1e813-24da-4799-99af-f012258fa8c4",
+      "origin": "spar",
+      "name": "SPAR Auerstrasse 31, 9435 Heerbrugg",
+      "lat": 47.414989,
+      "lon": 9.631881,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "e5b74a65-bd95-4078-bc90-33946e140047",
+      "origin": "spar",
+      "name": "SPAR Ulrich-Rösch-Strasse 3–4, 9403 Goldach",
+      "lat": 47.474426,
+      "lon": 9.466469,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "0fc7b6ff-fb6a-4686-9437-f0fc4b4fb69b",
+      "origin": "spar",
+      "name": "SPAR Romanshornerstrasse 60, 9320 Arbon",
+      "lat": 47.51947,
+      "lon": 9.423744,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "8d166a55-1390-4853-b13b-5d4bac76a96f",
+      "origin": "spar",
+      "name": "SPAR Dorfstrasse 8, 9312 Häggenschwil",
+      "lat": 47.493889,
+      "lon": 9.344683,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "9eb926f8-d81c-4b8e-b8de-65da17e83163",
+      "origin": "spar",
+      "name": "SPAR Schaffhauserstrasse 60, 9302 Kloten",
+      "lat": 47.444149,
+      "lon": 8.578836,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "2e880ba4-1790-45bb-b8b3-a0ba66c68ef8",
+      "origin": "spar",
+      "name": "SPAR Neudorf 2, 9245 Oberbüren",
+      "lat": 47.451424,
+      "lon": 9.160419,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "12606760-551d-4259-9134-fa49dc5e83fc",
+      "origin": "spar",
+      "name": "SPAR Thurbruggstrasse 11, 9215 Schönenberg an der Thur",
+      "lat": 47.521729,
+      "lon": 9.199523,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "42475805-c665-4f3d-9ec8-a45caa1b8512",
+      "origin": "spar",
+      "name": "SPAR Bischofszellerstrasse 346, 9212 Arnegg",
+      "lat": 47.443531,
+      "lon": 9.255872,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "1408fdac-ca1e-45c4-868d-6190680ada68",
+      "origin": "spar",
+      "name": "SPAR Arneggerstrasse 11, 9204 Andwil",
+      "lat": 47.439522,
+      "lon": 9.267469,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "13a2a7cf-5663-4a89-b04c-cc9461ae62df",
+      "origin": "spar",
+      "name": "SPAR Kasernenstrasse 2, 9100 Herisau",
+      "lat": 47.385742,
+      "lon": 9.28094,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "b42e70a7-a74e-4d9f-8b91-39ea9a3ccd78",
+      "origin": "spar",
+      "name": "SPAR Schwantlern 3, 9056 Gais",
+      "lat": 47.362946,
+      "lon": 9.454818,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "da08bdb0-e7ce-4045-86d4-dbfa63f4b77c",
+      "origin": "spar",
+      "name": "SPAR Hauptstrasse 2, 9053 Teufen",
+      "lat": 47.390934,
+      "lon": 9.38533,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "6e3422cd-302d-4203-9809-80dc8d92b3b6",
+      "origin": "spar",
+      "name": "SPAR Unteres Ziel 1, 9050 Appenzell",
+      "lat": 47.334969,
+      "lon": 9.408432,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "efcc30eb-b91a-400a-86b4-d19d80a95ec0",
+      "origin": "spar",
+      "name": "SPAR Dorf 36, 9044 Wald",
+      "lat": 47.415867,
+      "lon": 9.491151,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "88ae18dd-9be4-45ea-9d76-f31ff3918386",
+      "origin": "spar",
+      "name": "SPAR Speicherstrasse 10, 9043 Trogen",
+      "lat": 47.407543,
+      "lon": 9.461257,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "946f7582-be7c-4b0c-ab90-4b7450b99a80",
+      "origin": "spar",
+      "name": "SPAR Hauptstrasse 9, 9042 Speicher",
+      "lat": 47.409222,
+      "lon": 9.444237,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "dc30348b-423a-464b-9c54-b27258a71875",
+      "origin": "spar",
+      "name": "SPAR Dorf 340, 9035 Grub",
+      "lat": 47.44772,
+      "lon": 9.510018,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "662bf0d0-d7d1-40de-a722-93356c66c254",
+      "origin": "spar",
+      "name": "SPAR Breitschachenstrasse 8, 9032 Engelburg",
+      "lat": 47.441841,
+      "lon": 9.348883,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "842b20de-c805-4cdb-b642-534c0adcfbf1",
+      "origin": "spar",
+      "name": "SPAR Auwiesenstrasse 24, 9030 Abtwil",
+      "lat": 47.422466,
+      "lon": 9.31794,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d307b96c-8875-40cc-9856-a77ead607834",
+      "origin": "spar",
+      "name": "SPAR Schlachthofstrasse 12, 9015 St. Gallen",
+      "lat": 47.407391,
+      "lon": 9.288231,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "4c75712c-a4c6-4765-a3ca-526a762420ea",
+      "origin": "spar",
+      "name": "SPAR Wolfganghof 2, 9014 St. Gallen",
+      "lat": 47.402718,
+      "lon": 9.336634,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "b426a1d7-8b74-4523-a760-64ffd3121a99",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 82, 8957 Spreitenbach",
+      "lat": 47.425472,
+      "lon": 8.361866,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "0281aadf-78df-495c-950d-7daf37ccef2d",
+      "origin": "spar",
+      "name": "SPAR Badenerstrasse 104, 8952 Schlieren",
+      "lat": 47.397511,
+      "lon": 8.43086,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "f2d650c9-669a-42f4-b601-aa7d2ba6d79c",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 6&8, 8932 Mettmenstetten",
+      "lat": 47.243561,
+      "lon": 8.457818,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "65cc2eb2-d43d-4598-b551-6eadb91520ad",
+      "origin": "spar",
+      "name": "SPAR Zürichstrasse 112, 8910 Affoltern am Albis",
+      "lat": 47.279285,
+      "lon": 8.454231,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "4f8c3f15-5910-4fc5-b331-59d0840f18f6",
+      "origin": "spar",
+      "name": "SPAR Dorfstrasse 15, 8906 Bonstetten",
+      "lat": 47.314877,
+      "lon": 8.4698,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "508d160a-a771-443c-aa1b-1801e2229c07",
+      "origin": "spar",
+      "name": "SPAR Bachstrasse 11, 8902 Urdorf",
+      "lat": 47.381645,
+      "lon": 8.423749,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "b959224a-32c0-42db-9999-ca39c7fa6639",
+      "origin": "spar",
+      "name": "SPAR Staatsstrasse 94, 8888 Heiligkreuz",
+      "lat": 47.058819,
+      "lon": 9.411234,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "4824e3a0-b7de-42dc-ae69-eeb9584bcd00",
+      "origin": "spar",
+      "name": "SPAR Quartnerstrasse 4, 8882 Unterterzen",
+      "lat": 47.112541,
+      "lon": 9.249895,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "89138b1f-5798-4fbe-958b-099693827086",
+      "origin": "spar",
+      "name": "SPAR Alte Staatstrasse 22, 8877 Murg",
+      "lat": 47.112701,
+      "lon": 9.214242,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "6560dee5-c4fd-4ed0-bc51-be8e453ca8dc",
+      "origin": "spar",
+      "name": "SPAR Dorfstrasse 35, 8873 Amden",
+      "lat": 47.149502,
+      "lon": 9.143973,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "e45507a5-dc99-487d-a85f-6e7d534995a5",
+      "origin": "spar",
+      "name": "SPAR Hauptstrasse 6, 8872 Weesen",
+      "lat": 47.133598,
+      "lon": 9.09516,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "17f672a3-3eb0-4aad-9deb-8d04a5bc6cfe",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 12, 8855 Wangen",
+      "lat": 47.189762,
+      "lon": 8.896489,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "38c94cd1-b104-468a-9f29-96ac65cfdd94",
+      "origin": "spar",
+      "name": "SPAR Schützenstrasse 2, 8853 Lachen",
+      "lat": 47.193184,
+      "lon": 8.853158,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "b06bea53-624e-4a0a-b68d-a61c66063276",
+      "origin": "spar",
+      "name": "SPAR Churerstrasse 5, 8852 Altendorf",
+      "lat": 47.192627,
+      "lon": 8.830832,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "7780d001-fff2-4e59-a3dd-1eb27486d3ff",
+      "origin": "spar",
+      "name": "SPAR Dorfstrasse 3, 8834 Schindellegi",
+      "lat": 47.174408,
+      "lon": 8.711528,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "64f4da5c-274a-4bd4-b42b-ddafbb306a89",
+      "origin": "spar",
+      "name": "SPAR Seestrasse 117, 8810 Horgen",
+      "lat": 47.261806,
+      "lon": 8.59449,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "c136fe9f-c08e-47d9-8361-743863ccf651",
+      "origin": "spar",
+      "name": "SPAR Leutschenstrasse 3–5, 8807 Freienbach",
+      "lat": 47.206257,
+      "lon": 8.754204,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "3e4b3346-c03e-447b-9451-ca22799b0461",
+      "origin": "spar",
+      "name": "SPAR Glärnischstrasse 1, 8805 Richterswil",
+      "lat": 47.207443,
+      "lon": 8.691101,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "4590cc0a-143a-470e-94f9-dab0c7dd6964",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 4, 8753 Mollis",
+      "lat": 47.094681,
+      "lon": 9.074569,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "f597cedc-382e-442b-a2df-8be4584641c0",
+      "origin": "spar",
+      "name": "SPAR Iseliguet 2, 8750 Glarus",
+      "lat": 47.05093,
+      "lon": 9.058582,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "e10e36f1-73d7-4f86-8da0-9dd8aeff9e15",
+      "origin": "spar",
+      "name": "SPAR Biltnerstrasse 32, 8718 Schänis",
+      "lat": 47.15575,
+      "lon": 9.037849,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "5dd09af8-bb9b-414a-a4ac-f61d5450fb73",
+      "origin": "spar",
+      "name": "SPAR Zentrumstrasse 6, 8717 Benken SG",
+      "lat": 47.198593,
+      "lon": 9.004319,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "b4f5b93c-7e7e-4944-8e34-95a1276cb218",
+      "origin": "spar",
+      "name": "SPAR Oberseestrasse 58, 8640 Rapperswil",
+      "lat": 47.222794,
+      "lon": 8.828529,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "28d515ef-c337-4588-9984-7c731d66fdf0",
+      "origin": "spar",
+      "name": "SPAR Alpenstrasse 3, 8640 Rapperswil",
+      "lat": 47.225861,
+      "lon": 8.817266,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "1d2f2da7-e4b0-4eb3-bcdf-aa86e827d32d",
+      "origin": "spar",
+      "name": "SPAR Ferrachstrasse 58, 8630 Rüti ZH",
+      "lat": 47.255779,
+      "lon": 8.85644,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "23ae619b-99e9-4858-af0d-2e495afa6d08",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 1, 8603 Schwerzenbach",
+      "lat": 47.382011,
+      "lon": 8.652715,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "db3c8171-76b4-4e61-866c-f29789e691a1",
+      "origin": "spar",
+      "name": "SPAR Untere Geerenstrasse 1, 8600 Dübendorf",
+      "lat": 47.38969,
+      "lon": 8.617357,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d1770bbb-29c2-4765-97b8-2244a03b487e",
+      "origin": "spar",
+      "name": "SPAR Weinfelderstrasse 74, 8580 Amriswil",
+      "lat": 47.544899,
+      "lon": 9.28525,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d0e6ebdd-634e-4266-a504-bd6fa1c12bb2",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 1a, 8575 Bürglen",
+      "lat": 47.549282,
+      "lon": 9.152639,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "9afa986f-75c6-4820-9a49-1b8814065597",
+      "origin": "spar",
+      "name": "SPAR Wartstrasse 2, 8400 Winterthur",
+      "lat": 47.500809,
+      "lon": 8.72278,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "9844878a-685b-4870-bfd7-4844385a45c6",
+      "origin": "spar",
+      "name": "SPAR Tösstalstrasse 139, 8400 Winterthur",
+      "lat": 47.490562,
+      "lon": 8.748225,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d5992500-2c59-4cfc-a49b-e697a0e1d832",
+      "origin": "spar",
+      "name": "SPAR Breitestrasse 117, 8400 Winterthur",
+      "lat": 47.490658,
+      "lon": 8.720894,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "f95dcbbd-5da9-4b59-96aa-e3cbb1648e07",
+      "origin": "spar",
+      "name": "SPAR Winterthurerstrasse 4, 8360 Eschlikon",
+      "lat": 47.462387,
+      "lon": 8.95503,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "7017b4f9-e188-4d99-a790-8df8ab478628",
+      "origin": "spar",
+      "name": "SPAR Kirchgasse 1, 8332 Russikon",
+      "lat": 47.394478,
+      "lon": 8.776281,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d942b092-1685-4a9d-843e-5a0f2bb114f6",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 42, 8305 Dietlikon",
+      "lat": 47.423019,
+      "lon": 8.618573,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "8f687b9b-e494-44e2-ab8f-661fcc56fc0f",
+      "origin": "spar",
+      "name": "SPAR Breitistrassee 24, 8302 Kloten",
+      "lat": 47.447754,
+      "lon": 8.58417,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "00b02299-702e-42d1-a3a0-ecea1711dd63",
+      "origin": "spar",
+      "name": "SPAR Weinstrasse 23/25, 8280 Kreuzlingen",
+      "lat": 47.644512,
+      "lon": 9.186396,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "c6a560e2-8dc4-49c9-b3a7-4a98b49f1433",
+      "origin": "spar",
+      "name": "SPAR Hauptstrasse 129, 8272 Ermatingen",
+      "lat": 47.668877,
+      "lon": 9.084486,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "7da30157-b207-4e9e-bcde-81e2e0475a0a",
+      "origin": "spar",
+      "name": "SPAR Gründenstrasse 5, 8247 Flurlingen",
+      "lat": 47.684464,
+      "lon": 8.627494,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "2a954aed-8884-42f0-a87a-604204a98207",
+      "origin": "spar",
+      "name": "SPAR Hauptstrasse 70a, 8225 Siblingen",
+      "lat": 47.714737,
+      "lon": 8.517715,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "c7dcd0bc-95ab-4d43-966e-4d0905368bee",
+      "origin": "spar",
+      "name": "SPAR Stettemerstrasse 40, 8207 Schaffhausen",
+      "lat": 47.722416,
+      "lon": 8.65526,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "9b047dcc-688e-46e7-bdff-7f2271775132",
+      "origin": "spar",
+      "name": "SPAR Zur Stahlgiesserei 14a, 8200 Schaffhausen",
+      "lat": 47.7052,
+      "lon": 8.63086,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "6fbf6785-5978-402e-b12f-5c7480b473f8",
+      "origin": "spar",
+      "name": "SPAR Freier Platz 2, 8200 Schaffhausen",
+      "lat": 47.695488,
+      "lon": 8.640326,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "381895db-bde2-49dd-af42-c6103594a8a1",
+      "origin": "spar",
+      "name": "SPAR Märktgass 19, 8197 Rafz",
+      "lat": 47.612423,
+      "lon": 8.540049,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "6aa8878a-2be5-4faf-93b4-db2447aae7bc",
+      "origin": "spar",
+      "name": "SPAR Dorfwiesenstrasse 12, 8165 Schöfflisdorf",
+      "lat": 47.49934,
+      "lon": 8.414267,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "b22d78b9-a253-4a2b-992b-8b37d019af7d",
+      "origin": "spar",
+      "name": "SPAR Mandachstrasse 54, 8155 Niederhasli",
+      "lat": 47.479973,
+      "lon": 8.489757,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "745bbe38-5d7a-4033-88e6-a1d94ee41c8b",
+      "origin": "spar",
+      "name": "SPAR Forchstrasse 4, 8133 Esslingen",
+      "lat": 47.287716,
+      "lon": 8.710847,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "6e3f34d4-807a-4a30-b81c-f45a603632e8",
+      "origin": "spar",
+      "name": "SPAR Landstrasse 8, 8112 Otelfingen",
+      "lat": 47.459389,
+      "lon": 8.385293,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "ed1376bd-a707-4b7d-b6de-94ee8a2d4542",
+      "origin": "spar",
+      "name": "SPAR Regensdorferstrasse 22, 8108 Dällikon",
+      "lat": 47.439415,
+      "lon": 8.441033,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "5402797e-b7ce-4ac7-aaca-49ade3ad9311",
+      "origin": "spar",
+      "name": "SPAR Pumpwerkstrasse 56, 8105 Regensdorf",
+      "lat": 47.445358,
+      "lon": 8.464169,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "881237bf-4fd0-4b55-ace7-71bdb4132b9f",
+      "origin": "spar",
+      "name": "SPAR Regensdorferstrasse 2, 8104 Weiningen ZH",
+      "lat": 47.419834,
+      "lon": 8.434758,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "320d4175-fb1d-4499-8cb6-026879faf53f",
+      "origin": "spar",
+      "name": "SPAR Schaffhauserstrasse 239, 8057 Zürich",
+      "lat": 47.403236,
+      "lon": 8.547068,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "2e98e806-9028-49b8-a35f-4e56e915d8c7",
+      "origin": "spar",
+      "name": "SPAR Kiefernweg 37, 8057 Zürich",
+      "lat": 47.407585,
+      "lon": 8.532389,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "01512048-8442-4ca8-9f90-58adb8ecd20e",
+      "origin": "spar",
+      "name": "SPAR Regensbergstrasse 300, 8050 Zürich",
+      "lat": 47.41156,
+      "lon": 8.527901,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "a88c4169-f644-42ce-ac76-756b9aae1b27",
+      "origin": "spar",
+      "name": "SPAR Freilagerstrasse 51, 8047 Zürich",
+      "lat": 47.380074,
+      "lon": 8.489709,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "3c32487d-1b9e-45a2-a401-056dee252c3d",
+      "origin": "spar",
+      "name": "SPAR Toblerplatz 5, 8044 Zürich",
+      "lat": 47.379108,
+      "lon": 8.559813,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "07381428-8407-4638-8dc0-3bb86d97e06f",
+      "origin": "spar",
+      "name": "SPAR Spinnereiplatz 4, 8041 Zürich",
+      "lat": 47.338284,
+      "lon": 8.520013,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "2741891d-9763-45eb-801f-2008fdd3c06d",
+      "origin": "spar",
+      "name": "SPAR Hottingerstrasse 2, 8032 Zürich",
+      "lat": 47.370369,
+      "lon": 8.549417,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "1a4a857c-af62-4bd0-9667-9711d3c7cd28",
+      "origin": "spar",
+      "name": "SPAR Dolderstrasse 5, 8032 Zürich",
+      "lat": 47.370285,
+      "lon": 8.556919,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "f75e3094-6382-4213-a3a9-c85388d06a27",
+      "origin": "spar",
+      "name": "SPAR Ottikerstrasse 4, 8006 Zürich",
+      "lat": 47.385342,
+      "lon": 8.54217,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "bef9a18d-d1e8-4e8e-87d6-1083170dbf95",
+      "origin": "spar",
+      "name": "SPAR Hardturmstrasse 126, 8005 Zürich",
+      "lat": 47.393513,
+      "lon": 8.51332,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "0d11ec53-b080-4611-a48d-01f78397f05c",
+      "origin": "spar",
+      "name": "SPAR Stradung 54, 7460 Savognin",
+      "lat": 46.594929,
+      "lon": 9.60122,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "4797c011-955c-4803-9940-0ef40669ae60",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 1, 7408 Cazis",
+      "lat": 46.721195,
+      "lon": 9.430352,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "f9e06fef-cc97-4785-bec0-817035b128b6",
+      "origin": "spar",
+      "name": "SPAR Sarganserstrasse 7, 7324 Vilters",
+      "lat": 47.024815,
+      "lon": 9.451385,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "4666171a-cd45-4256-9062-f5226c9b5a7d",
+      "origin": "spar",
+      "name": "SPAR Grossfeldstrasse 20, 7310 Bad Ragaz",
+      "lat": 47.006901,
+      "lon": 9.500123,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "5f78f8d3-89e4-4c3f-8934-34b6e7d5664f",
+      "origin": "spar",
+      "name": "SPAR Städtli 3, 7304 Maienfeld",
+      "lat": 47.007496,
+      "lon": 9.53113,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "012793fa-d676-40fd-946a-c69bc7e29f4b",
+      "origin": "spar",
+      "name": "SPAR Talstrasse 8, 7270 Davos Platz",
+      "lat": 46.793331,
+      "lon": 9.823593,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "f78a5f8f-f4aa-4876-8e05-15500c4b66a5",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 1, 7260 Davos Dorf",
+      "lat": 46.809235,
+      "lon": 9.840363,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "08900a22-e179-4b23-bed5-27fdfe4abf0a",
+      "origin": "spar",
+      "name": "SPAR Doggilochstrasse 96, 7250 Klosters",
+      "lat": 46.861809,
+      "lon": 9.89245,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "61cd9676-1927-41e9-97e1-d4f5375a3659",
+      "origin": "spar",
+      "name": "SPAR von Salis-Strasse 33, 7212 Seewis Dorf",
+      "lat": 46.990124,
+      "lon": 9.63775,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "1fdcc58d-1bcf-4415-8207-cacb35ad1fad",
+      "origin": "spar",
+      "name": "SPAR Via Gonda 12, 7180 Disentis/Mustér",
+      "lat": 46.7024,
+      "lon": 8.851829,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "72d3f84f-598b-415f-ae67-1246cd30de20",
+      "origin": "spar",
+      "name": "SPAR Meierhof 23a, 7134 Obersaxen",
+      "lat": 46.749062,
+      "lon": 9.100597,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "0c46f138-8238-45af-b4b6-c887b736a019",
+      "origin": "spar",
+      "name": "SPAR Glennerstrasse 10, 7130 Ilanz",
+      "lat": 46.774151,
+      "lon": 9.206265,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "e7180533-235b-4943-b9b5-861bc0465ebf",
+      "origin": "spar",
+      "name": "SPAR Voa Nova  10, 7082 Vaz/Lain",
+      "lat": 46.697308,
+      "lon": 9.528292,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "7593e793-e62b-4299-b55d-ed2ed1aba545",
+      "origin": "spar",
+      "name": "SPAR Voa Nova 27, 7078 Lenzerheide",
+      "lat": 46.724941,
+      "lon": 9.557056,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "c89d79fe-06b5-48c9-9c8f-e980c5dd51cf",
+      "origin": "spar",
+      "name": "SPAR Voa Principala 9, 7077 Valbella",
+      "lat": 46.746414,
+      "lon": 9.555209,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "0195ef09-87cb-42b9-b4f6-bcb6360b9408",
+      "origin": "spar",
+      "name": "SPAR Via G. B. Pioda  14, 6900 Lugano",
+      "lat": 46.007626,
+      "lon": 8.954444,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "0c876cb0-535a-424e-bfbd-525f9a2e71fa",
+      "origin": "spar",
+      "name": "SPAR Schmiedgasse 10, 6460 Altdorf",
+      "lat": 46.881096,
+      "lon": 8.643632,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "81c4ecf7-f72f-44f8-8091-fcfed09786e0",
+      "origin": "spar",
+      "name": "SPAR Hauptstrasse 97, 6436 Muotathal",
+      "lat": 46.97282,
+      "lon": 8.767036,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "e45610e2-31a9-4b8b-8ec8-03b3a62d7a32",
+      "origin": "spar",
+      "name": "SPAR Hausmatt 1–3, 6423 Seewen",
+      "lat": 47.0275,
+      "lon": 8.633027,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "6b26848e-d991-4d36-b3c8-c53bd16d111e",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 3, 6415 Arth",
+      "lat": 47.06459,
+      "lon": 8.523687,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "caf211f8-d932-4350-8291-dd1bff5bbeac",
+      "origin": "spar",
+      "name": "SPAR Beckenriederstrasse 5, 6374 Buochs",
+      "lat": 46.973885,
+      "lon": 8.421463,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "73a90047-d445-4e3e-946e-d4fb3982f439",
+      "origin": "spar",
+      "name": "SPAR Robert Durrerstrasse 22, 6370 Stans",
+      "lat": 46.960442,
+      "lon": 8.365001,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "7d96fc84-5e9c-43d5-a3e9-a69cd0ff810a",
+      "origin": "spar",
+      "name": "SPAR Buonaserstrasse 17, 6343 Rotkreuz",
+      "lat": 47.141186,
+      "lon": 8.430819,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d2c3b2ce-7fac-4544-9bca-e6d1f8bfdb3d",
+      "origin": "spar",
+      "name": "SPAR Luzernerstrasse 101, 6333 Hünenberg See",
+      "lat": 47.173458,
+      "lon": 8.449232,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "ba791a15-f180-477b-b965-204b9e58df92",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 10, 6300 Zug",
+      "lat": 47.16856,
+      "lon": 8.51598,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "8001f769-1f23-47a0-a124-a36b9e12015a",
+      "origin": "spar",
+      "name": "SPAR Luzernstrasse 33, 6281 Hochdorf",
+      "lat": 47.164921,
+      "lon": 8.300327,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "cc9ef642-2d6b-4f88-aebe-12f54f921479",
+      "origin": "spar",
+      "name": "SPAR Ohmstalerstrasse 8, 6247 Schötz",
+      "lat": 47.170456,
+      "lon": 7.987977,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "2ce892d6-2c04-447a-a419-42a836221eb1",
+      "origin": "spar",
+      "name": "SPAR Feld 2, 6246 Altishofen",
+      "lat": 47.196423,
+      "lon": 7.967965,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "6d6cb2ff-54ef-422c-9ab7-009f96534517",
+      "origin": "spar",
+      "name": "SPAR Luzernerstrasse 35, 6208 Oberkirch",
+      "lat": 47.157036,
+      "lon": 8.115743,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "f3baedcc-4b54-4797-a8ab-218acd42c261",
+      "origin": "spar",
+      "name": "SPAR Kantonsstrasse 11a, 6207 Nottwil",
+      "lat": 47.135986,
+      "lon": 8.134821,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "7457a4e1-3f62-47f5-bb0a-aaed7be63eb7",
+      "origin": "spar",
+      "name": "SPAR Surseestrasse 28, 6206 Neuenkirch",
+      "lat": 47.103672,
+      "lon": 8.201699,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "ccdd924b-4ebc-49e9-ac44-68d895f0952f",
+      "origin": "spar",
+      "name": "SPAR Dorfstrasse 14, 6153 Ufhusen",
+      "lat": 47.117264,
+      "lon": 7.899035,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "b17af9bc-f299-41a9-b189-7bf37b1212d8",
+      "origin": "spar",
+      "name": "SPAR Linden 10, 6147 Altbüron",
+      "lat": 47.184139,
+      "lon": 7.883381,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "598953cd-41a5-4247-b957-59c0c737c7a0",
+      "origin": "spar",
+      "name": "SPAR Dorfplatz 1, 6146 Grossdietwil",
+      "lat": 47.17054,
+      "lon": 7.888272,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d9168a6b-22d2-4df5-8a1f-b1883db24295",
+      "origin": "spar",
+      "name": "SPAR Chrüzmatte 1, 6133 Hergiswil b.Willisau",
+      "lat": 47.085117,
+      "lon": 7.956718,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "98ad4e3d-0247-4fc5-a07d-365ac9fe25d3",
+      "origin": "spar",
+      "name": "SPAR Sonnhaldenstrasse 4, 6122 Menznau",
+      "lat": 47.084187,
+      "lon": 8.041055,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "af297c19-69c0-4db7-9834-363badb45538",
+      "origin": "spar",
+      "name": "SPAR Lindenhof 7, 6060 Sarnen",
+      "lat": 46.897385,
+      "lon": 8.247669,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "31971c67-3686-4f4b-91f4-e09624e62a44",
+      "origin": "spar",
+      "name": "SPAR Seetalstrasse 98, 6032 Emmen",
+      "lat": 47.076801,
+      "lon": 8.300771,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "4c2a9ee5-cad7-4d35-8b6f-12a5d05adebb",
+      "origin": "spar",
+      "name": "SPAR Guglern 16, 6018 Buttisholz",
+      "lat": 47.107861,
+      "lon": 8.084267,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d790bb89-543d-4653-a1f6-970fd08fecca",
+      "origin": "spar",
+      "name": "SPAR Dorfstrasse 31, 6005 Luzern",
+      "lat": 47.037941,
+      "lon": 8.315249,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "c2be205c-8c9a-4526-bdcc-adbf63396134",
+      "origin": "spar",
+      "name": "SPAR Bleicherstrasse 12, 6003 Luzern",
+      "lat": 47.042435,
+      "lon": 8.306213,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "bd8376d9-c395-4750-962f-8b22884e5b5e",
+      "origin": "spar",
+      "name": "SPAR Mühlestrasse 6, 5702 Niederlenz",
+      "lat": 47.402771,
+      "lon": 8.175661,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "a00178fc-1e60-4e2c-bb64-2899b85d2f1b",
+      "origin": "spar",
+      "name": "SPAR Aarauerstrasse 21, 5603 Staufen-Lenzburg",
+      "lat": 47.386967,
+      "lon": 8.169376,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "26277bd2-77a0-4104-9d15-bf61759f0813",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 92, 5430 Wettingen",
+      "lat": 47.464394,
+      "lon": 8.328701,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "e5152bf7-c2bb-4455-acde-d2a8feafff2e",
+      "origin": "spar",
+      "name": "SPAR Fislisbacherstrasse 4, 5406 Baden",
+      "lat": 47.438583,
+      "lon": 8.271539,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "c8f66f96-910a-4288-be62-6f50c24e91de",
+      "origin": "spar",
+      "name": "SPAR Mellingerstrasse 208, 5405 Baden",
+      "lat": 47.451279,
+      "lon": 8.290142,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "8f14248f-c446-4fae-861a-b801f0e4e83d",
+      "origin": "spar",
+      "name": "SPAR Husmatt 2, 5405 Baden",
+      "lat": 47.454395,
+      "lon": 8.28161,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "b4713130-73fe-459c-884d-36b61d642eba",
+      "origin": "spar",
+      "name": "SPAR Bahnhofstrasse 17, 5300 Turgi",
+      "lat": 47.494373,
+      "lon": 8.252382,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "ddfc95df-c1f9-4cb1-aaf8-5654d39e0ee5",
+      "origin": "spar",
+      "name": "SPAR Holzikerstrasse 8, 5040 Schöftland",
+      "lat": 47.312088,
+      "lon": 8.049856,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "56207917-263e-49ff-bb5e-7f20a6e403f6",
+      "origin": "spar",
+      "name": "SPAR Muhenstrasse 9, 5036 Oberentfelden",
+      "lat": 47.354397,
+      "lon": 8.047401,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "685b09f2-966d-4250-9bd0-5329b9df78d9",
+      "origin": "spar",
+      "name": "SPAR Aarwangerstrasse 82, 4900 Langenthal",
+      "lat": 47.223965,
+      "lon": 7.779218,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "5f8bd5e5-30a4-4f44-83d3-4cca3049a9d5",
+      "origin": "spar",
+      "name": "SPAR Galliweg / Rosenweg 25, 4852 Rothrist",
+      "lat": 47.302837,
+      "lon": 7.877421,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "bad0b152-81fe-4601-b031-445836eb2e61",
+      "origin": "spar",
+      "name": "SPAR Altmattweg 1, 4802 Strengelbach",
+      "lat": 47.280418,
+      "lon": 7.930257,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "6eccf4cc-5f69-423e-8842-f5d98d1736fd",
+      "origin": "spar",
+      "name": "SPAR Neue Strasse 2, 4703 Kestenholz",
+      "lat": 47.281853,
+      "lon": 7.75252,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "e06155ea-4332-4e7c-8b2f-fdbdf711dd32",
+      "origin": "spar",
+      "name": "SPAR Kriegstettenstrasse 14, 4563 Gerlafingen",
+      "lat": 47.170597,
+      "lon": 7.575123,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d51cd012-58cb-4a1f-9972-8b99eef31830",
+      "origin": "spar",
+      "name": "SPAR Blümlisalpstrasse 1, 4562 Biberist",
+      "lat": 47.187176,
+      "lon": 7.555974,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "8f7b3451-c460-48df-878d-2f5737f9a290",
+      "origin": "spar",
+      "name": "SPAR Konsumstrasse 87, 4466 Ormalingen",
+      "lat": 47.46941,
+      "lon": 7.877373,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "028ebb9e-f4a4-44ab-84fd-ae89b2fe434a",
+      "origin": "spar",
+      "name": "SPAR Hauptstrasse 41, 4434 Hölstein",
+      "lat": 47.425865,
+      "lon": 7.770211,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "d12e7c5c-3447-4ac4-8bff-e58a0ecc8ea4",
+      "origin": "spar",
+      "name": "SPAR Längistrasse 14, 4133 Pratteln",
+      "lat": 47.533813,
+      "lon": 7.71016,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "78fe4e17-cbc8-43ad-ad70-099497dbb921",
+      "origin": "spar",
+      "name": "SPAR Hohenstrasse 134, 4104 Oberwil",
+      "lat": 47.519802,
+      "lon": 7.553023,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "8463070d-d0fe-4b38-88dc-35a1c95080b9",
+      "origin": "spar",
+      "name": "SPAR Hegenheimerstrasse 93, 4055 Basel",
+      "lat": 47.561172,
+      "lon": 7.56936,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "edd30fd6-d710-40f2-a479-e605e55f3bf9",
+      "origin": "spar",
+      "name": "SPAR Birsstrasse 200, 4052 Basel",
+      "lat": 47.547573,
+      "lon": 7.622123,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "4048539b-eefd-4af0-9835-dc8a4be92767",
+      "origin": "spar",
+      "name": "SPAR Matte 29c, 3807 Iseltwald",
+      "lat": 46.711201,
+      "lon": 7.964155,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "31c700b5-b89d-4781-a431-440925db3434",
+      "origin": "spar",
+      "name": "SPAR Blumensteinstrasse 11, 3634 Thierachern",
+      "lat": 46.751389,
+      "lon": 7.569378,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "a64bbf98-e463-4fae-91a7-704a23eef7b2",
+      "origin": "spar",
+      "name": "SPAR Gurnigelstrasse 38, 3627 Heimberg",
+      "lat": 46.781139,
+      "lon": 7.604004,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "9a6aa7c9-79ce-4002-a3c4-042d2693fa38",
+      "origin": "spar",
+      "name": "SPAR Aarestrasse 30a, 3600 Thun",
+      "lat": 46.757099,
+      "lon": 7.626808,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "f4066966-e79b-4fd2-89c3-3d9d1bee3ec4",
+      "origin": "spar",
+      "name": "SPAR Spittelgasse 4, 3294 Büren a. A.",
+      "lat": 47.13924,
+      "lon": 7.372405,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "449fbbcb-a9f5-4505-b493-6ad6a089d464",
+      "origin": "spar",
+      "name": "SPAR Dorfstrasse 41, 3257 Grossaffoltern",
+      "lat": 47.066696,
+      "lon": 7.361,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "f3a182a0-e5be-4993-b7af-917ca6ccc01f",
+      "origin": "spar",
+      "name": "SPAR Käsereiweg 1, 3212 Gurmels",
+      "lat": 46.892921,
+      "lon": 7.172997,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "dee9d25f-c42b-4dd5-8be0-de386eca9f03",
+      "origin": "spar",
+      "name": "SPAR Murtenstrasse 13, 3210 Kerzers",
+      "lat": 46.974094,
+      "lon": 7.194304,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "3541c2d6-2a7e-4d10-8eaa-9268e28552bc",
+      "origin": "spar",
+      "name": "SPAR Könizstrasse 155, 3097 Liebefeld",
+      "lat": 46.936008,
+      "lon": 7.41674,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "7c288dd7-931f-4a3c-995b-6ea54f0aef4f",
+      "origin": "spar",
+      "name": "SPAR Lyssstrasse 5, 3054 Schüpfen",
+      "lat": 47.043129,
+      "lon": 7.380461,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "96eeea3d-2c1e-414d-b8c0-e4d08d6297a5",
+      "origin": "spar",
+      "name": "SPAR Hauptstrasse 23, 3035 Frieswil",
+      "lat": 46.995258,
+      "lon": 7.284959,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "6b692592-97da-476a-9f91-735d35ab683b",
+      "origin": "spar",
+      "name": "SPAR Schmelzistrasse 14, 2540 Grenchen",
+      "lat": 47.19804,
+      "lon": 7.390342,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    },
+    {
+      "id": "db7572b7-ce41-426d-90e3-7986ff899511",
+      "origin": "spar",
+      "name": "SPAR Hauptstrasse 30, 1713 St. Antoni",
+      "lat": 46.821766,
+      "lon": 7.26091,
+      "category": "shopping",
+      "techProvider": "DFX.swiss"
+    }
+  ]
+}

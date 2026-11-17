@@ -14,8 +14,10 @@ const DEVICE_FOR = {
 export default defineConfig({
   testDir: './tests',
   forbidOnly: !!process.env.CI,
-  // Screenshots must be byte-for-byte reproducible against the committed
-  // baselines, which are generated in the pinned Playwright container.
+  // Screenshots are compared with the committed baselines, which are generated
+  // in the pinned Playwright container. The ratio below stays 0. Pay-map shots
+  // override it in tests/visual.spec.mjs: those baselines stay unmasked and
+  // allow a pixel budget, because the live map tiles are not byte-stable.
   snapshotPathTemplate: 'tests/__screenshots__/{projectName}/{arg}{ext}',
   timeout: 60_000,
   expect: {

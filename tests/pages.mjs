@@ -22,6 +22,8 @@ export const PAGES = [
   '/promo',
   '/privacy/',
   '/privacy/en/',
+  '/pay/',
+  '/pay/en/',
 ];
 
 // Viewports the visual suite renders: desktop, a real tablet width, and a phone.
@@ -33,9 +35,10 @@ export const PROJECTS = ['desktop-chromium', 'tablet-chromium', 'mobile-safari']
 //   platform — optional forced platform ('ios' | 'android'); applied via a UA
 //              override before the page scripts run, so platform.js sets
 //              html[data-platform] deterministically regardless of the device
-//   waitFor  — optional confirm/merge-page state ('confirmed' | 'already-completed' |
-//              'invalid' | 'no-registration' | 'unavailable') to wait for before the
-//              shot (the ?mock hook renders it after a short delay)
+//   waitFor  — optional state to wait for before the shot. Confirm and merge use
+//              'confirmed' | 'already-completed' | 'invalid' | 'no-registration' |
+//              'unavailable'. Pay locations use 'places' | 'empty' | 'error'.
+//              The ?mock hook renders it before the shot.
 //   noJs     — optional; render this view with scripting disabled. The landings
 //              resolve their code in JS, so without it they would sit in the
 //              loading state for ever; the <noscript> panel is what the visitor
@@ -526,6 +529,43 @@ export const VIEWS = [
     path: '/promo/EVT1',
     noJs: true,
     projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'],
+  },
+
+  // Pay locations. The populated map is the committed published shop list,
+  // the same snapshot the app baselines use. Empty and error stay local mocks.
+  {
+    slug: 'pay-places',
+    path: '/pay/',
+    waitFor: 'places',
+    placesFixture: 'tests/fixtures/published-places.json',
+    projects: ['desktop-chromium', 'tablet-chromium', 'mobile-safari'],
+  },
+  {
+    slug: 'pay-empty',
+    path: '/pay/?mock=empty',
+    waitFor: 'empty',
+    projects: ['desktop-chromium', 'mobile-safari'],
+  },
+  {
+    slug: 'pay-error',
+    path: '/pay/?mock=error',
+    waitFor: 'error',
+    projects: ['desktop-chromium'],
+  },
+  {
+    slug: 'pay-place',
+    path: '/pay/',
+    waitFor: 'places',
+    placesFixture: 'tests/fixtures/published-places.json',
+    openFirstPin: true,
+    projects: ['desktop-chromium'],
+  },
+  {
+    slug: 'pay-places-en',
+    path: '/pay/en/',
+    waitFor: 'places',
+    placesFixture: 'tests/fixtures/published-places.json',
+    projects: ['desktop-chromium'],
   },
 ];
 
