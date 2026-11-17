@@ -71,6 +71,7 @@ test.describe('pay locations', () => {
     await page.goto('/pay/?mock=place');
     await expect(page.locator('#pay-popup-name')).toHaveText('Zürich');
     await expect(page.locator('#pay-popup-category')).toHaveText('Lebensmittel');
+    await expect(page.locator('#pay-popup-address')).toBeHidden();
     await expect(page.locator('#pay-map')).not.toContainText('Zürich');
     await page.locator('#pay-popup-close').click();
     await expect(page.locator('#pay-popup')).toBeHidden();
@@ -104,21 +105,29 @@ test.describe('pay locations', () => {
     });
     // The same shops the app baseline lists, present here as pins rather than a list.
     await expect(
-      page.locator('#pay-map .pay-pin[aria-label="SPAR Auwiesenstrasse 24, 9030 Abtwil"]'),
+      page.locator('#pay-map .pay-pin[aria-label="SPAR Abtwil, Auwiesenstrasse 24, 9030 Abtwil"]'),
     ).toHaveCount(1);
     await expect(
-      page.locator('#pay-map .pay-pin[aria-label="SPAR Schmiedgasse 10, 6460 Altdorf"]'),
+      page.locator('#pay-map .pay-pin[aria-label="SPAR Altdorf, Schmiedgasse 10, 6460 Altdorf"]'),
     ).toHaveCount(1);
+    const labels = await page
+      .locator('#pay-map .pay-pin')
+      .evaluateAll((pins) => pins.map((pin) => pin.getAttribute('aria-label')));
+    expect(new Set(labels).size).toBe(labels.length);
     for (const town of ['Zürich', 'Bern', 'Lugano']) {
       await expect(page.locator(`#pay-map .pay-pin[aria-label="${town}"]`)).toHaveCount(0);
     }
     // Neighbouring shops share a point. A coordinate click lands on whichever
     // pin was painted last, so activate this shop on the element itself.
     await page
-      .locator(`#pay-map .pay-pin[aria-label=${JSON.stringify(shop.name)}]`)
+      .locator('#pay-map .pay-pin')
+      .nth(0)
       .evaluate((el) => el.click());
     await expect(page.locator('#pay-popup-name')).toHaveText(shop.name);
     await expect(page.locator('#pay-popup-category')).toHaveText(shop.category);
+    await expect(page.locator('#pay-popup-address')).toHaveText(
+      `${shop.street} ${shop.houseNumber}, ${shop.postalCode} ${shop.city}`,
+    );
     await expect(page.locator('#pay-map')).not.toContainText(shop.name);
   });
 

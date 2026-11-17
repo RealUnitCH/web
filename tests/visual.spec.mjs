@@ -57,12 +57,14 @@ test.describe('visual regression', () => {
         }
         if (view.openFirstPin) {
           const shop = JSON.parse(fixtureBody.toString()).places[0];
+          const address = `${shop.street} ${shop.houseNumber}, ${shop.postalCode} ${shop.city}`;
           // Neighbouring shops share a point. A coordinate click lands on
           // whichever pin was painted last, so activate this shop on the element.
           await page
-            .locator(`#pay-map .pay-pin[aria-label=${JSON.stringify(shop.name)}]`)
+            .locator(`#pay-map .pay-pin[aria-label=${JSON.stringify(`${shop.name}, ${address}`)}]`)
             .evaluate((el) => el.click());
           await expect(page.locator('#pay-popup-name')).toHaveText(shop.name);
+          await expect(page.locator('#pay-popup-address')).toHaveText(address);
         }
 
         const screenshot = { fullPage: true };
