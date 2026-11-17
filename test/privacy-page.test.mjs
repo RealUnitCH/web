@@ -43,9 +43,9 @@ describe('privacy pages', () => {
     }
   });
 
-  test('the pages carry the June 2026 version the mails refer to', () => {
-    expect(read(PAGES.de.target)).toContain('<em>Stand: Juni 2026</em>');
-    expect(read(PAGES.en.target)).toContain('<em>As of: June 2026</em>');
+  test('the pages carry the October 2026 version the mails refer to', () => {
+    expect(read(PAGES.de.target)).toContain('<em>Stand: Oktober 2026</em>');
+    expect(read(PAGES.en.target)).toContain('<em>As of: October 2026</em>');
     expect(read(PAGES.de.target)).toContain('<html lang="de">');
     expect(read(PAGES.en.target)).toContain('<html lang="en">');
   });

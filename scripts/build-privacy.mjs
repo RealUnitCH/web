@@ -1,7 +1,9 @@
-// Builds the public privacy pages from the privacy policy bundled in the
-// RealUnit app (RealUnitCH/app assets/legal/privacy_policy_{de,en}.md, copied
-// unchanged into legal/). The RealUnit mails link to realunit.app/privacy/ as
-// the app's privacy policy, so the page text must stay word for word the app's.
+// Builds the public privacy pages from legal/privacy_policy_{de,en}.md.
+// The same wording is the document at
+// https://api.realunit.app/v1/legal/privacy_policy/de and
+// https://api.realunit.app/v1/legal/privacy_policy/en.
+// These pages do not request that URL when someone opens them.
+// RealUnit mails link to realunit.app/privacy/.
 //
 //   node scripts/build-privacy.mjs          write public/privacy/{,en/}index.html
 //   node scripts/build-privacy.mjs --check  exit 1 if the committed pages differ
